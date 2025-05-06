@@ -1,0 +1,5 @@
+discord.py==2.4.1
+python-dotenv
+yt-dlp
+PyNaCl
+certifi==2024.2.2
