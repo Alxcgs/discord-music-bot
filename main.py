@@ -5,8 +5,10 @@ import logging
 import os
 import ssl
 import certifi
-import discord.opus # <-- Додано імпорт
 from discord_music_bot.config import DISCORD_TOKEN # Імпортуємо токен з конфігурації
+
+# Налаштування логування
+logging.basicConfig(level=logging.INFO)
 
 # Налаштування інтентів (перенесено з bot.py/config.py)
 intents = discord.Intents.default()
@@ -63,16 +65,14 @@ async def main():
     ssl_context = ssl.create_default_context()
     ssl_context.load_verify_locations(cafile=certifi.where())
     
-    # Завантаження бібліотеки Opus
-    opus_path = '/opt/homebrew/Cellar/opus/1.5.2/lib/libopus.dylib' # Перевірте цей шлях!
+    # Перевірка наявності FFmpeg
     if not discord.opus.is_loaded():
         try:
-            discord.opus.load_opus(opus_path)
-            logging.info(f"Бібліотеку Opus успішно завантажено з: {opus_path}")
-        except discord.OpusNotLoaded:
-            logging.warning(f"Не вдалося знайти бібліотеку Opus за шляхом {opus_path}. Перевірте шлях або встановіть Opus. Голосові функції можуть не працювати.")
+            # На Windows discord.py автоматично знайде libopus
+            discord.opus._load_default()
+            logging.info("Бібліотеку Opus успішно завантажено")
         except Exception as e:
-            logging.error(f"Сталася помилка під час завантаження Opus: {e}")
+            logging.warning(f"Не вдалося завантажити бібліотеку Opus. Переконайтеся, що FFmpeg встановлено. Помилка: {e}")
     else:
         logging.info("Бібліотека Opus вже завантажена.")
 

@@ -2,7 +2,7 @@ import discord
 import yt_dlp
 import asyncio
 import logging
-import os # Додано імпорт os
+import os
 from discord_music_bot.config import YDL_OPTIONS, FFMPEG_OPTIONS
 
 class YTDLSource(discord.PCMVolumeTransformer):
@@ -19,87 +19,102 @@ class YTDLSource(discord.PCMVolumeTransformer):
     async def from_url(cls, url, *, loop=None, stream=True):
         """Створює екземпляр YTDLSource з URL або пошукового запиту."""
         loop = loop or asyncio.get_event_loop()
-        logging.info(f"Attempting to extract info for URL: {url} with stream={stream}") # Додано логування
+        logging.info(f"Attempting to extract info for URL: {url} with stream={stream}")
+
         try:
-            data = await loop.run_in_executor(None, lambda: yt_dlp.YoutubeDL(YDL_OPTIONS).extract_info(url, download=not stream))
-            logging.info(f"Successfully extracted info for URL: {url}") # Додано логування
-        except yt_dlp.utils.DownloadError as e:
-             logging.error(f"Помилка завантаження yt-dlp: {e}")
-             # Спробуємо ще раз з іншим форматом, якщо перший був 'best'
-             if YDL_OPTIONS.get('format') == 'bestaudio/best': # Використовуємо .get для безпеки
-                 logging.info("Спроба з форматом 'worstaudio'")
-                 ydl_opts_worst = YDL_OPTIONS.copy()
-                 ydl_opts_worst['format'] = 'worstaudio'
-                 try:
-                     data = await loop.run_in_executor(None, lambda: yt_dlp.YoutubeDL(ydl_opts_worst).extract_info(url, download=not stream))
-                 except yt_dlp.utils.DownloadError as e2:
-                     logging.error(f"Повторна помилка завантаження yt-dlp: {e2}")
-                     return None
-             else:
+            # Копіюємо опції, щоб не змінювати глобальні
+            ydl_opts = YDL_OPTIONS.copy()
+            
+            # Якщо це пошуковий запит (не URL), додаємо "ytsearch:"
+            if not url.startswith('http'):
+                url = f"ytsearch:{url}"
+
+            # Отримуємо інформацію про відео
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                try:
+                    data = await loop.run_in_executor(None, lambda: ydl.extract_info(url, download=not stream))
+                    logging.info(f"Successfully extracted info for URL: {url}")
+                except Exception as e:
+                    logging.error(f"Failed to extract info: {e}")
+                    return None
+
+            if data is None:
+                logging.error("Failed to extract data from yt-dlp")
                 return None
 
-        if data is None:
-             logging.error("Не вдалося отримати дані з yt-dlp.")
-             return None
-
-        try: # <-- Новий блок try
-            # logging.info(f"Data extracted: {{k: v for k, v in data.items() if k != 'formats'}}") # Логування даних (без форматів) - Закоментовано для тестування
-            logging.info("Data dictionary successfully created after extraction.") # Спрощене логування
-
-            logging.info("Checking for 'entries' in data.") # Новий лог
+            # Якщо це результат пошуку, беремо перший результат
             if 'entries' in data:
-                # Беремо перший результат пошуку або плейлиста
-                logging.info("Found 'entries' in data, taking the first one.") # Додано логування
                 data = data['entries'][0]
-                logging.info("Data updated after taking the first entry.") # Новий лог
+
+            logging.info("Processing audio formats...")
+            
+            # Отримуємо URL для аудіо
+            if stream:
+                formats = data.get('formats', [])
+                if not formats:
+                    logging.error("No formats found in data")
+                    return None
+
+                logging.info(f"Found {len(formats)} formats")
+                
+                # Шукаємо аудіо формат
+                audio_url = None
+                
+                # Спочатку шукаємо формат з тільки аудіо (m4a або mp3)
+                for f in formats:
+                    if not isinstance(f, dict):
+                        continue
+                        
+                    format_id = f.get('format_id', '')
+                    acodec = f.get('acodec', 'none')
+                    vcodec = f.get('vcodec', 'none')
+                    
+                    logging.info(f"Checking format {format_id}: acodec={acodec}, vcodec={vcodec}")
+                    
+                    # Шукаємо формат, який містить тільки аудіо
+                    if acodec != 'none' and vcodec == 'none':
+                        audio_url = f.get('url')
+                        if audio_url:
+                            logging.info(f"Found audio-only format: {format_id}")
+                            break
+                
+                # Якщо не знайшли чисте аудіо, шукаємо формат з найкращою якістю аудіо
+                if not audio_url:
+                    logging.info("No audio-only format found, searching for best audio quality")
+                    best_audio = None
+                    best_bitrate = 0
+                    
+                    for f in formats:
+                        if not isinstance(f, dict):
+                            continue
+                            
+                        acodec = f.get('acodec', 'none')
+                        abr = f.get('abr', 0)
+                        
+                        if acodec != 'none' and abr > best_bitrate:
+                            best_audio = f
+                            best_bitrate = abr
+                    
+                    if best_audio:
+                        audio_url = best_audio.get('url')
+                        logging.info(f"Selected format with best audio quality: {best_audio.get('format_id')} (bitrate: {best_bitrate})")
+
+                if not audio_url:
+                    logging.error("Could not find valid audio URL in any format")
+                    return None
+
+                logging.info("Creating FFmpeg audio source...")
+                try:
+                    source = discord.FFmpegPCMAudio(audio_url, **FFMPEG_OPTIONS)
+                    logging.info("Successfully created FFmpeg audio source")
+                    return cls(source, data=data)
+                except Exception as e:
+                    logging.error(f"Error creating FFmpegPCMAudio: {e}")
+                    return None
             else:
-                logging.info("\'entries\' not found in data.") # Новий лог
-
-            # logging.info(f"Data before filename determination: {{k: v for k, v in data.items() if k != 'formats'}}") # Додаткове логування даних - Закоментовано
-            logging.info("Passed 'entries' check.") # Новий простий лог
-
-            filename = data.get('url') if stream else yt_dlp.YoutubeDL(YDL_OPTIONS).prepare_filename(data)
-            logging.info(f"Determined filename/URL after potential prepare_filename: {filename}") # Оновлене логування
-
-            if not filename:
-                 logging.error("Не вдалося отримати URL або ім'я файлу з yt-dlp.")
-                 return None
-
-            # Перевіряємо, чи є 'url' в data перед використанням як filename
-            # Це важливо, оскільки prepare_filename може повернути шлях до файлу
-            audio_source_url = data.get('url')
-            if not audio_source_url and not stream:
-                logging.info(f"Audio source URL not found and stream=False. Checking if file exists: {filename}") # Додано логування
-                # Якщо ми завантажували файл, filename має бути шляхом
-                if not os.path.exists(filename):
-                     logging.error(f"Завантажений файл не знайдено: {filename}")
-                     return None
-            elif stream and not audio_source_url:
-                 logging.error("Не вдалося отримати URL аудіопотоку для стрімінгу.")
-                 return None
-
-            # Використовуємо audio_source_url для стрімінгу, filename для завантаженого файлу
-            source_input = audio_source_url if stream else filename
-            logging.info(f"Final source_input determined: {source_input}") # Додано логування остаточного джерела
-            logging.info(f"Stream flag value: {stream}") # Логування значення stream
-            logging.info(f"audio_source_url value: {audio_source_url}") # Логування значення audio_source_url
+                logging.info("Download mode is not supported")
+                return None
 
         except Exception as e:
-            logging.error(f"Unexpected error processing data after extraction: {type(e).__name__} - {e}", exc_info=True)
-            return None
-        # <-- Кінець нового блоку try...except
-
-        try:
-            logging.info(f"Attempting to initialize FFmpegPCMAudio with source: {source_input} and options: {FFMPEG_OPTIONS}") # Детальне логування
-            logging.debug(f"FFMPEG options being passed: {FFMPEG_OPTIONS}") # Логування опцій FFmpeg
-            # --- Start FFmpeg Init --- 
-            ffmpeg_audio = discord.FFmpegPCMAudio(source_input, **FFMPEG_OPTIONS)
-            # --- End FFmpeg Init --- 
-            logging.info(f"Successfully initialized FFmpegPCMAudio for: {source_input}") # Додано логування
-            return cls(ffmpeg_audio, data=data)
-        except discord.errors.ClientException as e:
-            logging.error(f"Discord ClientException initializing FFmpegPCMAudio for {source_input}: {e}", exc_info=True)
-            return None
-        except Exception as e:
-            logging.error(f"Generic Exception initializing FFmpegPCMAudio for {source_input}: {type(e).__name__} - {e}", exc_info=True) # Додано тип винятку
+            logging.error(f"Error in from_url: {str(e)}", exc_info=True)
             return None

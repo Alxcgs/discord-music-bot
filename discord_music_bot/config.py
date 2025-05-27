@@ -17,9 +17,7 @@ if not DISCORD_TOKEN:
 
 # --- Опції для yt-dlp ---
 YDL_OPTIONS = {
-    'format': 'bestaudio/best',
-    'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
-    'restrictfilenames': True,
+    'format': 'bestaudio[ext=m4a]/bestaudio[ext=mp3]/bestaudio',
     'noplaylist': True,
     'nocheckcertificate': True,
     'ignoreerrors': False,
@@ -27,13 +25,17 @@ YDL_OPTIONS = {
     'quiet': True,
     'no_warnings': True,
     'default_search': 'auto',
-    'source_address': '0.0.0.0' # bind to ipv4 since ipv6 addresses cause issues sometimes
+    'source_address': '0.0.0.0',
+    'force-ipv4': True,
+    'cachedir': False,
+    'prefer_ffmpeg': True,
+    'extract_flat': False
 }
 
 # --- Опції для FFmpeg ---
 FFMPEG_OPTIONS = {
-    # 'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', # Видалено для тестування
-    'options': '-vn' # -vn означає "без відео"
+    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -analyzeduration 0 -probesize 32768',
+    'options': '-vn -acodec pcm_s16le -ar 48000 -ac 2'
 }
 
 # --- Налаштування інтентів бота ---
