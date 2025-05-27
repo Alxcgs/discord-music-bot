@@ -291,7 +291,7 @@ class MusicCog(commands.Cog):
             'extract_flat': True,
             'skip_download': True,
             'force_generic_extractor': False,
-            'format': 'bestaudio[acodec=opus][abr<=128]/bestaudio/best',  # Зменшений бітрейт для швидшого завантаження
+            'format': 'bestaudio[acodec=opus][abr<=128]/bestaudio/best',
             'format_sort': ['abr', 'asr', 'ext'],
             'cachedir': False,
             'default_search': 'ytsearch',
@@ -299,17 +299,24 @@ class MusicCog(commands.Cog):
             'nocheckcertificate': True,
             'ignoreerrors': True,
             'retries': 3,
-            'socket_timeout': 5,  # Зменшений таймаут
+            'socket_timeout': 5,
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
             },
-            'buffersize': 32*1024,  # Збільшений буфер
-            'concurrent_fragment_downloads': 5,  # Більше паралельних завантажень
-            'postprocessors': [{  # Оптимізація аудіо
+            'buffersize': 32*1024,
+            'concurrent_fragment_downloads': 5,
+            'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'opus',
                 'preferredquality': '128'
-            }]
+            }],
+            # Додаємо підтримку SoundCloud
+            'extractors': ['youtube', 'soundcloud'],
+            'extractor_args': {
+                'soundcloud': {
+                    'client_id': None  # yt-dlp сам знайде актуальний client_id
+                }
+            }
         }
         
         # Налаштування для завантаження плейлистів
@@ -336,13 +343,13 @@ class MusicCog(commands.Cog):
             self.preloaded_tracks.pop(guild_id, None)
 
     async def get_video_info(self, url):
-        """Оптимізоване отримання інформації про відео з кешуванням."""
+        """Оптимізоване отримання інформації про відео/трек з кешуванням."""
         max_retries = 3
         retry_count = 0
         
         while retry_count < max_retries:
             try:
-                if not ('youtube.com' in url or 'youtu.be' in url):
+                if not any(domain in url.lower() for domain in ['youtube.com', 'youtu.be', 'soundcloud.com']):
                     search_url = f"ytsearch:{url}"
                 else:
                     search_url = url
@@ -377,10 +384,10 @@ class MusicCog(commands.Cog):
                             'url': info.get('webpage_url', url) or info.get('url', url),
                             'duration': info.get('duration'),
                             'thumbnail': info.get('thumbnail'),
-                            'format': info.get('format_id', 'best')  # Зберігаємо формат для оптимізації
+                            'format': info.get('format_id', 'best')
                         }
                     except Exception as e:
-                        self.logger.error(f"Error extracting video info: {str(e)}", exc_info=True)
+                        self.logger.error(f"Error extracting info: {str(e)}", exc_info=True)
                         retry_count += 1
                         if retry_count < max_retries:
                             await asyncio.sleep(1)
@@ -788,7 +795,7 @@ class MusicCog(commands.Cog):
                     return
 
             # Перевіряємо, чи це URL
-            is_url = 'youtube.com' in query or 'youtu.be' in query
+            is_url = any(domain in query.lower() for domain in ['youtube.com', 'youtu.be', 'soundcloud.com'])
 
             # Якщо це URL плейлиста або відео - обробляємо стандартним способом
             if is_url:
@@ -804,20 +811,25 @@ class MusicCog(commands.Cog):
                 if not video_info:
                     await ctx.message.remove_reaction('⏳', ctx.guild.me)
                     await ctx.message.add_reaction('❌')
-                    await ctx.send("❌ Не вдалося отримати інформацію про відео.")
+                    await ctx.send("❌ Не вдалося отримати інформацію про трек.")
                     return
 
                 guild_id = ctx.guild.id
                 if guild_id not in self.music_queues:
                     self.music_queues[guild_id] = []
 
+                # Додаємо позначку платформи до назви
+                platform = 'SoundCloud' if 'soundcloud.com' in query.lower() else 'YouTube'
+                title = f"[{platform}] {video_info['title']}"
+
                 queue_item = {
                     'url': video_info['url'],
                     'requester': ctx.author,
-                    'title': video_info['title'],
+                    'title': title,
                     'webpage_url': video_info['url'],
                     'thumbnail': video_info.get('thumbnail'),
-                    'duration': video_info.get('duration')
+                    'duration': video_info.get('duration'),
+                    'platform': platform
                 }
                 
                 self.music_queues[guild_id].append(queue_item)
