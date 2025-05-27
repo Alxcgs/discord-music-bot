@@ -473,11 +473,11 @@ class MusicCog(commands.Cog):
                 'preferredcodec': 'opus',
                 'preferredquality': '128'
             }],
-            # Додаємо підтримку SoundCloud
             'extractors': ['youtube', 'soundcloud'],
             'extractor_args': {
                 'soundcloud': {
-                    'client_id': None  # yt-dlp сам знайде актуальний client_id
+                    'client_id': None,  # yt-dlp сам знайде актуальний client_id
+                    'playlistend': 50  # Обмеження для плейлистів
                 }
             }
         }
@@ -486,7 +486,8 @@ class MusicCog(commands.Cog):
         self.playlist_opts = {
             **self.light_ydl_opts,
             'extract_flat': 'in_playlist',
-            'playlistend': 50  # Обмеження кількості треків для безпеки
+            'playlistend': 50,  # Обмеження кількості треків для безпеки
+            'extract_flat': False  # Повна інформація для SoundCloud плейлистів
         }
         
         self.preload_next = True
@@ -813,10 +814,23 @@ class MusicCog(commands.Cog):
             
             self.logger.info(f"Processing playlist: {url}")
             tracks_added = 0
+            is_soundcloud = 'soundcloud.com' in url.lower()
             
-            with yt_dlp.YoutubeDL(self.playlist_opts) as ydl:
+            # Оптимізовані налаштування для швидкого завантаження плейлистів
+            playlist_opts = {
+                **self.playlist_opts,
+                'concurrent_fragment_downloads': 10,
+                'socket_timeout': 3,
+                'retries': 2,
+                'buffersize': 64*1024,
+                'extract_flat': 'in_playlist' if not is_soundcloud else False
+            }
+            
+            with yt_dlp.YoutubeDL(playlist_opts) as ydl:
                 try:
-                    playlist_info = await self.bot.loop.run_in_executor(
+                    # Використовуємо ThreadPoolExecutor для асинхронного завантаження
+                    loop = asyncio.get_event_loop()
+                    playlist_info = await loop.run_in_executor(
                         None,
                         lambda: ydl.extract_info(url, download=False)
                     )
@@ -826,7 +840,18 @@ class MusicCog(commands.Cog):
                         return 0
                     
                     playlist_title = playlist_info.get('title', 'Невідомий плейлист')
-                    entries = playlist_info.get('entries', [])
+                    
+                    # Отримуємо треки в залежності від платформи
+                    entries = []
+                    if is_soundcloud:
+                        if 'entries' in playlist_info:
+                            entries = playlist_info['entries']
+                        elif '_type' in playlist_info and playlist_info['_type'] == 'playlist':
+                            entries = playlist_info.get('entries', [])
+                        else:
+                            entries = [playlist_info]
+                    else:
+                        entries = playlist_info.get('entries', [])
                     
                     if not entries:
                         await message.edit(content="❌ Плейлист порожній або не вдалося отримати треки.")
@@ -835,44 +860,48 @@ class MusicCog(commands.Cog):
                     if guild_id not in self.music_queues:
                         self.music_queues[guild_id] = []
                     
+                    # Підготовка даних для масового додавання
+                    platform = 'SoundCloud' if is_soundcloud else 'YouTube'
+                    track_batch = []
+                    
                     for entry in entries:
                         if not entry:
                             continue
-                            
-                        platform = 'SoundCloud' if 'soundcloud.com' in url.lower() else 'YouTube'
-                        title = f"[{platform}] {entry.get('title', 'Невідома назва')}"
                         
                         track_info = {
-                            'title': title,
+                            'title': f"[{platform}] {entry.get('title', 'Невідома назва')}",
                             'url': entry.get('url', entry.get('webpage_url', None)),
                             'webpage_url': entry.get('webpage_url', entry.get('url', None)),
                             'duration': entry.get('duration'),
-                            'thumbnail': entry.get('thumbnail'),
+                            'thumbnail': entry.get('thumbnail', entry.get('thumbnails', [{}])[0].get('url')),
                             'requester': ctx.author,
                             'platform': platform
                         }
                         
                         if track_info['url'] or track_info['webpage_url']:
-                            self.music_queues[guild_id].append(track_info)
+                            track_batch.append(track_info)
                             tracks_added += 1
                             
+                            # Оновлюємо повідомлення кожні 10 треків
                             if tracks_added % 10 == 0:
-                                await message.edit(content=f"⏳ Завантажено {tracks_added} треків з плейлиста...")
+                                await message.edit(content=f"⏳ Завантажено {tracks_added} треків з плейлиста {platform}...")
                     
+                    # Масове додавання треків до черги
+                    self.music_queues[guild_id].extend(track_batch)
+                    
+                    # Починаємо відтворення
                     voice_client = ctx.voice_client
                     if not voice_client or not voice_client.is_playing():
                         await self.play_next_song(ctx)
                     
-                    await message.edit(content=f"✅ Додано {tracks_added} треків з плейлиста: **{playlist_title}**")
+                    await message.edit(content=f"✅ Додано {tracks_added} треків з плейлиста {platform}: **{playlist_title}**")
                     
+                    # Показуємо оновлену чергу
                     try:
-                        # Показуємо оновлену чергу
                         view = QueueView(self, ctx)
                         await ctx.send(embed=view.create_embed(), view=view)
                     except Exception as e:
                         self.logger.error(f"Error showing queue after playlist: {e}")
-                        # Якщо не вдалося показати чергу, просто продовжуємо
-                        pass
                     
                     return tracks_added
                     
@@ -973,10 +1002,11 @@ class MusicCog(commands.Cog):
 
             # Перевіряємо, чи це URL
             is_url = any(domain in query.lower() for domain in ['youtube.com', 'youtu.be', 'soundcloud.com'])
+            is_soundcloud = 'soundcloud.com' in query.lower()
 
-            # Якщо це URL плейлиста або відео - обробляємо стандартним способом
+            # Якщо це URL плейлиста або відео - обробляємо
             if is_url:
-                if 'list=' in query or 'playlist?' in query:
+                if ('list=' in query or 'playlist?' in query) or (is_soundcloud and '/sets/' in query):
                     tracks_added = await self.process_playlist(ctx, query)
                     if tracks_added > 0:
                         return
@@ -995,17 +1025,16 @@ class MusicCog(commands.Cog):
                 if guild_id not in self.music_queues:
                     self.music_queues[guild_id] = []
 
-                # Додаємо позначку платформи до назви
-                platform = 'SoundCloud' if 'soundcloud.com' in query.lower() else 'YouTube'
-                title = f"[{platform}] {video_info['title']}"
-
+                # Визначаємо платформу
+                platform = 'SoundCloud' if is_soundcloud else 'YouTube'
+                
                 queue_item = {
+                    'title': f"[{platform}] {video_info['title']}",
                     'url': video_info['url'],
-                    'requester': ctx.author,
-                    'title': title,
-                    'webpage_url': video_info['url'],
-                    'thumbnail': video_info.get('thumbnail'),
+                    'webpage_url': video_info.get('webpage_url', video_info['url']),
                     'duration': video_info.get('duration'),
+                    'thumbnail': video_info.get('thumbnail', video_info.get('thumbnails', [{}])[0].get('url')),
+                    'requester': ctx.author,
                     'platform': platform
                 }
                 
@@ -1022,7 +1051,6 @@ class MusicCog(commands.Cog):
             else:
                 loading_message = await ctx.send("🔍 Шукаю трек...")
                 
-                # Створюємо окрему таску для пошуку, щоб не блокувати головний потік
                 try:
                     results = await asyncio.wait_for(self.search_tracks(query), timeout=10.0)
                 except asyncio.TimeoutError:
@@ -1044,7 +1072,6 @@ class MusicCog(commands.Cog):
                     view=view
                 )
                 
-                # Встановлюємо таймаут для меню вибору
                 try:
                     await asyncio.wait_for(view.wait(), timeout=30.0)
                 except asyncio.TimeoutError:
@@ -1055,14 +1082,18 @@ class MusicCog(commands.Cog):
                 if not track_info:
                     return
                 
-                # Додаємо вибраний трек до черги
                 guild_id = ctx.guild.id
                 if guild_id not in self.music_queues:
                     self.music_queues[guild_id] = []
 
+                # Визначаємо платформу для результату пошуку
+                platform = 'SoundCloud' if 'soundcloud.com' in track_info.get('webpage_url', '').lower() else 'YouTube'
+                
                 queue_item = {
                     **track_info,
-                    'requester': ctx.author
+                    'title': f"[{platform}] {track_info['title']}",
+                    'requester': ctx.author,
+                    'platform': platform
                 }
                 
                 self.music_queues[guild_id].append(queue_item)
@@ -1071,7 +1102,7 @@ class MusicCog(commands.Cog):
                 if not voice_client.is_playing() and not voice_client.is_paused():
                     await self.play_next_song(ctx)
                 else:
-                    await ctx.send(f"✅ Додано до черги: **{track_info['title']}**")
+                    await ctx.send(f"✅ Додано до черги: **{queue_item['title']}**")
 
         except Exception as e:
             self.logger.error(f"Error in play command: {e}", exc_info=True)
