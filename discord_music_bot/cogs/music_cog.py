@@ -4,6 +4,7 @@ import asyncio
 import logging
 from discord_music_bot.audio_source import YTDLSource
 from discord_music_bot.utils import format_duration
+import yt_dlp
 
 # Словники для зберігання стану музики для кожного сервера (краще інкапсулювати в Cog)
 music_queues = {}
@@ -86,24 +87,125 @@ class MusicCog(commands.Cog):
         self.bot = bot
         self.music_queues = {}
         self.current_song = {}
-        self.control_messages = {} # Зберігати ID повідомлень з кнопками
+        self.control_messages = {}  # Зберігати ID повідомлень з кнопками
+        self.player_channels = {}  # Зберігати ID каналів для плеєра
+        # Опції для швидкого отримання інформації про відео
+        self.light_ydl_opts = {
+            'quiet': True,
+            'no_warnings': True,
+            'extract_flat': True,
+            'skip_download': True,
+            'force_generic_extractor': False
+        }
+
+    async def get_video_info(self, url):
+        """Отримує базову інформацію про відео без завантаження."""
+        try:
+            if not url.startswith('http'):
+                url = f"ytsearch:{url}"
+            
+            with yt_dlp.YoutubeDL(self.light_ydl_opts) as ydl:
+                try:
+                    info = await self.bot.loop.run_in_executor(None, lambda: ydl.extract_info(url, download=False))
+                    if info:
+                        if 'entries' in info:
+                            info = info['entries'][0]
+                        return {
+                            'title': info.get('title', 'Невідома назва'),
+                            'url': info.get('webpage_url', url),
+                            'duration': info.get('duration')
+                        }
+                except:
+                    return None
+        except:
+            return None
+        return None
+
+    async def update_player(self, ctx, force_new=False):
+        """Оновлює або створює нове повідомлення плеєра."""
+        guild_id = ctx.guild.id
+        
+        embed = discord.Embed(
+            title="🎵 Музичний плеєр",
+            color=discord.Color.blue()
+        )
+        
+        if guild_id in self.current_song:
+            song_info = self.current_song[guild_id]
+            duration_str = format_duration(song_info.get('duration'))
+            embed.add_field(
+                name="🎶 Зараз грає",
+                value=f"[{song_info.get('title', 'Невідомий трек')}]({song_info.get('url', '#')})\n"
+                      f"Тривалість: `{duration_str}`\n"
+                      f"Замовив(ла): {song_info['requester'].mention}",
+                inline=False
+            )
+            if song_info.get('thumbnail'):
+                embed.set_thumbnail(url=song_info['thumbnail'])
+        else:
+            embed.add_field(name="🎶 Зараз грає", value="Нічого не грає", inline=False)
+
+        queue = self.music_queues.get(guild_id, [])
+        if queue:
+            next_up = []
+            for i, item in enumerate(queue[:5]):
+                title = item.get('title', 'Завантаження...')
+                url = item.get('url', '#')
+                next_up.append(f"`{i+1}.` [{title}]({url}) (Замовив(ла): {item['requester'].mention})")
+            queue_text = "\n".join(next_up)
+            if len(queue) > 5:
+                queue_text += f"\n\n... та ще {len(queue) - 5} треків"
+        else:
+            queue_text = "Черга порожня"
+        
+        embed.add_field(name="📑 Наступні треки", value=queue_text, inline=False)
+        
+        embed.add_field(
+            name="ℹ️ Команди",
+            value="`.play` - додати трек\n`.skip` - пропустити\n`.queue` - показати чергу\n`.stop` - зупинити",
+            inline=False
+        )
+
+        view = MusicControls(ctx, self)
+        
+        try:
+            if not force_new and guild_id in self.control_messages:
+                try:
+                    message = await ctx.fetch_message(self.control_messages[guild_id])
+                    await message.edit(embed=embed, view=view)
+                    return
+                except (discord.NotFound, discord.Forbidden):
+                    pass
+
+            if guild_id in self.control_messages:
+                try:
+                    old_msg = await ctx.fetch_message(self.control_messages[guild_id])
+                    await old_msg.delete()
+                except (discord.NotFound, discord.Forbidden):
+                    pass
+
+            new_msg = await ctx.send(embed=embed, view=view)
+            self.control_messages[guild_id] = new_msg.id
+            self.player_channels[guild_id] = ctx.channel.id
+
+        except Exception as e:
+            logging.error(f"Error updating player: {e}")
 
     async def play_next_song(self, ctx):
         """Відтворює наступну пісню в черзі."""
         guild_id = ctx.guild.id
-        logging.info(f"[{guild_id}] Entering play_next_song") # Додано логування
+        logging.info(f"[{guild_id}] Entering play_next_song")
+        
         if guild_id in self.music_queues and self.music_queues[guild_id]:
             voice_client = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
             if voice_client and not voice_client.is_playing():
                 source_info = self.music_queues[guild_id].pop(0)
                 url_or_query = source_info['url']
                 requester = source_info['requester']
-                logging.info(f"[{guild_id}] Attempting to get source for: {url_or_query}") # Додано логування
-
+                
                 player = await YTDLSource.from_url(url_or_query, loop=self.bot.loop, stream=True)
-
+                
                 if player:
-                    logging.info(f"[{guild_id}] Successfully got source: {player.title}") # Додано логування
                     self.current_song[guild_id] = {
                         'player': player,
                         'requester': requester,
@@ -112,106 +214,54 @@ class MusicCog(commands.Cog):
                         'thumbnail': player.thumbnail,
                         'duration': player.duration
                     }
-                    logging.info(f"[{guild_id}] Attempting to play source: {player.title}") # Додано логування
+                    
                     try:
                         voice_client.play(player, after=lambda e: self.bot.loop.create_task(self.check_after_play(ctx, e)))
-                        logging.info(f"[{guild_id}] Successfully started playing: {player.title}") # Додано логування
+                        # Оновлюємо плеєр після початку відтворення
+                        await self.update_player(ctx)
                     except Exception as e:
-                        logging.error(f"[{guild_id}] Error starting playback for {player.title}: {e}", exc_info=True)
-                        await ctx.send(f"❌ Сталася помилка під час запуску відтворення: `{e}`. Пробую наступний трек...")
-                        # Негайно спробувати наступний трек у разі помилки запуску
+                        logging.error(f"[{guild_id}] Error starting playback: {e}", exc_info=True)
+                        await ctx.send(f"❌ Помилка відтворення: `{e}`. Пробую наступний трек...")
                         await self.play_next_song(ctx)
-                        return # Вийти, щоб не створювати embed для треку, що не запустився
-
-                    embed = discord.Embed(
-                        title="🎶 Зараз грає",
-                        description=f"[{player.title}]({player.url})",
-                        color=discord.Color.blue()
-                    )
-                    if player.thumbnail:
-                        embed.set_thumbnail(url=player.thumbnail)
-                    if player.duration:
-                        embed.add_field(name="Тривалість", value=format_duration(player.duration), inline=True)
-                    embed.add_field(name="Замовив(ла)", value=requester.mention, inline=True)
-
-                    # Видаляємо старе повідомлення з кнопками, якщо воно є
-                    if guild_id in self.control_messages:
-                        try:
-                            old_msg = await ctx.fetch_message(self.control_messages[guild_id])
-                            await old_msg.delete()
-                        except discord.NotFound:
-                            pass # Повідомлення вже видалено
-                        except discord.Forbidden:
-                            pass # Немає прав видаляти
-                        del self.control_messages[guild_id]
-
-                    # Надсилаємо нове повідомлення з кнопками
-                    view = MusicControls(ctx, self)
-                    msg = await ctx.send(embed=embed, view=view)
-                    self.control_messages[guild_id] = msg.id # Зберігаємо ID нового повідомлення
-
+                        return
                 else:
-                    logging.error(f"[{guild_id}] Failed to get source for: {url_or_query}") # Додано логування
                     await ctx.send(f"❌ Не вдалося завантажити трек: {url_or_query}. Пробую наступний...")
                     await self.play_next_song(ctx)
         else:
-            logging.info(f"[{guild_id}] Queue is empty or bot is already playing.") # Додано логування
             if guild_id in self.current_song:
                 del self.current_song[guild_id]
-            # Видаляємо повідомлення з кнопками, коли черга порожня
-            if guild_id in self.control_messages:
-                 try:
-                     old_msg = await ctx.fetch_message(self.control_messages[guild_id])
-                     await old_msg.delete()
-                 except (discord.NotFound, discord.Forbidden):
-                     pass
-                 del self.control_messages[guild_id]
-
-            await asyncio.sleep(60) # Чекаємо перед виходом
+            
+            # Оновлюємо плеєр, показуючи що нічого не грає
+            await self.update_player(ctx)
+            
+            # Чекаємо перед виходом
+            await asyncio.sleep(60)
             voice_client = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
             if voice_client and not voice_client.is_playing() and not (guild_id in self.music_queues and self.music_queues[guild_id]):
-                logging.info(f"[{guild_id}] Leaving voice channel due to inactivity.") # Додано логування
                 await voice_client.disconnect()
                 await ctx.send("🎵 Черга порожня. Виходжу з голосового каналу.")
-        logging.info(f"[{guild_id}] Exiting play_next_song") # Додано логування
 
     async def check_after_play(self, ctx, error):
         """Перевірка стану після завершення відтворення треку."""
         guild_id = ctx.guild.id
-        logging.info(f"[{guild_id}] Entering check_after_play. Error: {error}") # Додано логування
-
-        voice_client = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
-
+        
         if error:
-            logging.error(f'[{guild_id}] Помилка під час відтворення: {error}')
-            await ctx.send(f"❌ Сталася помилка під час відтворення: `{error}`")
-            # Спробуємо зупинити відтворення та очистити стан
-            if voice_client and voice_client.is_playing():
-                logging.warning(f"[{guild_id}] Зупиняю voice_client через помилку.")
-                voice_client.stop()
+            logging.error(f'[{guild_id}] Помилка відтворення: {error}')
             if guild_id in self.current_song:
-                logging.info(f"[{guild_id}] Очищаю current_song через помилку.")
                 del self.current_song[guild_id]
-            # Не викликаємо play_next_song одразу після помилки, щоб уникнути циклу
-            logging.info(f"[{guild_id}] Не викликаю play_next_song через помилку в after callback.")
-            return # Виходимо, щоб не продовжувати відтворення
+            await self.update_player(ctx)
+            return
 
-        # Очистка поточного треку після успішного завершення
-        # cleanup() викликається автоматично бібліотекою discord.py перед after callback
         if guild_id in self.current_song:
-             logging.info(f"[{guild_id}] Очищаю current_song після успішного відтворення.")
-             del self.current_song[guild_id]
+            del self.current_song[guild_id]
 
-        # Невелике очікування перед наступним треком
-        await asyncio.sleep(0.5) # Збільшено час очікування
-
-        # Перевіряємо, чи бот всеще підключений перед спробою грати далі
+        await asyncio.sleep(0.5)
+        
+        voice_client = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
         if voice_client and voice_client.is_connected():
-            logging.info(f"[{guild_id}] Викликаю play_next_song з check_after_play.")
             await self.play_next_song(ctx)
         else:
-            logging.info(f"[{guild_id}] Не викликаю play_next_song, бот не підключений.")
-        logging.info(f"[{guild_id}] Exiting check_after_play.") # Додано логування
+            await self.update_player(ctx)
 
     async def leave_logic(self, ctx):
         """Логіка виходу бота з голосового каналу."""
@@ -282,50 +332,43 @@ class MusicCog(commands.Cog):
     async def play(self, ctx, *, query: str):
         """Додає пісню до черги та починає відтворення."""
         guild_id = ctx.guild.id
-        logging.info(f"[{guild_id}] Play command invoked by {ctx.author.name} with query: {query}") # Додано логування
-        voice_client = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
-
-        # Перевірка, чи користувач в голосовому каналі
+        
         if not ctx.author.voice:
             await ctx.send(f"{ctx.author.mention}, підключіться до голосового каналу спочатку!")
             return
 
-        # Якщо бот не в каналі, підключаємо його
+        voice_client = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
         if not voice_client or not voice_client.is_connected():
-            logging.info(f"[{guild_id}] Bot not connected, invoking join command.") # Додано логування
-            await ctx.invoke(self.join) # Викликаємо команду join
-            voice_client = discord.utils.get(self.bot.voice_clients, guild=ctx.guild) # Оновлюємо voice_client
-            if not voice_client: # Якщо підключення не вдалося
-                logging.error(f"[{guild_id}] Failed to join voice channel after invoking join.") # Додано логування
-                await ctx.send("Не вдалося підключитися до вашого голосового каналу.")
+            await ctx.invoke(self.join)
+            voice_client = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
+            if not voice_client:
+                await ctx.send("Не вдалося підключитися до голосового каналу.")
                 return
-            logging.info(f"[{guild_id}] Successfully joined channel: {voice_client.channel.name}") # Додано логування
-        # Якщо бот в іншому каналі, переміщуємо
         elif voice_client.channel != ctx.author.voice.channel:
-             try:
-                 logging.info(f"[{guild_id}] Moving bot to channel: {ctx.author.voice.channel.name}") # Додано логування
-                 await voice_client.move_to(ctx.author.voice.channel)
-                 await ctx.send(f"Перемістився до каналу: **{ctx.author.voice.channel.name}**")
-             except Exception as e:
-                 logging.error(f"[{guild_id}] Error moving bot to channel {ctx.author.voice.channel.name}: {e}") # Додано логування
-                 await ctx.send("Не вдалося переміститися до вашого каналу.")
-                 return
+            try:
+                await voice_client.move_to(ctx.author.voice.channel)
+            except Exception as e:
+                await ctx.send("Не вдалося переміститися до вашого каналу.")
+                return
 
-        # Додаємо трек до черги
         if guild_id not in self.music_queues:
             self.music_queues[guild_id] = []
 
-        # Поки що не отримуємо інформацію про трек, просто додаємо запит
-        logging.info(f"[{guild_id}] Adding query to queue: {query}") # Додано логування
-        self.music_queues[guild_id].append({'url': query, 'requester': ctx.author})
-        await ctx.send(f"✅ Додано до черги: `{query}`")
+        # Отримуємо інформацію про відео перед додаванням до черги
+        video_info = await self.get_video_info(query)
+        queue_item = {
+            'url': query,
+            'requester': ctx.author,
+            'title': video_info['title'] if video_info else 'Завантаження...',
+            'webpage_url': video_info['url'] if video_info else query
+        }
+        
+        self.music_queues[guild_id].append(queue_item)
+        await self.update_player(ctx)
+        await ctx.message.add_reaction('✅')
 
-        # Якщо нічого не грає, починаємо відтворення
         if not voice_client.is_playing() and not voice_client.is_paused():
-            logging.info(f"[{guild_id}] Nothing playing, calling play_next_song.") # Додано логування
             await self.play_next_song(ctx)
-        else:
-            logging.info(f"[{guild_id}] Bot is already playing or paused. Query added to queue.") # Додано логування
 
     @commands.command(name='pause', help='Поставити відтворення на паузу.')
     async def pause(self, ctx):
@@ -352,8 +395,8 @@ class MusicCog(commands.Cog):
         """Пропускає поточний трек."""
         voice_client = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
         if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
-            voice_client.stop() # Викличе after -> play_next_song
-            await ctx.send(f"⏭️ Трек пропущено {ctx.author.mention}.")
+            voice_client.stop()
+            await ctx.message.add_reaction('⏭️')
         else:
             await ctx.send("Нічого пропускати.")
 
@@ -364,19 +407,14 @@ class MusicCog(commands.Cog):
         voice_client = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
 
         if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
-            self.music_queues[guild_id] = [] # Очищаємо чергу
-            voice_client.stop() # Зупиняємо поточний трек
+            self.music_queues[guild_id] = []
+            voice_client.stop()
             if guild_id in self.current_song:
                 del self.current_song[guild_id]
-            # Видаляємо повідомлення з кнопками
-            if guild_id in self.control_messages:
-                try:
-                    msg = await ctx.fetch_message(self.control_messages[guild_id])
-                    await msg.delete()
-                except (discord.NotFound, discord.Forbidden):
-                    pass
-                del self.control_messages[guild_id]
-            await ctx.send("⏹️ Відтворення зупинено, чергу очищено.")
+            
+            # Оновлюємо плеєр після зупинки
+            await self.update_player(ctx)
+            await ctx.message.add_reaction('⏹️')
         else:
             await ctx.send("Нічого зупиняти.")
 
@@ -392,26 +430,29 @@ class MusicCog(commands.Cog):
 
         embed = discord.Embed(title="📄 Черга відтворення", color=discord.Color.purple())
 
-        # Поточний трек
         if guild_id in self.current_song:
             song_info = self.current_song[guild_id]
             duration_str = format_duration(song_info.get('duration'))
-            embed.add_field(name="🎶 Зараз грає", value=f"[{song_info.get('title', 'Невідомий трек')}]({song_info.get('url', '#')}) | `{duration_str}` | Замовив(ла): {song_info['requester'].mention}", inline=False)
+            embed.add_field(
+                name="🎶 Зараз грає",
+                value=f"[{song_info.get('title', 'Невідомий трек')}]({song_info.get('url', '#')}) | `{duration_str}` | Замовив(ла): {song_info['requester'].mention}",
+                inline=False
+            )
 
-        # Наступні треки
         if queue:
             next_up = []
-            for i, item in enumerate(queue[:10]): # Показуємо перші 10
-                # Оскільки ми не завантажуємо інфо при додаванні, показуємо запит
-                next_up.append(f"`{i+1}.` {item['url']} (Замовив(ла): {item['requester'].mention})")
+            for i, item in enumerate(queue[:10]):
+                title = item.get('title', 'Завантаження...')
+                url = item.get('webpage_url', '#')
+                next_up.append(f"`{i+1}.` [{title}]({url}) (Замовив(ла): {item['requester'].mention})")
 
             if next_up:
-                 embed.add_field(name="⏭️ Далі в черзі", value="\n".join(next_up), inline=False)
+                embed.add_field(name="⏭️ Далі в черзі", value="\n".join(next_up), inline=False)
 
             if len(queue) > 10:
                 embed.set_footer(text=f"Ще {len(queue) - 10} треків у черзі...")
-        elif guild_id in self.current_song: # Якщо грає трек, але черга порожня
-             embed.add_field(name="⏭️ Далі в черзі", value="Черга порожня.", inline=False)
+        elif guild_id in self.current_song:
+            embed.add_field(name="⏭️ Далі в черзі", value="Черга порожня.", inline=False)
 
         await ctx.send(embed=embed)
 
@@ -484,39 +525,42 @@ class MusicCog(commands.Cog):
     # Обробник подій для автоматичного виходу
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        # Якщо бот залишився один у каналі
-        if member.id == self.bot.user.id and after.channel is None: # Бот вийшов з каналу
-             return # Вже оброблено командою leave/stop або play_next_song
+        """Обробник подій для автоматичного виходу та оновлення плеєра."""
+        if member.id == self.bot.user.id and after.channel is None:
+            guild_id = member.guild.id
+            if guild_id in self.player_channels:
+                try:
+                    channel = self.bot.get_channel(self.player_channels[guild_id])
+                    ctx = await self.bot.get_context(await channel.fetch_message(self.control_messages[guild_id]))
+                    await self.update_player(ctx)
+                except:
+                    pass
+            return
 
-        if before.channel and not after.channel and member.id != self.bot.user.id: # Користувач вийшов
+        if before.channel and not after.channel and member.id != self.bot.user.id:
             voice_client = discord.utils.get(self.bot.voice_clients, guild=member.guild)
             if voice_client and voice_client.channel == before.channel:
-                # Перевіряємо, чи залишився хтось крім бота
                 if len(voice_client.channel.members) == 1 and voice_client.channel.members[0].id == self.bot.user.id:
                     guild_id = member.guild.id
-                    logging.info(f"Бот залишився один у каналі {before.channel.name}. Заплановано вихід.")
-                    # Даємо трохи часу, можливо хтось повернеться
                     await asyncio.sleep(60)
-                    # Перевіряємо ще раз
-                    voice_client = discord.utils.get(self.bot.voice_clients, guild=member.guild) # Оновлюємо стан
+                    
+                    voice_client = discord.utils.get(self.bot.voice_clients, guild=member.guild)
                     if voice_client and voice_client.channel == before.channel and len(voice_client.channel.members) == 1:
-                        logging.info(f"Виходжу з каналу {before.channel.name} через відсутність користувачів.")
-                        # Потрібен контекст для leave_logic, це проблема
-                        # Можна спробувати знайти текстовий канал для повідомлення
-                        # Або просто викликати disconnect
                         if guild_id in self.music_queues:
                             self.music_queues[guild_id].clear()
                         if guild_id in self.current_song:
                             del self.current_song[guild_id]
-                        if guild_id in self.control_messages:
-                             # Потрібен доступ до каналу, де було повідомлення
-                             # Це ускладнює видалення повідомлення тут
-                             del self.control_messages[guild_id]
+                        
+                        # Оновлюємо плеєр перед виходом
+                        if guild_id in self.player_channels:
+                            try:
+                                channel = self.bot.get_channel(self.player_channels[guild_id])
+                                ctx = await self.bot.get_context(await channel.fetch_message(self.control_messages[guild_id]))
+                                await self.update_player(ctx)
+                            except:
+                                pass
+                        
                         await voice_client.disconnect()
-                        # Повідомлення про вихід (опціонально, знайти канал)
-                        # general_channel = discord.utils.find(lambda c: c.name == 'general', member.guild.text_channels)
-                        # if general_channel:
-                        #    await general_channel.send("Вийшов з голосового каналу через відсутність користувачів.")
 
 
 # Функція для додавання кога до бота (зазвичай викликається в main.py)
