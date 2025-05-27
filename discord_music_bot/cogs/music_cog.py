@@ -169,14 +169,7 @@ class MusicCog(commands.Cog):
         view = MusicControls(ctx, self)
         
         try:
-            if not force_new and guild_id in self.control_messages:
-                try:
-                    message = await ctx.fetch_message(self.control_messages[guild_id])
-                    await message.edit(embed=embed, view=view)
-                    return
-                except (discord.NotFound, discord.Forbidden):
-                    pass
-
+            # Видаляємо старе повідомлення, якщо воно існує
             if guild_id in self.control_messages:
                 try:
                     old_msg = await ctx.fetch_message(self.control_messages[guild_id])
@@ -184,6 +177,7 @@ class MusicCog(commands.Cog):
                 except (discord.NotFound, discord.Forbidden):
                     pass
 
+            # Створюємо нове повідомлення плеєра
             new_msg = await ctx.send(embed=embed, view=view)
             self.control_messages[guild_id] = new_msg.id
             self.player_channels[guild_id] = ctx.channel.id
@@ -364,7 +358,9 @@ class MusicCog(commands.Cog):
         }
         
         self.music_queues[guild_id].append(queue_item)
-        await self.update_player(ctx)
+        
+        # Завжди створюємо нове повідомлення плеєра після додавання треку
+        await self.update_player(ctx, force_new=True)
         await ctx.message.add_reaction('✅')
 
         if not voice_client.is_playing() and not voice_client.is_paused():
