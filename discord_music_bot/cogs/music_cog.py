@@ -108,7 +108,7 @@ class MusicControls(discord.ui.View):
         finally:
             self.cog.processing_buttons.discard(guild_id)
 
-    @discord.ui.button(label="Пропустити", style=discord.ButtonStyle.primary, emoji="⏭️", custom_id="skip")
+    @discord.ui.button(label="Пропустити", style=discord.ButtonStyle.secondary, emoji="⏭️", custom_id="skip")
     async def skip_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         voice_client = self.ctx.voice_client
         if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
@@ -127,7 +127,7 @@ class MusicControls(discord.ui.View):
         else:
             await interaction.response.send_message("Команда !queue не знайдена.", ephemeral=True)
 
-    @discord.ui.button(label="Вийти", style=discord.ButtonStyle.danger, emoji="🚪", custom_id="leave")
+    @discord.ui.button(label="Вийти", style=discord.ButtonStyle.secondary, emoji="🚪", custom_id="leave")
     async def leave_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         voice_client = self.ctx.voice_client
         if voice_client and voice_client.is_connected():
