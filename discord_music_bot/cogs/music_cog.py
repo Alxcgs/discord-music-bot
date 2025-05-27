@@ -30,49 +30,83 @@ class MusicControls(discord.ui.View):
     async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         guild_id = self.ctx.guild.id
         
-        # Перевіряємо наявність історії треків
-        if not hasattr(self.cog, 'track_history') or not self.cog.track_history.get(guild_id, []):
-            await interaction.response.send_message("Немає попередніх треків.", ephemeral=True)
+        if guild_id in self.cog.processing_buttons:
+            await interaction.response.send_message("Зачекайте, обробляється попередня дія.", ephemeral=True)
             return
         
-        # Отримуємо останній трек з історії
-        prev_track = self.cog.track_history[guild_id].pop()
+        self.cog.processing_buttons.add(guild_id)
         
-        # Зберігаємо поточний трек в чергу
-        voice_client = self.ctx.voice_client
-        if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
+        try:
+            # Перевіряємо наявність історії треків
+            if not self.cog.track_history.get(guild_id, []):
+                self.cog.logger.warning(f"No track history for guild {guild_id}")
+                await interaction.response.send_message("Немає попередніх треків.", ephemeral=True)
+                return
+            
+            self.cog.logger.info(f"Track history for guild {guild_id}: {len(self.cog.track_history[guild_id])} tracks")
+            
+            # Отримуємо останній трек з історії
+            prev_track = self.cog.track_history[guild_id].pop()
+            self.cog.logger.info(f"Retrieved previous track: {prev_track.get('title')}")
+            
+            # Зберігаємо поточний трек в чергу, якщо він є
             if guild_id in self.cog.current_song:
-                current = self.cog.current_song[guild_id]
+                current = self.cog.current_song[guild_id].copy()
                 if guild_id not in self.cog.music_queues:
                     self.cog.music_queues[guild_id] = []
                 self.cog.music_queues[guild_id].insert(0, current)
+                self.cog.logger.info(f"Saved current track to queue: {current.get('title')}")
+            
+            # Додаємо попередній трек на початок черги
+            if guild_id not in self.cog.music_queues:
+                self.cog.music_queues[guild_id] = []
+            self.cog.music_queues[guild_id].insert(0, prev_track)
+            self.cog.logger.info(f"Added previous track to queue: {prev_track.get('title')}")
+            
+            # Зупиняємо поточний трек (це викличе play_next_song)
+            voice_client = self.ctx.voice_client
+            if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
+                voice_client.stop()
+                self.cog.logger.info("Stopped current track")
+            
+            await interaction.response.send_message(
+                f"⏮️ Повертаємось до треку: {prev_track.get('title', 'Невідомий трек')}", 
+                ephemeral=False
+            )
+            
+        except Exception as e:
+            self.cog.logger.error(f"Error in previous_button: {e}", exc_info=True)
+            await interaction.response.send_message("❌ Помилка при поверненні до попереднього треку.", ephemeral=True)
         
-        # Додаємо попередній трек на початок черги
-        if guild_id not in self.cog.music_queues:
-            self.cog.music_queues[guild_id] = []
-        self.cog.music_queues[guild_id].insert(0, prev_track)
-        
-        # Зупиняємо поточний трек (це викличе play_next_song)
-        if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
-            voice_client.stop()
-        
-        await interaction.response.send_message(f"⏮️ Повертаємось до треку: {prev_track.get('title', 'Невідомий трек')}", ephemeral=False)
+        finally:
+            self.cog.processing_buttons.discard(guild_id)
 
     @discord.ui.button(label="Пауза", style=discord.ButtonStyle.secondary, emoji="⏸️", custom_id="pause_resume")
     async def pause_resume_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        voice_client = self.ctx.voice_client
-        if voice_client and voice_client.is_playing():
-            voice_client.pause()
-            button.label = "Відновити"
-            button.emoji = "▶️"
-            await interaction.response.edit_message(view=self)
-        elif voice_client and voice_client.is_paused():
-            voice_client.resume()
-            button.label = "Пауза"
-            button.emoji = "⏸️"
-            await interaction.response.edit_message(view=self)
-        else:
-            await interaction.response.send_message("Зараз нічого не грає.", ephemeral=True)
+        guild_id = self.ctx.guild.id
+        
+        if guild_id in self.cog.processing_buttons:
+            await interaction.response.send_message("Зачекайте, обробляється попередня дія.", ephemeral=True)
+            return
+        
+        self.cog.processing_buttons.add(guild_id)
+        
+        try:
+            voice_client = self.ctx.voice_client
+            if voice_client and voice_client.is_playing():
+                voice_client.pause()
+                button.label = "Відновити"
+                button.emoji = "▶️"
+                await interaction.response.edit_message(view=self)
+            elif voice_client and voice_client.is_paused():
+                voice_client.resume()
+                button.label = "Пауза"
+                button.emoji = "⏸️"
+                await interaction.response.edit_message(view=self)
+            else:
+                await interaction.response.send_message("Зараз нічого не грає.", ephemeral=True)
+        finally:
+            self.cog.processing_buttons.discard(guild_id)
 
     @discord.ui.button(label="Пропустити", style=discord.ButtonStyle.primary, emoji="⏭️", custom_id="skip")
     async def skip_button(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -112,6 +146,7 @@ class MusicCog(commands.Cog):
         self.control_messages = {}
         self.player_channels = {}
         self.track_history = {}  # Історія треків для кожного сервера
+        self.processing_buttons = set()  # Для запобігання подвійних натискань
         self.logger = logging.getLogger('MusicBot')
         self.logger.setLevel(logging.INFO)
         
@@ -295,66 +330,75 @@ class MusicCog(commands.Cog):
             self.logger.error(f"Error updating player: {e}", exc_info=True)
             await ctx.send("❌ Помилка оновлення плеєра. Спробуйте ще раз.")
 
+    async def add_to_history(self, guild_id, track_info):
+        """Додає трек до історії."""
+        if not track_info:
+            return
+            
+        if guild_id not in self.track_history:
+            self.track_history[guild_id] = []
+        
+        # Створюємо копію треку для історії
+        track_copy = {
+            'title': track_info.get('title', 'Невідомий трек'),
+            'url': track_info.get('url'),
+            'webpage_url': track_info.get('webpage_url'),
+            'duration': track_info.get('duration'),
+            'thumbnail': track_info.get('thumbnail'),
+            'requester': track_info.get('requester')
+        }
+        
+        # Додаємо в історію, якщо трек відрізняється від останнього
+        if not self.track_history[guild_id] or \
+           self.track_history[guild_id][-1].get('url') != track_copy.get('url'):
+            self.track_history[guild_id].append(track_copy)
+            self.logger.info(f"Added track to history: {track_copy.get('title')} for guild {guild_id}")
+            
+            # Обмежуємо історію до 50 треків
+            if len(self.track_history[guild_id]) > 50:
+                self.track_history[guild_id].pop(0)
+
     async def play_next_song(self, ctx):
         """Оптимізоване відтворення наступної пісні."""
         try:
             guild_id = ctx.guild.id
             
+            # Зберігаємо поточний трек в історію перед переходом до наступного
+            if guild_id in self.current_song:
+                await self.add_to_history(guild_id, self.current_song[guild_id])
+            
             if guild_id in self.music_queues and self.music_queues[guild_id]:
                 voice_client = ctx.voice_client
                 if voice_client and not voice_client.is_playing():
                     source_info = self.music_queues[guild_id].pop(0)
-                    
-                    # Зберігаємо поточний трек в історію
-                    if guild_id not in self.track_history:
-                        self.track_history[guild_id] = []
-                    if guild_id in self.current_song:
-                        self.track_history[guild_id].append(self.current_song[guild_id])
-                        # Обмежуємо історію до 50 треків
-                        if len(self.track_history[guild_id]) > 50:
-                            self.track_history[guild_id].pop(0)
-                    
                     url = source_info.get('webpage_url') or source_info['url']
+                    
                     self.logger.info(f"Playing next song: {source_info.get('title', url)}")
                     
-                    # Використовуємо попередньо завантажений трек, якщо є
-                    player = None
-                    if guild_id in self.preloaded_tracks:
-                        player = self.preloaded_tracks.pop(guild_id)
-                        self.logger.info("Using preloaded track")
-                    
-                    if not player:
-                        try:
-                            player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
-                        except Exception as e:
-                            self.logger.error(f"Error creating player: {e}")
-                            await ctx.send(f"❌ Помилка відтворення: {source_info.get('title', 'Невідомий трек')}")
+                    try:
+                        player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+                        if player:
+                            self.current_song[guild_id] = {
+                                'title': player.title,
+                                'url': player.url,
+                                'webpage_url': url,
+                                'thumbnail': player.thumbnail,
+                                'duration': player.duration,
+                                'requester': source_info['requester'],
+                                'player': player
+                            }
+                            
+                            voice_client.play(
+                                player, 
+                                after=lambda e: self.bot.loop.create_task(self.check_after_play(ctx, e))
+                            )
+                            await self.update_player(ctx)
+                        else:
+                            await ctx.send("❌ Не вдалося відтворити трек. Пропускаю...")
                             await self.play_next_song(ctx)
-                            return
-                    
-                    if player:
-                        self.current_song[guild_id] = {
-                            'player': player,
-                            'requester': source_info['requester'],
-                            'title': player.title,
-                            'url': player.url,
-                            'thumbnail': player.thumbnail,
-                            'duration': player.duration
-                        }
-                        
-                        voice_client.play(
-                            player, 
-                            after=lambda e: self.bot.loop.create_task(self.check_after_play(ctx, e))
-                        )
-                        await self.update_player(ctx)
-                        
-                        # Попереднє завантаження наступного треку
-                        if self.preload_next and self.music_queues[guild_id]:
-                            next_track = self.music_queues[guild_id][0]
-                            next_url = next_track.get('webpage_url') or next_track['url']
-                            asyncio.create_task(self.preload_next_track(ctx, next_url))
-                    else:
-                        await ctx.send("❌ Не вдалося відтворити трек. Пропускаю...")
+                    except Exception as e:
+                        self.logger.error(f"Error creating player: {e}")
+                        await ctx.send(f"❌ Помилка відтворення: {source_info.get('title', 'Невідомий трек')}")
                         await self.play_next_song(ctx)
             else:
                 if guild_id in self.current_song:
@@ -369,13 +413,15 @@ class MusicCog(commands.Cog):
     async def check_after_play(self, ctx, error):
         """Перевірка після завершення відтворення треку."""
         try:
+            guild_id = ctx.guild.id
+            
             if error:
                 self.logger.error(f"Playback error: {error}")
             
-            guild_id = ctx.guild.id
+            # Зберігаємо поточний трек в історію перед видаленням
             if guild_id in self.current_song:
-                del self.current_song[guild_id]
-
+                await self.add_to_history(guild_id, self.current_song[guild_id])
+            
             voice_client = ctx.voice_client
             if voice_client and voice_client.is_connected():
                 await self.play_next_song(ctx)
