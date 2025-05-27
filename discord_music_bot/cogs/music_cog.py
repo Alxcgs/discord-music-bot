@@ -87,175 +87,261 @@ class MusicCog(commands.Cog):
         self.bot = bot
         self.music_queues = {}
         self.current_song = {}
-        self.control_messages = {}  # Зберігати ID повідомлень з кнопками
-        self.player_channels = {}  # Зберігати ID каналів для плеєра
-        # Опції для швидкого отримання інформації про відео
+        self.control_messages = {}
+        self.player_channels = {}
+        self.logger = logging.getLogger('MusicBot')
+        self.logger.setLevel(logging.INFO)
+        
+        # Оптимізовані налаштування для швидкого завантаження
         self.light_ydl_opts = {
             'quiet': True,
             'no_warnings': True,
-            'extract_flat': True,
+            'extract_flat': 'in_playlist',
             'skip_download': True,
-            'force_generic_extractor': False
+            'force_generic_extractor': False,
+            # Оптимізація аудіо формату
+            'format': 'bestaudio[acodec=opus][abr<=160]/bestaudio/best',
+            'format_sort': [
+                'abr',
+                'asr',
+                'ext'
+            ],
+            'no_playlist': True,
+            'cachedir': False,
+            'default_search': 'ytsearch',
+            'source_address': '0.0.0.0',
+            'nocheckcertificate': True,
+            'ignoreerrors': True,
+            'retries': 3,
+            'socket_timeout': 10,
+            'http_headers': {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            },
+            # Оптимізація буферизації
+            'buffersize': 16*1024,  # Збільшений розмір буфера
+            'concurrent_fragment_downloads': 3,  # Паралельне завантаження фрагментів
         }
+        
+        # Налаштування для попереднього завантаження наступного треку
+        self.preload_next = True
+        self.preloaded_tracks = {}
+
+    async def preload_next_track(self, ctx, url):
+        """Попереднє завантаження наступного треку."""
+        try:
+            guild_id = ctx.guild.id
+            self.logger.info(f"Preloading next track: {url}")
+            player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+            if player:
+                self.preloaded_tracks[guild_id] = player
+                self.logger.info(f"Successfully preloaded: {player.title}")
+        except Exception as e:
+            self.logger.error(f"Error preloading track: {e}")
+            self.preloaded_tracks.pop(guild_id, None)
 
     async def get_video_info(self, url):
-        """Отримує базову інформацію про відео без завантаження."""
-        try:
-            if not url.startswith('http'):
-                url = f"ytsearch:{url}"
-            
-            with yt_dlp.YoutubeDL(self.light_ydl_opts) as ydl:
-                try:
-                    info = await self.bot.loop.run_in_executor(None, lambda: ydl.extract_info(url, download=False))
-                    if info:
+        """Оптимізоване отримання інформації про відео з кешуванням."""
+        max_retries = 3
+        retry_count = 0
+        
+        while retry_count < max_retries:
+            try:
+                if not ('youtube.com' in url or 'youtu.be' in url):
+                    search_url = f"ytsearch:{url}"
+                else:
+                    search_url = url
+                
+                self.logger.info(f"Extracting info for: {search_url} (attempt {retry_count + 1}/{max_retries})")
+                
+                with yt_dlp.YoutubeDL(self.light_ydl_opts) as ydl:
+                    try:
+                        info = await self.bot.loop.run_in_executor(
+                            None, 
+                            lambda: ydl.extract_info(search_url, download=False)
+                        )
+                        
+                        if not info:
+                            self.logger.warning(f"No info extracted for: {search_url}")
+                            retry_count += 1
+                            if retry_count < max_retries:
+                                await asyncio.sleep(1)
+                                continue
+                            return None
+                            
                         if 'entries' in info:
+                            if not info['entries']:
+                                self.logger.warning("No entries found in search results")
+                                return None
                             info = info['entries'][0]
+                        
+                        self.logger.info(f"Successfully extracted info for: {info.get('title', 'Unknown')}")
+                        
                         return {
                             'title': info.get('title', 'Невідома назва'),
-                            'url': info.get('webpage_url', url),
-                            'duration': info.get('duration')
+                            'url': info.get('webpage_url', url) or info.get('url', url),
+                            'duration': info.get('duration'),
+                            'thumbnail': info.get('thumbnail'),
+                            'format': info.get('format_id', 'best')  # Зберігаємо формат для оптимізації
                         }
-                except:
-                    return None
-        except:
-            return None
+                    except Exception as e:
+                        self.logger.error(f"Error extracting video info: {str(e)}", exc_info=True)
+                        retry_count += 1
+                        if retry_count < max_retries:
+                            await asyncio.sleep(1)
+                            continue
+                        return None
+            except Exception as e:
+                self.logger.error(f"Error in get_video_info: {str(e)}", exc_info=True)
+                retry_count += 1
+                if retry_count < max_retries:
+                    await asyncio.sleep(1)
+                    continue
+                return None
         return None
 
     async def update_player(self, ctx, force_new=False):
         """Оновлює або створює нове повідомлення плеєра."""
-        guild_id = ctx.guild.id
-        
-        embed = discord.Embed(
-            title="🎵 Музичний плеєр",
-            color=discord.Color.blue()
-        )
-        
-        if guild_id in self.current_song:
-            song_info = self.current_song[guild_id]
-            duration_str = format_duration(song_info.get('duration'))
+        try:
+            guild_id = ctx.guild.id
+            
+            embed = discord.Embed(
+                title="🎵 Музичний плеєр",
+                color=discord.Color.blue()
+            )
+            
+            if guild_id in self.current_song:
+                song_info = self.current_song[guild_id]
+                duration_str = format_duration(song_info.get('duration'))
+                embed.add_field(
+                    name="🎶 Зараз грає",
+                    value=f"[{song_info.get('title', 'Невідомий трек')}]({song_info.get('url', '#')})\n"
+                          f"Тривалість: `{duration_str}`\n"
+                          f"Замовив користувач: {song_info['requester'].mention}",
+                    inline=False
+                )
+                if song_info.get('thumbnail'):
+                    embed.set_thumbnail(url=song_info['thumbnail'])
+            else:
+                embed.add_field(name="🎶 Зараз грає", value="Нічого не грає", inline=False)
+
+            queue = self.music_queues.get(guild_id, [])
+            if queue:
+                next_up = []
+                for i, item in enumerate(queue[:5]):
+                    title = item.get('title', 'Невідома назва')
+                    url = item.get('url', '#')
+                    next_up.append(f"`{i+1}.` [{title}]({url}) (Замовив користувач: {item['requester'].mention})")
+                queue_text = "\n".join(next_up)
+                if len(queue) > 5:
+                    queue_text += f"\n\n... та ще {len(queue) - 5} треків"
+            else:
+                queue_text = "Черга порожня"
+            
+            embed.add_field(name="📑 Наступні треки", value=queue_text, inline=False)
             embed.add_field(
-                name="🎶 Зараз грає",
-                value=f"[{song_info.get('title', 'Невідомий трек')}]({song_info.get('url', '#')})\n"
-                      f"Тривалість: `{duration_str}`\n"
-                      f"Замовив(ла): {song_info['requester'].mention}",
+                name="ℹ️ Команди",
+                value="`.play` - додати трек\n`.skip` - пропустити\n`.queue` - показати чергу\n`.stop` - зупинити",
                 inline=False
             )
-            if song_info.get('thumbnail'):
-                embed.set_thumbnail(url=song_info['thumbnail'])
-        else:
-            embed.add_field(name="🎶 Зараз грає", value="Нічого не грає", inline=False)
 
-        queue = self.music_queues.get(guild_id, [])
-        if queue:
-            next_up = []
-            for i, item in enumerate(queue[:5]):
-                title = item.get('title', 'Завантаження...')
-                url = item.get('url', '#')
-                next_up.append(f"`{i+1}.` [{title}]({url}) (Замовив(ла): {item['requester'].mention})")
-            queue_text = "\n".join(next_up)
-            if len(queue) > 5:
-                queue_text += f"\n\n... та ще {len(queue) - 5} треків"
-        else:
-            queue_text = "Черга порожня"
-        
-        embed.add_field(name="📑 Наступні треки", value=queue_text, inline=False)
-        
-        embed.add_field(
-            name="ℹ️ Команди",
-            value="`.play` - додати трек\n`.skip` - пропустити\n`.queue` - показати чергу\n`.stop` - зупинити",
-            inline=False
-        )
+            view = MusicControls(ctx, self)
+            
+            try:
+                if guild_id in self.control_messages:
+                    try:
+                        old_msg = await ctx.fetch_message(self.control_messages[guild_id])
+                        await old_msg.delete()
+                    except (discord.NotFound, discord.Forbidden) as e:
+                        self.logger.debug(f"Could not delete old message: {e}")
+                    except Exception as e:
+                        self.logger.error(f"Error deleting old message: {e}", exc_info=True)
 
-        view = MusicControls(ctx, self)
-        
-        try:
-            # Видаляємо старе повідомлення, якщо воно існує
-            if guild_id in self.control_messages:
-                try:
-                    old_msg = await ctx.fetch_message(self.control_messages[guild_id])
-                    await old_msg.delete()
-                except (discord.NotFound, discord.Forbidden):
-                    pass
+                new_msg = await ctx.send(embed=embed, view=view)
+                self.control_messages[guild_id] = new_msg.id
+                self.player_channels[guild_id] = ctx.channel.id
 
-            # Створюємо нове повідомлення плеєра
-            new_msg = await ctx.send(embed=embed, view=view)
-            self.control_messages[guild_id] = new_msg.id
-            self.player_channels[guild_id] = ctx.channel.id
+            except Exception as e:
+                self.logger.error(f"Error sending player message: {e}", exc_info=True)
+                raise
 
         except Exception as e:
-            logging.error(f"Error updating player: {e}")
+            self.logger.error(f"Error updating player: {e}", exc_info=True)
+            await ctx.send("❌ Помилка оновлення плеєра. Спробуйте ще раз.")
 
     async def play_next_song(self, ctx):
-        """Відтворює наступну пісню в черзі."""
-        guild_id = ctx.guild.id
-        logging.info(f"[{guild_id}] Entering play_next_song")
-        
-        if guild_id in self.music_queues and self.music_queues[guild_id]:
-            voice_client = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
-            if voice_client and not voice_client.is_playing():
-                source_info = self.music_queues[guild_id].pop(0)
-                url_or_query = source_info['url']
-                requester = source_info['requester']
-                
-                player = await YTDLSource.from_url(url_or_query, loop=self.bot.loop, stream=True)
-                
-                if player:
-                    self.current_song[guild_id] = {
-                        'player': player,
-                        'requester': requester,
-                        'title': player.title,
-                        'url': player.url,
-                        'thumbnail': player.thumbnail,
-                        'duration': player.duration
-                    }
+        """Оптимізоване відтворення наступної пісні з попереднім завантаженням."""
+        try:
+            guild_id = ctx.guild.id
+            
+            if guild_id in self.music_queues and self.music_queues[guild_id]:
+                voice_client = ctx.voice_client
+                if voice_client and not voice_client.is_playing():
+                    source_info = self.music_queues[guild_id].pop(0)
+                    url = source_info.get('webpage_url') or source_info['url']
                     
-                    try:
-                        voice_client.play(player, after=lambda e: self.bot.loop.create_task(self.check_after_play(ctx, e)))
-                        # Оновлюємо плеєр після початку відтворення
+                    self.logger.info(f"Playing next song: {source_info.get('title', url)}")
+                    
+                    # Перевіряємо, чи є попередньо завантажений трек
+                    player = None
+                    if guild_id in self.preloaded_tracks:
+                        player = self.preloaded_tracks.pop(guild_id)
+                        self.logger.info("Using preloaded track")
+                    
+                    if not player:
+                        player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+                    
+                    if player:
+                        self.current_song[guild_id] = {
+                            'player': player,
+                            'requester': source_info['requester'],
+                            'title': player.title,
+                            'url': player.url,
+                            'thumbnail': player.thumbnail,
+                            'duration': player.duration
+                        }
+                        
+                        voice_client.play(
+                            player, 
+                            after=lambda e: self.bot.loop.create_task(self.check_after_play(ctx, e))
+                        )
                         await self.update_player(ctx)
-                    except Exception as e:
-                        logging.error(f"[{guild_id}] Error starting playback: {e}", exc_info=True)
-                        await ctx.send(f"❌ Помилка відтворення: `{e}`. Пробую наступний трек...")
+                        
+                        # Попереднє завантаження наступного треку
+                        if self.preload_next and self.music_queues[guild_id]:
+                            next_track = self.music_queues[guild_id][0]
+                            next_url = next_track.get('webpage_url') or next_track['url']
+                            asyncio.create_task(self.preload_next_track(ctx, next_url))
+                    else:
+                        await ctx.send("❌ Не вдалося відтворити трек. Пропускаю...")
                         await self.play_next_song(ctx)
-                        return
-                else:
-                    await ctx.send(f"❌ Не вдалося завантажити трек: {url_or_query}. Пробую наступний...")
-                    await self.play_next_song(ctx)
-        else:
-            if guild_id in self.current_song:
-                del self.current_song[guild_id]
-            
-            # Оновлюємо плеєр, показуючи що нічого не грає
-            await self.update_player(ctx)
-            
-            # Чекаємо перед виходом
-            await asyncio.sleep(60)
-            voice_client = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
-            if voice_client and not voice_client.is_playing() and not (guild_id in self.music_queues and self.music_queues[guild_id]):
-                await voice_client.disconnect()
-                await ctx.send("🎵 Черга порожня. Виходжу з голосового каналу.")
+            else:
+                if guild_id in self.current_song:
+                    del self.current_song[guild_id]
+                await self.update_player(ctx)
+                await self.delayed_disconnect(ctx)
+                
+        except Exception as e:
+            self.logger.error(f"Error in play_next_song: {e}", exc_info=True)
+            await ctx.send("❌ Сталася помилка при відтворенні. Спробуйте ще раз.")
 
     async def check_after_play(self, ctx, error):
-        """Перевірка стану після завершення відтворення треку."""
-        guild_id = ctx.guild.id
-        
-        if error:
-            logging.error(f'[{guild_id}] Помилка відтворення: {error}')
+        """Перевірка після завершення відтворення треку."""
+        try:
+            if error:
+                self.logger.error(f"Playback error: {error}")
+            
+            guild_id = ctx.guild.id
             if guild_id in self.current_song:
                 del self.current_song[guild_id]
-            await self.update_player(ctx)
-            return
 
-        if guild_id in self.current_song:
-            del self.current_song[guild_id]
-
-        await asyncio.sleep(0.5)
-        
-        voice_client = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
-        if voice_client and voice_client.is_connected():
-            await self.play_next_song(ctx)
-        else:
-            await self.update_player(ctx)
+            voice_client = ctx.voice_client
+            if voice_client and voice_client.is_connected():
+                await self.play_next_song(ctx)
+            else:
+                await self.update_player(ctx)
+                
+        except Exception as e:
+            self.logger.error(f"Error in check_after_play: {e}", exc_info=True)
 
     async def leave_logic(self, ctx):
         """Логіка виходу бота з голосового каналу."""
@@ -324,47 +410,76 @@ class MusicCog(commands.Cog):
 
     @commands.command(name='play', aliases=['p'], help='Відтворити пісню за URL або пошуковим запитом.')
     async def play(self, ctx, *, query: str):
-        """Додає пісню до черги та починає відтворення."""
-        guild_id = ctx.guild.id
-        
-        if not ctx.author.voice:
-            await ctx.send(f"{ctx.author.mention}, підключіться до голосового каналу спочатку!")
-            return
-
-        voice_client = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
-        if not voice_client or not voice_client.is_connected():
-            await ctx.invoke(self.join)
-            voice_client = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
-            if not voice_client:
-                await ctx.send("Не вдалося підключитися до голосового каналу.")
+        """Оптимізована версія команди відтворення."""
+        try:
+            guild_id = ctx.guild.id
+            
+            if not ctx.author.voice:
+                await ctx.send(f"{ctx.author.mention}, підключіться до голосового каналу спочатку!")
                 return
-        elif voice_client.channel != ctx.author.voice.channel:
+
+            voice_client = ctx.voice_client
+            
+            if not voice_client or not voice_client.is_connected():
+                try:
+                    voice_client = await ctx.author.voice.channel.connect()
+                except Exception as e:
+                    logging.error(f"Failed to connect to voice channel: {e}")
+                    await ctx.send("Не вдалося підключитися до голосового каналу.")
+                    return
+            elif voice_client.channel != ctx.author.voice.channel:
+                try:
+                    await voice_client.move_to(ctx.author.voice.channel)
+                except Exception as e:
+                    logging.error(f"Failed to move to voice channel: {e}")
+                    await ctx.send("Не вдалося переміститися до вашого каналу.")
+                    return
+
+            if guild_id not in self.music_queues:
+                self.music_queues[guild_id] = []
+
+            # Відправляємо реакцію завантаження
+            await ctx.message.add_reaction('⏳')
+            
+            # Отримуємо інформацію про відео перед додаванням до черги
+            video_info = await self.get_video_info(query)
+            if not video_info:
+                await ctx.message.remove_reaction('⏳', ctx.guild.me)
+                await ctx.message.add_reaction('❌')
+                await ctx.send("❌ Не вдалося отримати інформацію про відео. Перевірте URL або спробуйте інший запит.")
+                return
+
+            # Додаємо трек до черги з повною інформацією
+            queue_item = {
+                'url': video_info['url'],
+                'requester': ctx.author,
+                'title': video_info['title'],
+                'webpage_url': video_info['url'],
+                'thumbnail': video_info.get('thumbnail'),
+                'duration': video_info.get('duration')
+            }
+            
+            self.music_queues[guild_id].append(queue_item)
+            
+            # Оновлюємо реакції
+            await ctx.message.remove_reaction('⏳', ctx.guild.me)
+            await ctx.message.add_reaction('✅')
+
+            # Оновлюємо плеєр
+            await self.update_player(ctx, force_new=True)
+
+            # Починаємо відтворення, якщо потрібно
+            if not voice_client.is_playing() and not voice_client.is_paused():
+                await self.play_next_song(ctx)
+
+        except Exception as e:
+            logging.error(f"Error in play command: {e}", exc_info=True)
+            await ctx.send(f"❌ Сталася помилка: {str(e)}")
             try:
-                await voice_client.move_to(ctx.author.voice.channel)
-            except Exception as e:
-                await ctx.send("Не вдалося переміститися до вашого каналу.")
-                return
-
-        if guild_id not in self.music_queues:
-            self.music_queues[guild_id] = []
-
-        # Отримуємо інформацію про відео перед додаванням до черги
-        video_info = await self.get_video_info(query)
-        queue_item = {
-            'url': query,
-            'requester': ctx.author,
-            'title': video_info['title'] if video_info else 'Завантаження...',
-            'webpage_url': video_info['url'] if video_info else query
-        }
-        
-        self.music_queues[guild_id].append(queue_item)
-        
-        # Завжди створюємо нове повідомлення плеєра після додавання треку
-        await self.update_player(ctx, force_new=True)
-        await ctx.message.add_reaction('✅')
-
-        if not voice_client.is_playing() and not voice_client.is_paused():
-            await self.play_next_song(ctx)
+                await ctx.message.remove_reaction('⏳', ctx.guild.me)
+                await ctx.message.add_reaction('❌')
+            except:
+                pass
 
     @commands.command(name='pause', help='Поставити відтворення на паузу.')
     async def pause(self, ctx):
@@ -431,7 +546,7 @@ class MusicCog(commands.Cog):
             duration_str = format_duration(song_info.get('duration'))
             embed.add_field(
                 name="🎶 Зараз грає",
-                value=f"[{song_info.get('title', 'Невідомий трек')}]({song_info.get('url', '#')}) | `{duration_str}` | Замовив(ла): {song_info['requester'].mention}",
+                value=f"[{song_info.get('title', 'Невідомий трек')}]({song_info.get('url', '#')}) | `{duration_str}` | Замовив користувач: {song_info['requester'].mention}",
                 inline=False
             )
 
@@ -440,7 +555,7 @@ class MusicCog(commands.Cog):
             for i, item in enumerate(queue[:10]):
                 title = item.get('title', 'Завантаження...')
                 url = item.get('webpage_url', '#')
-                next_up.append(f"`{i+1}.` [{title}]({url}) (Замовив(ла): {item['requester'].mention})")
+                next_up.append(f"`{i+1}.` [{title}]({url}) (Замовив корситувач: {item['requester'].mention})")
 
             if next_up:
                 embed.add_field(name="⏭️ Далі в черзі", value="\n".join(next_up), inline=False)
@@ -475,7 +590,7 @@ class MusicCog(commands.Cog):
             if song_info.get('thumbnail'):
                 embed.set_thumbnail(url=song_info['thumbnail'])
             embed.add_field(name="Тривалість", value=duration_str, inline=True)
-            embed.add_field(name="Замовив(ла)", value=song_info['requester'].mention, inline=True)
+            embed.add_field(name="Замовив користувач", value=song_info['requester'].mention, inline=True)
             # Додати прогрес бар, якщо можливо
             # embed.add_field(name="Прогрес", value=f"`{format_duration(current_time)} / {duration_str}`", inline=False)
 
@@ -557,6 +672,18 @@ class MusicCog(commands.Cog):
                                 pass
                         
                         await voice_client.disconnect()
+
+    async def delayed_disconnect(self, ctx):
+        """Відкладене відключення від голосового каналу."""
+        try:
+            await asyncio.sleep(60)
+            voice_client = ctx.voice_client
+            if voice_client and not voice_client.is_playing() and not self.music_queues.get(ctx.guild.id, []):
+                await voice_client.disconnect()
+                self.logger.info(f"Disconnected from voice channel in guild {ctx.guild.id}")
+                await ctx.send("🎵 Черга порожня. Виходжу з голосового каналу.")
+        except Exception as e:
+            self.logger.error(f"Error in delayed_disconnect: {e}", exc_info=True)
 
 
 # Функція для додавання кога до бота (зазвичай викликається в main.py)
