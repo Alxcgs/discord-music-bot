@@ -12,22 +12,52 @@ current_song = {}
 
 # --- Клас для кнопок керування ---
 class MusicControls(discord.ui.View):
-    def __init__(self, ctx, cog, timeout=None): # None - кнопки не зникнуть
+    def __init__(self, ctx, cog, timeout=None):
         super().__init__(timeout=timeout)
         self.ctx = ctx
-        self.cog = cog # Передаємо екземпляр Cog для доступу до його методів/стану
+        self.cog = cog
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        # Перевірка, чи користувач, що натиснув кнопку, знаходиться в тому ж каналі, що й бот
         if not self.ctx.voice_client:
-             await interaction.response.send_message("Бот наразі не в голосовому каналі.", ephemeral=True)
-             return False
+            await interaction.response.send_message("Бот наразі не в голосовому каналі.", ephemeral=True)
+            return False
         if not interaction.user.voice or interaction.user.voice.channel != self.ctx.voice_client.channel:
-            await interaction.response.send_message("Ви повинні бути в тому ж голосовому каналі, що й бот, щоб керувати музикою.", ephemeral=True)
+            await interaction.response.send_message("Ви повинні бути в тому ж голосовому каналі, що й бот.", ephemeral=True)
             return False
         return True
 
-    # Динамічна кнопка Пауза/Відновити
+    @discord.ui.button(label="Попередній", style=discord.ButtonStyle.secondary, emoji="⏮️", custom_id="previous")
+    async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        guild_id = self.ctx.guild.id
+        
+        # Перевіряємо наявність історії треків
+        if not hasattr(self.cog, 'track_history') or not self.cog.track_history.get(guild_id, []):
+            await interaction.response.send_message("Немає попередніх треків.", ephemeral=True)
+            return
+        
+        # Отримуємо останній трек з історії
+        prev_track = self.cog.track_history[guild_id].pop()
+        
+        # Зберігаємо поточний трек в чергу
+        voice_client = self.ctx.voice_client
+        if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
+            if guild_id in self.cog.current_song:
+                current = self.cog.current_song[guild_id]
+                if guild_id not in self.cog.music_queues:
+                    self.cog.music_queues[guild_id] = []
+                self.cog.music_queues[guild_id].insert(0, current)
+        
+        # Додаємо попередній трек на початок черги
+        if guild_id not in self.cog.music_queues:
+            self.cog.music_queues[guild_id] = []
+        self.cog.music_queues[guild_id].insert(0, prev_track)
+        
+        # Зупиняємо поточний трек (це викличе play_next_song)
+        if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
+            voice_client.stop()
+        
+        await interaction.response.send_message(f"⏮️ Повертаємось до треку: {prev_track.get('title', 'Невідомий трек')}", ephemeral=False)
+
     @discord.ui.button(label="Пауза", style=discord.ButtonStyle.secondary, emoji="⏸️", custom_id="pause_resume")
     async def pause_resume_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         voice_client = self.ctx.voice_client
@@ -42,44 +72,36 @@ class MusicControls(discord.ui.View):
             button.emoji = "⏸️"
             await interaction.response.edit_message(view=self)
         else:
-            await interaction.response.send_message("Зараз нічого не грає або не на паузі.", ephemeral=True)
+            await interaction.response.send_message("Зараз нічого не грає.", ephemeral=True)
 
     @discord.ui.button(label="Пропустити", style=discord.ButtonStyle.primary, emoji="⏭️", custom_id="skip")
     async def skip_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         voice_client = self.ctx.voice_client
         if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
-            voice_client.stop() # Зупинка поточного треку викличе 'after' -> play_next_song
+            voice_client.stop()
             await interaction.response.send_message(f"⏭️ Трек пропущено {interaction.user.mention}.", ephemeral=False)
-            # Оновлюємо вигляд кнопок (наприклад, якщо це був останній трек)
-            # Або можна просто видалити повідомлення з кнопками
-            # await interaction.message.delete()
         else:
             await interaction.response.send_message("Нічого пропускати.", ephemeral=True)
 
     @discord.ui.button(label="Черга", style=discord.ButtonStyle.secondary, emoji="📄", custom_id="queue")
     async def queue_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-         command = self.cog.bot.get_command('queue')
-         if command:
-             await interaction.response.defer(ephemeral=True)
-             # Створюємо новий контекст з інтеракції, щоб викликати команду
-             # Це може бути складно, простіше відправити результат команди queue
-             await self.cog.queue(self.ctx) # Викликаємо метод кога
-             # Потрібно якось відповісти на інтеракцію, можливо, повідомленням про успіх
-             await interaction.followup.send("Показано чергу.", ephemeral=True)
-         else:
-              await interaction.response.send_message("Команда !queue не знайдена.", ephemeral=True)
+        command = self.cog.bot.get_command('queue')
+        if command:
+            await interaction.response.defer(ephemeral=True)
+            await self.cog.queue(self.ctx)
+            await interaction.followup.send("Показано чергу.", ephemeral=True)
+        else:
+            await interaction.response.send_message("Команда !queue не знайдена.", ephemeral=True)
 
     @discord.ui.button(label="Вийти", style=discord.ButtonStyle.danger, emoji="🚪", custom_id="leave")
     async def leave_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-         voice_client = self.ctx.voice_client
-         if voice_client and voice_client.is_connected():
-             await self.cog.leave_logic(self.ctx) # Використовуємо логіку виходу з кога
-             await interaction.response.send_message(f"👋 Бот вийшов з каналу за командою {interaction.user.mention}.", ephemeral=False)
-             self.stop() # Робимо кнопки неактивними
-             # Можна видалити повідомлення з кнопками
-             # await interaction.message.delete()
-         else:
-             await interaction.response.send_message("Бот не підключений до голосового каналу.", ephemeral=True)
+        voice_client = self.ctx.voice_client
+        if voice_client and voice_client.is_connected():
+            await self.cog.leave_logic(self.ctx)
+            await interaction.response.send_message(f"👋 Бот вийшов з каналу за командою {interaction.user.mention}.", ephemeral=False)
+            self.stop()
+        else:
+            await interaction.response.send_message("Бот не підключений до голосового каналу.", ephemeral=True)
 
 
 class MusicCog(commands.Cog):
@@ -89,6 +111,7 @@ class MusicCog(commands.Cog):
         self.current_song = {}
         self.control_messages = {}
         self.player_channels = {}
+        self.track_history = {}  # Історія треків для кожного сервера
         self.logger = logging.getLogger('MusicBot')
         self.logger.setLevel(logging.INFO)
         
@@ -96,33 +119,37 @@ class MusicCog(commands.Cog):
         self.light_ydl_opts = {
             'quiet': True,
             'no_warnings': True,
-            'extract_flat': 'in_playlist',
+            'extract_flat': True,
             'skip_download': True,
             'force_generic_extractor': False,
-            # Оптимізація аудіо формату
-            'format': 'bestaudio[acodec=opus][abr<=160]/bestaudio/best',
-            'format_sort': [
-                'abr',
-                'asr',
-                'ext'
-            ],
-            'no_playlist': True,
+            'format': 'bestaudio[acodec=opus][abr<=128]/bestaudio/best',  # Зменшений бітрейт для швидшого завантаження
+            'format_sort': ['abr', 'asr', 'ext'],
             'cachedir': False,
             'default_search': 'ytsearch',
             'source_address': '0.0.0.0',
             'nocheckcertificate': True,
             'ignoreerrors': True,
             'retries': 3,
-            'socket_timeout': 10,
+            'socket_timeout': 5,  # Зменшений таймаут
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
             },
-            # Оптимізація буферизації
-            'buffersize': 16*1024,  # Збільшений розмір буфера
-            'concurrent_fragment_downloads': 3,  # Паралельне завантаження фрагментів
+            'buffersize': 32*1024,  # Збільшений буфер
+            'concurrent_fragment_downloads': 5,  # Більше паралельних завантажень
+            'postprocessors': [{  # Оптимізація аудіо
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'opus',
+                'preferredquality': '128'
+            }]
         }
         
-        # Налаштування для попереднього завантаження наступного треку
+        # Налаштування для завантаження плейлистів
+        self.playlist_opts = {
+            **self.light_ydl_opts,
+            'extract_flat': 'in_playlist',
+            'playlistend': 50  # Обмеження кількості треків для безпеки
+        }
+        
         self.preload_next = True
         self.preloaded_tracks = {}
 
@@ -269,7 +296,7 @@ class MusicCog(commands.Cog):
             await ctx.send("❌ Помилка оновлення плеєра. Спробуйте ще раз.")
 
     async def play_next_song(self, ctx):
-        """Оптимізоване відтворення наступної пісні з попереднім завантаженням."""
+        """Оптимізоване відтворення наступної пісні."""
         try:
             guild_id = ctx.guild.id
             
@@ -277,18 +304,33 @@ class MusicCog(commands.Cog):
                 voice_client = ctx.voice_client
                 if voice_client and not voice_client.is_playing():
                     source_info = self.music_queues[guild_id].pop(0)
-                    url = source_info.get('webpage_url') or source_info['url']
                     
+                    # Зберігаємо поточний трек в історію
+                    if guild_id not in self.track_history:
+                        self.track_history[guild_id] = []
+                    if guild_id in self.current_song:
+                        self.track_history[guild_id].append(self.current_song[guild_id])
+                        # Обмежуємо історію до 50 треків
+                        if len(self.track_history[guild_id]) > 50:
+                            self.track_history[guild_id].pop(0)
+                    
+                    url = source_info.get('webpage_url') or source_info['url']
                     self.logger.info(f"Playing next song: {source_info.get('title', url)}")
                     
-                    # Перевіряємо, чи є попередньо завантажений трек
+                    # Використовуємо попередньо завантажений трек, якщо є
                     player = None
                     if guild_id in self.preloaded_tracks:
                         player = self.preloaded_tracks.pop(guild_id)
                         self.logger.info("Using preloaded track")
                     
                     if not player:
-                        player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+                        try:
+                            player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+                        except Exception as e:
+                            self.logger.error(f"Error creating player: {e}")
+                            await ctx.send(f"❌ Помилка відтворення: {source_info.get('title', 'Невідомий трек')}")
+                            await self.play_next_song(ctx)
+                            return
                     
                     if player:
                         self.current_song[guild_id] = {
@@ -408,48 +450,124 @@ class MusicCog(commands.Cog):
         else:
             await ctx.send("Бот не підключений до голосового каналу.")
 
-    @commands.command(name='play', aliases=['p'], help='Відтворити пісню за URL або пошуковим запитом.')
-    async def play(self, ctx, *, query: str):
-        """Оптимізована версія команди відтворення."""
+    async def process_playlist(self, ctx, url):
+        """Обробка плейлиста та додавання треків до черги."""
         try:
+            message = await ctx.send("⏳ Завантажую плейлист...")
             guild_id = ctx.guild.id
             
+            self.logger.info(f"Processing playlist: {url}")
+            tracks_added = 0
+            
+            with yt_dlp.YoutubeDL(self.playlist_opts) as ydl:
+                try:
+                    # Отримуємо інформацію про плейлист
+                    playlist_info = await self.bot.loop.run_in_executor(
+                        None,
+                        lambda: ydl.extract_info(url, download=False)
+                    )
+                    
+                    if not playlist_info:
+                        await message.edit(content="❌ Не вдалося завантажити плейлист.")
+                        return 0
+                    
+                    playlist_title = playlist_info.get('title', 'Невідомий плейлист')
+                    entries = playlist_info.get('entries', [])
+                    
+                    if not entries:
+                        await message.edit(content="❌ Плейлист порожній або не вдалося отримати треки.")
+                        return 0
+                    
+                    # Створюємо чергу для сервера, якщо її немає
+                    if guild_id not in self.music_queues:
+                        self.music_queues[guild_id] = []
+                    
+                    # Додаємо треки до черги
+                    for entry in entries:
+                        if not entry:
+                            continue
+                            
+                        track_info = {
+                            'title': entry.get('title', 'Невідома назва'),
+                            'url': entry.get('url', entry.get('webpage_url', None)),
+                            'webpage_url': entry.get('webpage_url', entry.get('url', None)),
+                            'duration': entry.get('duration'),
+                            'thumbnail': entry.get('thumbnail'),
+                            'requester': ctx.author
+                        }
+                        
+                        if track_info['url'] or track_info['webpage_url']:
+                            self.music_queues[guild_id].append(track_info)
+                            tracks_added += 1
+                            
+                            # Оновлюємо повідомлення кожні 10 треків
+                            if tracks_added % 10 == 0:
+                                await message.edit(content=f"⏳ Завантажено {tracks_added} треків з плейлиста...")
+                    
+                    # Починаємо відтворення, якщо воно ще не почалось
+                    voice_client = ctx.voice_client
+                    if not voice_client or not voice_client.is_playing():
+                        await self.play_next_song(ctx)
+                    
+                    await message.edit(content=f"✅ Додано {tracks_added} треків з плейлиста: **{playlist_title}**")
+                    return tracks_added
+                    
+                except Exception as e:
+                    self.logger.error(f"Error processing playlist: {str(e)}", exc_info=True)
+                    await message.edit(content=f"❌ Помилка при завантаженні плейлиста: {str(e)}")
+                    return 0
+                    
+        except Exception as e:
+            self.logger.error(f"Error in process_playlist: {str(e)}", exc_info=True)
+            await ctx.send("❌ Сталася помилка при обробці плейлиста.")
+            return 0
+
+    @commands.command(name='play', aliases=['p'], help='Відтворити пісню або плейлист за URL чи пошуковим запитом.')
+    async def play(self, ctx, *, query: str):
+        """Оптимізована версія команди відтворення з підтримкою плейлистів."""
+        try:
             if not ctx.author.voice:
                 await ctx.send(f"{ctx.author.mention}, підключіться до голосового каналу спочатку!")
                 return
 
+            # Підключаємося до голосового каналу
             voice_client = ctx.voice_client
-            
             if not voice_client or not voice_client.is_connected():
                 try:
                     voice_client = await ctx.author.voice.channel.connect()
                 except Exception as e:
-                    logging.error(f"Failed to connect to voice channel: {e}")
+                    self.logger.error(f"Failed to connect to voice channel: {e}")
                     await ctx.send("Не вдалося підключитися до голосового каналу.")
                     return
             elif voice_client.channel != ctx.author.voice.channel:
                 try:
                     await voice_client.move_to(ctx.author.voice.channel)
                 except Exception as e:
-                    logging.error(f"Failed to move to voice channel: {e}")
+                    self.logger.error(f"Failed to move to voice channel: {e}")
                     await ctx.send("Не вдалося переміститися до вашого каналу.")
                     return
 
-            if guild_id not in self.music_queues:
-                self.music_queues[guild_id] = []
+            # Перевіряємо, чи це плейлист
+            if 'list=' in query or 'playlist?' in query:
+                tracks_added = await self.process_playlist(ctx, query)
+                if tracks_added > 0:
+                    return
+                # Якщо не вдалося обробити як плейлист, продовжуємо як звичайний трек
 
-            # Відправляємо реакцію завантаження
+            # Звичайна обробка одного треку
             await ctx.message.add_reaction('⏳')
-            
-            # Отримуємо інформацію про відео перед додаванням до черги
             video_info = await self.get_video_info(query)
+            
             if not video_info:
                 await ctx.message.remove_reaction('⏳', ctx.guild.me)
                 await ctx.message.add_reaction('❌')
-                await ctx.send("❌ Не вдалося отримати інформацію про відео. Перевірте URL або спробуйте інший запит.")
+                await ctx.send("❌ Не вдалося отримати інформацію про відео.")
                 return
 
-            # Додаємо трек до черги з повною інформацією
+            guild_id = ctx.guild.id
+            if guild_id not in self.music_queues:
+                self.music_queues[guild_id] = []
+
             queue_item = {
                 'url': video_info['url'],
                 'requester': ctx.author,
@@ -460,20 +578,16 @@ class MusicCog(commands.Cog):
             }
             
             self.music_queues[guild_id].append(queue_item)
-            
-            # Оновлюємо реакції
             await ctx.message.remove_reaction('⏳', ctx.guild.me)
             await ctx.message.add_reaction('✅')
-
-            # Оновлюємо плеєр
-            await self.update_player(ctx, force_new=True)
-
-            # Починаємо відтворення, якщо потрібно
+            
+            await self.update_player(ctx)
+            
             if not voice_client.is_playing() and not voice_client.is_paused():
                 await self.play_next_song(ctx)
 
         except Exception as e:
-            logging.error(f"Error in play command: {e}", exc_info=True)
+            self.logger.error(f"Error in play command: {e}", exc_info=True)
             await ctx.send(f"❌ Сталася помилка: {str(e)}")
             try:
                 await ctx.message.remove_reaction('⏳', ctx.guild.me)
