@@ -382,6 +382,11 @@ class QueueView(discord.ui.View):
         refresh_button.callback = self.refresh_page
         self.add_item(refresh_button)
 
+        # Кнопка очищення черги
+        clear_button = discord.ui.Button(style=discord.ButtonStyle.secondary, emoji="🗑️", custom_id="clear", label="Очистити")
+        clear_button.callback = self.clear_queue
+        self.add_item(clear_button)
+
     async def first_page(self, interaction: discord.Interaction):
         await self._handle_page_change(interaction, 0)
 
@@ -410,6 +415,24 @@ class QueueView(discord.ui.View):
 
         self.update_buttons()
         await interaction.response.edit_message(embed=self.create_embed(), view=self)
+
+    async def clear_queue(self, interaction: discord.Interaction):
+        """Очищення черги."""
+        if interaction.user != self.ctx.author:
+            await interaction.response.send_message("Ви не можете використовувати це меню.", ephemeral=True)
+            return
+
+        guild_id = self.ctx.guild.id
+        if guild_id in self.cog.music_queues:
+            self.cog.music_queues[guild_id].clear()
+            self.queue = []
+            self.total_pages = 1
+            self.current_page = 0
+            self.update_buttons()
+            await interaction.response.edit_message(embed=self.create_embed(), view=self)
+            await interaction.followup.send("🗑️ Черга очищена!", ephemeral=False)
+        else:
+            await interaction.response.send_message("Черга вже порожня.", ephemeral=True)
 
 
 class MusicCog(commands.Cog):
@@ -1263,6 +1286,20 @@ class MusicCog(commands.Cog):
                 await ctx.send("🎵 Черга порожня. Виходжу з голосового каналу.")
         except Exception as e:
             self.logger.error(f"Error in delayed_disconnect: {e}", exc_info=True)
+
+    @commands.command(name='clear', aliases=['clearqueue', 'cq'], help='Очистити чергу відтворення.')
+    async def clear(self, ctx):
+        """Очищає чергу відтворення."""
+        guild_id = ctx.guild.id
+        
+        if guild_id not in self.music_queues or not self.music_queues[guild_id]:
+            await ctx.send("Черга вже порожня!")
+            return
+            
+        queue_length = len(self.music_queues[guild_id])
+        self.music_queues[guild_id].clear()
+        await ctx.send(f"🗑️ Черга очищена! Видалено {queue_length} треків.")
+        await self.update_player(ctx)
 
 
 # Функція для додавання кога до бота (зазвичай викликається в main.py)
