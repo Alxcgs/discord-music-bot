@@ -138,6 +138,140 @@ class MusicControls(discord.ui.View):
             await interaction.response.send_message("Бот не підключений до голосового каналу.", ephemeral=True)
 
 
+class SearchResultsView(discord.ui.View):
+    def __init__(self, cog, ctx, results, timeout=60):
+        super().__init__(timeout=timeout)
+        self.cog = cog
+        self.ctx = ctx
+        self.results = results
+        self.current_page = 0
+        self.items_per_page = 5
+        self.total_pages = (len(results) - 1) // self.items_per_page + 1
+        self.selected_track = None
+        
+        # Додаємо кнопки навігації та вибору
+        self.update_buttons()
+
+    def update_buttons(self):
+        # Очищаємо всі кнопки
+        self.clear_items()
+        
+        # Додаємо кнопки вибору для поточної сторінки
+        start_idx = self.current_page * self.items_per_page
+        end_idx = min(start_idx + self.items_per_page, len(self.results))
+        
+        for i in range(start_idx, end_idx):
+            button = discord.ui.Button(
+                style=discord.ButtonStyle.secondary,
+                label=str(i - start_idx + 1),
+                custom_id=f"select_{i}"
+            )
+            button.callback = self.create_select_callback(i)
+            self.add_item(button)
+        
+        # Додаємо кнопки навігації
+        if self.total_pages > 1:
+            if self.current_page > 0:
+                prev_button = discord.ui.Button(
+                    style=discord.ButtonStyle.primary,
+                    emoji="⬅️",
+                    custom_id="prev_page"
+                )
+                prev_button.callback = self.prev_page
+                self.add_item(prev_button)
+            
+            if self.current_page < self.total_pages - 1:
+                next_button = discord.ui.Button(
+                    style=discord.ButtonStyle.primary,
+                    emoji="➡️",
+                    custom_id="next_page"
+                )
+                next_button.callback = self.next_page
+                self.add_item(next_button)
+        
+        # Додаємо кнопку скасування
+        cancel_button = discord.ui.Button(
+            style=discord.ButtonStyle.danger,
+            emoji="❌",
+            custom_id="cancel"
+        )
+        cancel_button.callback = self.cancel
+        self.add_item(cancel_button)
+
+    def create_select_callback(self, index):
+        async def callback(interaction: discord.Interaction):
+            if interaction.user != self.ctx.author:
+                await interaction.response.send_message("Ви не можете використовувати це меню.", ephemeral=True)
+                return
+            
+            self.selected_track = self.results[index]
+            self.stop()
+            await interaction.message.delete()
+            
+        return callback
+
+    async def prev_page(self, interaction: discord.Interaction):
+        if interaction.user != self.ctx.author:
+            await interaction.response.send_message("Ви не можете використовувати це меню.", ephemeral=True)
+            return
+        
+        self.current_page = max(0, self.current_page - 1)
+        await self.update_message(interaction)
+
+    async def next_page(self, interaction: discord.Interaction):
+        if interaction.user != self.ctx.author:
+            await interaction.response.send_message("Ви не можете використовувати це меню.", ephemeral=True)
+            return
+        
+        self.current_page = min(self.total_pages - 1, self.current_page + 1)
+        await self.update_message(interaction)
+
+    async def cancel(self, interaction: discord.Interaction):
+        if interaction.user != self.ctx.author:
+            await interaction.response.send_message("Ви не можете використовувати це меню.", ephemeral=True)
+            return
+        
+        self.selected_track = None
+        self.stop()
+        await interaction.message.delete()
+
+    async def update_message(self, interaction: discord.Interaction):
+        self.update_buttons()
+        embed = self.create_embed()
+        await interaction.response.edit_message(embed=embed, view=self)
+
+    def create_embed(self):
+        embed = discord.Embed(
+            title="🔍 Результати пошуку",
+            color=discord.Color.blue()
+        )
+        
+        start_idx = self.current_page * self.items_per_page
+        end_idx = min(start_idx + self.items_per_page, len(self.results))
+        
+        for i, track in enumerate(self.results[start_idx:end_idx], start=1):
+            duration = format_duration(track.get('duration', 0))
+            title = track.get('title', 'Невідома назва')
+            url = track.get('webpage_url', '#')
+            
+            embed.add_field(
+                name=f"{i}. {title}",
+                value=f"⏱️ {duration}\n🔗 [Посилання]({url})",
+                inline=False
+            )
+        
+        if self.total_pages > 1:
+            embed.set_footer(text=f"Сторінка {self.current_page + 1}/{self.total_pages}")
+        
+        # Встановлюємо thumbnail першого треку на сторінці
+        if len(self.results) > start_idx:
+            thumbnail = self.results[start_idx].get('thumbnail')
+            if thumbnail:
+                embed.set_thumbnail(url=thumbnail)
+        
+        return embed
+
+
 class MusicCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -302,7 +436,7 @@ class MusicCog(commands.Cog):
             embed.add_field(name="📑 Наступні треки", value=queue_text, inline=False)
             embed.add_field(
                 name="ℹ️ Команди",
-                value="`.play` - додати трек\n`.skip` - пропустити\n`.queue` - показати чергу\n`.stop` - зупинити",
+                value="**!play** - додати трек\n**!skip** - пропустити\n**!queue** - показати чергу\n**!stop** - зупинити",
                 inline=False
             )
 
@@ -568,9 +702,69 @@ class MusicCog(commands.Cog):
             await ctx.send("❌ Сталася помилка при обробці плейлиста.")
             return 0
 
+    async def search_tracks(self, query, max_results=10):
+        """Оптимізований пошук треків з базовою інформацією."""
+        try:
+            # Оптимізовані налаштування для швидкого пошуку
+            search_opts = {
+                'quiet': True,
+                'no_warnings': True,
+                'extract_flat': 'in_playlist',  # Отримуємо тільки базову інформацію
+                'skip_download': True,
+                'format': 'best',  # Не шукаємо всі можливі формати
+                'default_search': 'ytsearch',
+                'source_address': '0.0.0.0',
+                'nocheckcertificate': True,
+                'ignoreerrors': True,
+                'no_color': True,
+                'socket_timeout': 3,  # Зменшений таймаут
+                'retries': 2,
+                'playlistend': max_results
+            }
+            
+            if not ('youtube.com' in query or 'youtu.be' in query):
+                query = f"ytsearch{max_results}:{query}"
+            
+            with yt_dlp.YoutubeDL(search_opts) as ydl:
+                try:
+                    # Використовуємо ThreadPoolExecutor для асинхронного пошуку
+                    loop = asyncio.get_event_loop()
+                    info = await loop.run_in_executor(None, lambda: ydl.extract_info(query, download=False))
+                    
+                    if not info:
+                        return []
+                    
+                    tracks = []
+                    if 'entries' in info:
+                        tracks = [entry for entry in info['entries'] if entry]
+                    else:
+                        tracks = [info]
+                    
+                    # Форматуємо тільки необхідну інформацію
+                    formatted_tracks = []
+                    for track in tracks[:max_results]:
+                        if track:
+                            formatted_tracks.append({
+                                'title': track.get('title', 'Невідома назва'),
+                                'url': track.get('url', ''),
+                                'webpage_url': track.get('webpage_url', track.get('url', '')),
+                                'duration': track.get('duration', 0),
+                                'thumbnail': track.get('thumbnail')
+                            })
+                    
+                    return formatted_tracks
+                    
+                except Exception as e:
+                    self.logger.error(f"Error in yt-dlp extract_info: {e}")
+                    return []
+                    
+        except Exception as e:
+            self.logger.error(f"Error in search_tracks: {e}")
+            return []
+
     @commands.command(name='play', aliases=['p'], help='Відтворити пісню або плейлист за URL чи пошуковим запитом.')
     async def play(self, ctx, *, query: str):
-        """Оптимізована версія команди відтворення з підтримкою плейлистів."""
+        """Оптимізована версія команди відтворення з підтримкою пошуку."""
         try:
             if not ctx.author.voice:
                 await ctx.send(f"{ctx.author.mention}, підключіться до голосового каналу спочатку!")
@@ -593,53 +787,112 @@ class MusicCog(commands.Cog):
                     await ctx.send("Не вдалося переміститися до вашого каналу.")
                     return
 
-            # Перевіряємо, чи це плейлист
-            if 'list=' in query or 'playlist?' in query:
-                tracks_added = await self.process_playlist(ctx, query)
-                if tracks_added > 0:
+            # Перевіряємо, чи це URL
+            is_url = 'youtube.com' in query or 'youtu.be' in query
+
+            # Якщо це URL плейлиста або відео - обробляємо стандартним способом
+            if is_url:
+                if 'list=' in query or 'playlist?' in query:
+                    tracks_added = await self.process_playlist(ctx, query)
+                    if tracks_added > 0:
+                        return
+
+                # Стандартна обробка URL
+                await ctx.message.add_reaction('⏳')
+                video_info = await self.get_video_info(query)
+                
+                if not video_info:
+                    await ctx.message.remove_reaction('⏳', ctx.guild.me)
+                    await ctx.message.add_reaction('❌')
+                    await ctx.send("❌ Не вдалося отримати інформацію про відео.")
                     return
-                # Якщо не вдалося обробити як плейлист, продовжуємо як звичайний трек
 
-            # Звичайна обробка одного треку
-            await ctx.message.add_reaction('⏳')
-            video_info = await self.get_video_info(query)
-            
-            if not video_info:
+                guild_id = ctx.guild.id
+                if guild_id not in self.music_queues:
+                    self.music_queues[guild_id] = []
+
+                queue_item = {
+                    'url': video_info['url'],
+                    'requester': ctx.author,
+                    'title': video_info['title'],
+                    'webpage_url': video_info['url'],
+                    'thumbnail': video_info.get('thumbnail'),
+                    'duration': video_info.get('duration')
+                }
+                
+                self.music_queues[guild_id].append(queue_item)
                 await ctx.message.remove_reaction('⏳', ctx.guild.me)
-                await ctx.message.add_reaction('❌')
-                await ctx.send("❌ Не вдалося отримати інформацію про відео.")
-                return
+                await ctx.message.add_reaction('✅')
+                
+                await self.update_player(ctx)
+                
+                if not voice_client.is_playing() and not voice_client.is_paused():
+                    await self.play_next_song(ctx)
 
-            guild_id = ctx.guild.id
-            if guild_id not in self.music_queues:
-                self.music_queues[guild_id] = []
-
-            queue_item = {
-                'url': video_info['url'],
-                'requester': ctx.author,
-                'title': video_info['title'],
-                'webpage_url': video_info['url'],
-                'thumbnail': video_info.get('thumbnail'),
-                'duration': video_info.get('duration')
-            }
-            
-            self.music_queues[guild_id].append(queue_item)
-            await ctx.message.remove_reaction('⏳', ctx.guild.me)
-            await ctx.message.add_reaction('✅')
-            
-            await self.update_player(ctx)
-            
-            if not voice_client.is_playing() and not voice_client.is_paused():
-                await self.play_next_song(ctx)
+            # Якщо це пошуковий запит - показуємо інтерфейс вибору
+            else:
+                loading_message = await ctx.send("🔍 Шукаю трек...")
+                
+                # Створюємо окрему таску для пошуку, щоб не блокувати головний потік
+                try:
+                    results = await asyncio.wait_for(self.search_tracks(query), timeout=10.0)
+                except asyncio.TimeoutError:
+                    await loading_message.edit(content="❌ Час пошуку вичерпано. Спробуйте ще раз.")
+                    return
+                except Exception as e:
+                    await loading_message.edit(content=f"❌ Помилка пошуку: {str(e)}")
+                    return
+                
+                if not results:
+                    await loading_message.edit(content="❌ Нічого не знайдено.")
+                    return
+                
+                # Показуємо меню вибору
+                view = SearchResultsView(self, ctx, results)
+                await loading_message.edit(
+                    content=None,
+                    embed=view.create_embed(),
+                    view=view
+                )
+                
+                # Встановлюємо таймаут для меню вибору
+                try:
+                    await asyncio.wait_for(view.wait(), timeout=30.0)
+                except asyncio.TimeoutError:
+                    await loading_message.edit(content="⏰ Час вибору трека вичерпано.", embed=None, view=None)
+                    return
+                
+                track_info = view.selected_track
+                if not track_info:
+                    return
+                
+                # Додаємо вибраний трек до черги
+                guild_id = ctx.guild.id
+                if guild_id not in self.music_queues:
+                    self.music_queues[guild_id] = []
+                
+                queue_item = {
+                    **track_info,
+                    'requester': ctx.author
+                }
+                
+                self.music_queues[guild_id].append(queue_item)
+                await self.update_player(ctx)
+                
+                if not voice_client.is_playing() and not voice_client.is_paused():
+                    await self.play_next_song(ctx)
+                else:
+                    await ctx.send(f"✅ Додано до черги: **{track_info['title']}**")
 
         except Exception as e:
             self.logger.error(f"Error in play command: {e}", exc_info=True)
             await ctx.send(f"❌ Сталася помилка: {str(e)}")
-            try:
-                await ctx.message.remove_reaction('⏳', ctx.guild.me)
-                await ctx.message.add_reaction('❌')
-            except:
-                pass
+            if is_url:
+                try:
+                    await ctx.message.remove_reaction('⏳', ctx.guild.me)
+                    await ctx.message.add_reaction('❌')
+                except:
+                    pass
 
     @commands.command(name='pause', help='Поставити відтворення на паузу.')
     async def pause(self, ctx):
