@@ -38,8 +38,16 @@ async def on_ready():
     logging.info(f'Бот {bot.user.name} підключений до Discord!')
     logging.info(f'ID бота: {bot.user.id}')
     await load_cogs() # Завантажуємо коги після підключення
+    
+    # Синхронізація Slash Commands
+    try:
+        synced = await bot.tree.sync()
+        logging.info(f"Синхронізовано {len(synced)} Slash-команд.")
+    except Exception as e:
+        logging.error(f"Помилка синхронізації команд: {e}")
+
     # Встановлення статусу бота (опціонально)
-    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="!help"))
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="/play"))
 
 @bot.event
 async def on_command_error(ctx, error):
