@@ -3,7 +3,7 @@ from discord.ext import commands
 import asyncio
 import logging
 from discord_music_bot.audio_source import YTDLSource
-from discord_music_bot.services import QueueService
+from discord_music_bot.services import QueueService, PlayerController
 import yt_dlp
 
 def format_duration(duration):
@@ -441,9 +441,6 @@ class QueueView(discord.ui.View):
 
     async def close_queue(self, interaction: discord.Interaction):
         """Закриває (згортає) вікно черги."""
-        if interaction.user != self.ctx.author:
-            await interaction.response.send_message("Ви не можете використовувати це меню.", ephemeral=True)
-            return
         await interaction.response.defer(ephemeral=True)
         try:
             await interaction.message.delete()
@@ -503,6 +500,7 @@ class MusicCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self._queue_services: dict[int, QueueService] = {}
+        self.player_controller = PlayerController(bot, retry_count=3, retry_delay=2.0)
         self.current_song = {}
         self.control_messages = {}
         self.player_channels = {}
@@ -541,7 +539,7 @@ class MusicCog(commands.Cog):
             'extractor_args': {
                 'soundcloud': {
                     'client_id': None,  # yt-dlp сам знайде актуальний client_id
-                    'playlistend': 50  # Обмеження для плейлистів
+                    'playlistend': 150  # Обмеження для плейлистів
                 }
             }
         }
@@ -550,7 +548,7 @@ class MusicCog(commands.Cog):
         self.playlist_opts = {
             **self.light_ydl_opts,
             'extract_flat': 'in_playlist',
-            'playlistend': 50,  # Обмеження кількості треків для безпеки
+            'playlistend': 150,  # Обмеження кількості треків
             'extract_flat': False  # Повна інформація для SoundCloud плейлистів
         }
         
@@ -667,7 +665,18 @@ class MusicCog(commands.Cog):
 
             embed.add_field(
                 name="ℹ️ Команди",
-                value="**!play** - додати трек\n**!skip** - пропустити\n**📄 Черга** - показати чергу\n**!stop** - зупинити",
+                value=(
+                    "**!play** - додати трек\n"
+                    "**!skip** - пропустити\n"
+                    "**!pause** - пауза\n"
+                    "**!resume** - відновити\n"
+                    "**!shuffle** - перемішати чергу\n"
+                    "**!move 1 5** - перемістити трек\n"
+                    "**!queue** - показати чергу\n"
+                    "**!clear** - очистити чергу\n"
+                    "**!stop** - зупинити\n"
+                    "**!nowplaying** - що зараз грає"
+                ),
                 inline=False
             )
 
@@ -719,8 +728,8 @@ class MusicCog(commands.Cog):
             self.track_history[guild_id].append(track_copy)
             self.logger.info(f"Added track to history: {track_copy.get('title')} for guild {guild_id}")
             
-            # Обмежуємо історію до 50 треків
-            if len(self.track_history[guild_id]) > 50:
+            # Обмежуємо історію до 150 треків
+            if len(self.track_history[guild_id]) > 150:
                 self.track_history[guild_id].pop(0)
 
     async def play_next_song(self, ctx):
@@ -740,30 +749,26 @@ class MusicCog(commands.Cog):
                     
                     self.logger.info(f"Playing next song: {source_info.get('title', url)}")
                     
-                    try:
-                        player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
-                        if player:
-                            self.current_song[guild_id] = {
-                                'title': player.title,
-                                'url': player.url,
-                                'webpage_url': url,
-                                'thumbnail': player.thumbnail,
-                                'duration': player.duration,
-                                'requester': source_info['requester'],
-                                'player': player
-                            }
-                            
-                            voice_client.play(
-                                player, 
-                                after=lambda e: self.bot.loop.create_task(self.check_after_play(ctx, e))
-                            )
-                            await self.update_player(ctx)
-                        else:
-                            await ctx.send("❌ Не вдалося відтворити трек. Пропускаю...")
-                            await self.play_next_song(ctx)
-                    except Exception as e:
-                        self.logger.error(f"Error creating player: {e}")
-                        await ctx.send(f"❌ Помилка відтворення: {source_info.get('title', 'Невідомий трек')}")
+                    player = await self.player_controller.create_player(url, stream=True)
+                    if player:
+                        self.current_song[guild_id] = {
+                            'title': player.title,
+                            'url': player.url,
+                            'webpage_url': url,
+                            'thumbnail': player.thumbnail,
+                            'duration': player.duration,
+                            'requester': source_info['requester'],
+                            'player': player
+                        }
+                        
+                        self.player_controller.play(
+                            voice_client,
+                            player,
+                            after=lambda e: self.bot.loop.create_task(self.check_after_play(ctx, e))
+                        )
+                        await self.update_player(ctx)
+                    else:
+                        await ctx.send("❌ Не вдалося відтворити трек. Пропускаю...")
                         await self.play_next_song(ctx)
             else:
                 if guild_id in self.current_song:
