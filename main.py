@@ -1,14 +1,44 @@
 import discord
 from discord.ext import commands
 import asyncio
-import logging
-import os
 import ssl
 import certifi
-from discord_music_bot.config import DISCORD_TOKEN # Імпортуємо токен з конфігурації
+from dotenv import load_dotenv
 
-# Налаштування логування
+# Завантаження змінних середовища з .env файлу
+load_dotenv()
+
+import logging
+import os
+
+# --- Конфігурація логування ---
 logging.basicConfig(level=logging.INFO)
+
+# --- Токен Discord ---
+DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
+
+# --- Опції для yt-dlp ---
+YDL_OPTIONS = {
+    'format': 'bestaudio[ext=m4a]/bestaudio[ext=mp3]/bestaudio',
+    'noplaylist': True,
+    'nocheckcertificate': True,
+    'ignoreerrors': False,
+    'logtostderr': False,
+    'quiet': True,
+    'no_warnings': True,
+    'default_search': 'auto',
+    'source_address': '0.0.0.0',
+    'force-ipv4': True,
+    'cachedir': False,
+    'prefer_ffmpeg': True,
+    'extract_flat': False
+}
+
+# --- Опції для FFmpeg ---
+FFMPEG_OPTIONS = {
+    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -analyzeduration 0 -probesize 32768',
+    'options': '-vn -acodec pcm_s16le -ar 48000 -ac 2'
+}
 
 # Налаштування інтентів (перенесено з bot.py/config.py)
 intents = discord.Intents.default()
@@ -81,12 +111,12 @@ async def main():
 
 if __name__ == "__main__":
     # Перевірка токену перед запуском
-    if not DISCORD_TOKEN:
-        logging.error("Критична помилка: DISCORD_TOKEN не знайдено! Перевірте .env файл.")
-    else:
-        try:
-            asyncio.run(main())
-        except KeyboardInterrupt:
-            logging.info("Бот вимикається...")
-        except Exception as e:
-            logging.critical(f"Критична помилка під час запуску бота: {e}")
+    # if not DISCORD_TOKEN:
+    #     logging.error("Критична помилка: DISCORD_TOKEN не знайдено! Перевірте .env файл.")
+    # else:
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        logging.info("Бот вимикається...")
+    except Exception as e:
+        logging.critical(f"Критична помилка під час запуску бота: {e}")

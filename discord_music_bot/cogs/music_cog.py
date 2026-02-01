@@ -3,6 +3,7 @@ from discord.ext import commands
 import asyncio
 import logging
 from discord_music_bot.audio_source import YTDLSource
+from discord_music_bot.services import QueueService
 import yt_dlp
 
 def format_duration(duration):
@@ -27,9 +28,40 @@ except ImportError:
     print("Error: YTDLSource not found. Please make sure discord_music_bot/audio_source.py exists.")
     raise
 
-# Словники для зберігання стану музики для кожного сервера (краще інкапсулювати в Cog)
-music_queues = {}
-current_song = {}
+
+class MoveTrackModal(discord.ui.Modal, title="Перемістити трек"):
+    """Модальне вікно для введення позицій переміщення."""
+    from_pos_input = discord.ui.TextInput(label="З позиції", placeholder="1", min_length=1, max_length=4)
+    to_pos_input = discord.ui.TextInput(label="На позицію", placeholder="5", min_length=1, max_length=4)
+
+    def __init__(self, cog, ctx, queue_len: int):
+        super().__init__()
+        self.cog = cog
+        self.ctx = ctx
+        self.queue_len = queue_len
+
+    async def on_submit(self, interaction: discord.Interaction):
+        try:
+            from_pos = int(self.from_pos_input.value.strip())
+            to_pos = int(self.to_pos_input.value.strip())
+        except ValueError:
+            await interaction.response.send_message("❌ Введіть коректні числа.", ephemeral=True)
+            return
+        queue = self.cog.get_queue(self.ctx.guild.id)
+        if not queue:
+            await interaction.response.send_message("Черга порожня.", ephemeral=True)
+            return
+        from_idx, to_idx = from_pos - 1, to_pos - 1
+        if queue.move(from_idx, to_idx):
+            await interaction.response.send_message(
+                f"✅ Трек переміщено з позиції {from_pos} на позицію {to_pos}.", ephemeral=True
+            )
+            await self.cog.update_player(self.ctx)
+        else:
+            await interaction.response.send_message(
+                f"❌ Невірні позиції. У черзі {len(queue)} треків (від 1 до {len(queue)}).", ephemeral=True
+            )
+
 
 # --- Клас для кнопок керування ---
 class MusicControls(discord.ui.View):
@@ -70,14 +102,10 @@ class MusicControls(discord.ui.View):
             
             if guild_id in self.cog.current_song:
                 current = self.cog.current_song[guild_id].copy()
-                if guild_id not in self.cog.music_queues:
-                    self.cog.music_queues[guild_id] = []
-                self.cog.music_queues[guild_id].insert(0, current)
+                self.cog.get_queue(guild_id).add_first(current)
                 self.cog.logger.info(f"Saved current track to queue: {current.get('title')}")
             
-            if guild_id not in self.cog.music_queues:
-                self.cog.music_queues[guild_id] = []
-            self.cog.music_queues[guild_id].insert(0, prev_track)
+            self.cog.get_queue(guild_id).add_first(prev_track)
             self.cog.logger.info(f"Added previous track to queue: {prev_track.get('title')}")
             
             voice_client = self.ctx.voice_client
@@ -87,7 +115,7 @@ class MusicControls(discord.ui.View):
             
             await interaction.response.send_message(
                 f"⏮️ Повертаємось до треку: {prev_track.get('title', 'Невідомий трек')}", 
-                ephemeral=False
+                ephemeral=True
             )
             
         except Exception as e:
@@ -129,9 +157,28 @@ class MusicControls(discord.ui.View):
         voice_client = self.ctx.voice_client
         if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
             voice_client.stop()
-            await interaction.response.send_message(f"⏭️ Трек пропущено {interaction.user.mention}.", ephemeral=False)
+            await interaction.response.send_message("⏭️ Трек пропущено.", ephemeral=True)
         else:
             await interaction.response.send_message("Нічого пропускати.", ephemeral=True)
+
+    @discord.ui.button(label="Перемішати", style=discord.ButtonStyle.secondary, emoji="🔀", custom_id="shuffle")
+    async def shuffle_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        queue = self.cog.get_queue(self.ctx.guild.id)
+        if not queue:
+            await interaction.response.send_message("Черга порожня — нічого перемішувати.", ephemeral=True)
+            return
+        queue.shuffle()
+        await interaction.response.send_message("🔀 Чергу перемішано!", ephemeral=True)
+        await self.cog.update_player(self.ctx)
+
+    @discord.ui.button(label="Перемістити", style=discord.ButtonStyle.secondary, emoji="↔️", custom_id="move")
+    async def move_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        queue = self.cog.get_queue(self.ctx.guild.id)
+        if not queue:
+            await interaction.response.send_message("Черга порожня.", ephemeral=True)
+            return
+        modal = MoveTrackModal(self.cog, self.ctx, len(queue))
+        await interaction.response.send_modal(modal)
 
     @discord.ui.button(label="Черга", style=discord.ButtonStyle.secondary, emoji="📄", custom_id="queue")
     async def queue_button(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -290,7 +337,7 @@ class QueueView(discord.ui.View):
         self.ctx = ctx
         self.current_page = 0
         self.items_per_page = 10
-        self.queue = self.cog.music_queues.get(ctx.guild.id, [])
+        self.queue = self.cog.get_queue(ctx.guild.id)
         self.total_pages = max((len(self.queue) - 1) // self.items_per_page + 1, 1)
         self.update_buttons()
 
@@ -347,7 +394,7 @@ class QueueView(discord.ui.View):
                     embed.add_field(name=field_name, value=chunk, inline=False)
 
             # Додаємо інформацію про загальну кількість треків
-            total_duration = sum(item.get('duration', 0) for item in self.queue)
+            total_duration = sum((item.get('duration') or 0) for item in self.queue)
             embed.set_footer(text=f"Всього треків: {len(self.queue)} | Загальна тривалість: {format_duration(total_duration)} | Сторінка {self.current_page + 1}/{self.total_pages}")
         else:
             embed.add_field(name="📑 Треки в черзі", value="Черга порожня", inline=False)
@@ -387,6 +434,22 @@ class QueueView(discord.ui.View):
         clear_button.callback = self.clear_queue
         self.add_item(clear_button)
 
+        # Кнопка закрити (згорнути чергу)
+        close_button = discord.ui.Button(style=discord.ButtonStyle.secondary, emoji="❌", custom_id="close_queue", label="Закрити")
+        close_button.callback = self.close_queue
+        self.add_item(close_button)
+
+    async def close_queue(self, interaction: discord.Interaction):
+        """Закриває (згортає) вікно черги."""
+        if interaction.user != self.ctx.author:
+            await interaction.response.send_message("Ви не можете використовувати це меню.", ephemeral=True)
+            return
+        await interaction.response.defer(ephemeral=True)
+        try:
+            await interaction.message.delete()
+        except (discord.NotFound, discord.Forbidden):
+            pass
+
     async def first_page(self, interaction: discord.Interaction):
         await self._handle_page_change(interaction, 0)
 
@@ -409,7 +472,7 @@ class QueueView(discord.ui.View):
 
         self.current_page = new_page
         if force_refresh or True:  # Завжди оновлюємо чергу
-            self.queue = self.cog.music_queues.get(self.ctx.guild.id, [])
+            self.queue = self.cog.get_queue(self.ctx.guild.id)
             self.total_pages = max((len(self.queue) - 1) // self.items_per_page + 1, 1)
             self.current_page = min(self.current_page, self.total_pages - 1)
 
@@ -423,14 +486,15 @@ class QueueView(discord.ui.View):
             return
 
         guild_id = self.ctx.guild.id
-        if guild_id in self.cog.music_queues:
-            self.cog.music_queues[guild_id].clear()
-            self.queue = []
+        queue = self.cog.get_queue(guild_id)
+        if queue:
+            queue.clear()
+            self.queue = queue
             self.total_pages = 1
             self.current_page = 0
             self.update_buttons()
             await interaction.response.edit_message(embed=self.create_embed(), view=self)
-            await interaction.followup.send("🗑️ Черга очищена!", ephemeral=False)
+            await interaction.followup.send("🗑️ Черга очищена!", ephemeral=True)
         else:
             await interaction.response.send_message("Черга вже порожня.", ephemeral=True)
 
@@ -438,7 +502,7 @@ class QueueView(discord.ui.View):
 class MusicCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.music_queues = {}
+        self._queue_services: dict[int, QueueService] = {}
         self.current_song = {}
         self.control_messages = {}
         self.player_channels = {}
@@ -492,6 +556,12 @@ class MusicCog(commands.Cog):
         
         self.preload_next = True
         self.preloaded_tracks = {}
+
+    def get_queue(self, guild_id: int) -> QueueService:
+        """Повертає QueueService для сервера (створює новий, якщо потрібно)."""
+        if guild_id not in self._queue_services:
+            self._queue_services[guild_id] = QueueService()
+        return self._queue_services[guild_id]
 
     async def preload_next_track(self, ctx, url):
         """Попереднє завантаження наступного треку."""
@@ -595,23 +665,9 @@ class MusicCog(commands.Cog):
             else:
                 embed.add_field(name="🎶 Зараз грає", value="Нічого не грає", inline=False)
 
-            queue = self.music_queues.get(guild_id, [])
-            if queue:
-                next_up = []
-                for i, item in enumerate(queue[:5]):
-                    title = item.get('title', 'Невідома назва')
-                    url = item.get('url', '#')
-                    next_up.append(f"`{i+1}.` [{title}]({url}) (Замовив користувач: {item['requester'].mention})")
-                queue_text = "\n".join(next_up)
-                if len(queue) > 5:
-                    queue_text += f"\n\n... та ще {len(queue) - 5} треків"
-            else:
-                queue_text = "Черга порожня"
-            
-            embed.add_field(name="📑 Наступні треки", value=queue_text, inline=False)
             embed.add_field(
                 name="ℹ️ Команди",
-                value="**!play** - додати трек\n**!skip** - пропустити\n**!queue** - показати чергу\n**!stop** - зупинити",
+                value="**!play** - додати трек\n**!skip** - пропустити\n**📄 Черга** - показати чергу\n**!stop** - зупинити",
                 inline=False
             )
 
@@ -620,7 +676,7 @@ class MusicCog(commands.Cog):
             try:
                 if guild_id in self.control_messages:
                     try:
-                        old_msg = await ctx.fetch_message(self.control_messages[guild_id])
+                        old_msg = await ctx.channel.fetch_message(self.control_messages[guild_id])
                         await old_msg.delete()
                     except (discord.NotFound, discord.Forbidden) as e:
                         self.logger.debug(f"Could not delete old message: {e}")
@@ -675,10 +731,11 @@ class MusicCog(commands.Cog):
             if guild_id in self.current_song:
                 await self.add_to_history(guild_id, self.current_song[guild_id])
             
-            if guild_id in self.music_queues and self.music_queues[guild_id]:
+            queue = self.get_queue(guild_id)
+            if queue:
                 voice_client = ctx.voice_client
                 if voice_client and not voice_client.is_playing():
-                    source_info = self.music_queues[guild_id].pop(0)
+                    source_info = queue.pop_first()
                     url = source_info.get('webpage_url') or source_info['url']
                     
                     self.logger.info(f"Playing next song: {source_info.get('title', url)}")
@@ -746,13 +803,12 @@ class MusicCog(commands.Cog):
 
             if voice_client and voice_client.is_connected():
                 # Очистка стану
-                if guild_id in self.music_queues:
-                    self.music_queues[guild_id].clear()
+                self.get_queue(guild_id).clear()
                 if guild_id in self.current_song:
                     del self.current_song[guild_id]
                 if guild_id in self.control_messages:
                     try:
-                        msg = await ctx.fetch_message(self.control_messages[guild_id])
+                        msg = await ctx.channel.fetch_message(self.control_messages[guild_id])
                         await msg.delete()
                     except (discord.NotFound, discord.Forbidden):
                         pass
@@ -857,8 +913,7 @@ class MusicCog(commands.Cog):
                         await message.edit(content="❌ Плейлист порожній або не вдалося отримати треки.")
                         return 0
                     
-                    if guild_id not in self.music_queues:
-                        self.music_queues[guild_id] = []
+                    queue = self.get_queue(guild_id)
                     
                     # Підготовка даних для масового додавання
                     platform = 'SoundCloud' if is_soundcloud else 'YouTube'
@@ -887,7 +942,7 @@ class MusicCog(commands.Cog):
                                 await message.edit(content=f"⏳ Завантажено {tracks_added} треків з плейлиста {platform}...")
                     
                     # Масове додавання треків до черги
-                    self.music_queues[guild_id].extend(track_batch)
+                    queue.add_many(track_batch)
                     
                     # Починаємо відтворення
                     voice_client = ctx.voice_client
@@ -1022,8 +1077,7 @@ class MusicCog(commands.Cog):
                     return
 
                 guild_id = ctx.guild.id
-                if guild_id not in self.music_queues:
-                    self.music_queues[guild_id] = []
+                queue = self.get_queue(guild_id)
 
                 # Визначаємо платформу
                 platform = 'SoundCloud' if is_soundcloud else 'YouTube'
@@ -1038,7 +1092,7 @@ class MusicCog(commands.Cog):
                     'platform': platform
                 }
                 
-                self.music_queues[guild_id].append(queue_item)
+                queue.add(queue_item)
                 await ctx.message.remove_reaction('⏳', ctx.guild.me)
                 await ctx.message.add_reaction('✅')
                 
@@ -1083,8 +1137,7 @@ class MusicCog(commands.Cog):
                     return
                 
                 guild_id = ctx.guild.id
-                if guild_id not in self.music_queues:
-                    self.music_queues[guild_id] = []
+                queue = self.get_queue(guild_id)
 
                 # Визначаємо платформу для результату пошуку
                 platform = 'SoundCloud' if 'soundcloud.com' in track_info.get('webpage_url', '').lower() else 'YouTube'
@@ -1096,7 +1149,7 @@ class MusicCog(commands.Cog):
                     'platform': platform
                 }
                 
-                self.music_queues[guild_id].append(queue_item)
+                queue.add(queue_item)
                 await self.update_player(ctx)
                 
                 if not voice_client.is_playing() and not voice_client.is_paused():
@@ -1151,7 +1204,7 @@ class MusicCog(commands.Cog):
         voice_client = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
 
         if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
-            self.music_queues[guild_id] = []
+            self.get_queue(guild_id).clear()
             voice_client.stop()
             if guild_id in self.current_song:
                 del self.current_song[guild_id]
@@ -1166,7 +1219,7 @@ class MusicCog(commands.Cog):
     async def queue(self, ctx):
         """Показує поточну чергу музики."""
         guild_id = ctx.guild.id
-        queue = self.music_queues.get(guild_id, [])
+        queue = self.get_queue(guild_id)
 
         if not queue and guild_id not in self.current_song:
             await ctx.send("Черга порожня!")
@@ -1188,7 +1241,7 @@ class MusicCog(commands.Cog):
             for i, item in enumerate(queue[:10]):
                 title = item.get('title', 'Завантаження...')
                 url = item.get('webpage_url', '#')
-                next_up.append(f"`{i+1}.` [{title}]({url}) (Замовив корситувач: {item['requester'].mention})")
+                next_up.append(f"`{i+1}.` [{title}]({url}) (Замовив користувач: {item['requester'].mention})")
 
             if next_up:
                  embed.add_field(name="⏭️ Далі в черзі", value="\n".join(next_up), inline=False)
@@ -1231,7 +1284,7 @@ class MusicCog(commands.Cog):
             view = None
             if guild_id in self.control_messages:
                 try:
-                    msg = await ctx.fetch_message(self.control_messages[guild_id])
+                    msg = await ctx.channel.fetch_message(self.control_messages[guild_id])
                     view = MusicControls.from_message(msg, self.bot) # Потрібно адаптувати MusicControls
                     # Або просто створити новий View
                     view = MusicControls(ctx, self)
@@ -1254,7 +1307,7 @@ class MusicCog(commands.Cog):
             # Видаляємо старе повідомлення, якщо воно є і ми створюємо нове
             if guild_id in self.control_messages and view:
                  try:
-                     old_msg = await ctx.fetch_message(self.control_messages[guild_id])
+                     old_msg = await ctx.channel.fetch_message(self.control_messages[guild_id])
                      await old_msg.delete()
                  except (discord.NotFound, discord.Forbidden):
                      pass
@@ -1290,8 +1343,7 @@ class MusicCog(commands.Cog):
                     
                     voice_client = discord.utils.get(self.bot.voice_clients, guild=member.guild)
                     if voice_client and voice_client.channel == before.channel and len(voice_client.channel.members) == 1:
-                        if guild_id in self.music_queues:
-                            self.music_queues[guild_id].clear()
+                        self.get_queue(guild_id).clear()
                         if guild_id in self.current_song:
                             del self.current_song[guild_id]
                         
@@ -1311,7 +1363,7 @@ class MusicCog(commands.Cog):
         try:
             await asyncio.sleep(60)
             voice_client = ctx.voice_client
-            if voice_client and not voice_client.is_playing() and not self.music_queues.get(ctx.guild.id, []):
+            if voice_client and not voice_client.is_playing() and not self.get_queue(ctx.guild.id):
                 await voice_client.disconnect()
                 self.logger.info(f"Disconnected from voice channel in guild {ctx.guild.id}")
                 await ctx.send("🎵 Черга порожня. Виходжу з голосового каналу.")
@@ -1323,14 +1375,43 @@ class MusicCog(commands.Cog):
         """Очищає чергу відтворення."""
         guild_id = ctx.guild.id
         
-        if guild_id not in self.music_queues or not self.music_queues[guild_id]:
+        queue = self.get_queue(guild_id)
+        if not queue:
             await ctx.send("Черга вже порожня!")
             return
             
-        queue_length = len(self.music_queues[guild_id])
-        self.music_queues[guild_id].clear()
+        queue_length = len(queue)
+        queue.clear()
         await ctx.send(f"🗑️ Черга очищена! Видалено {queue_length} треків.")
         await self.update_player(ctx)
+
+    @commands.command(name='shuffle', help='Перемішати чергу.')
+    async def shuffle(self, ctx):
+        """Перемішує чергу відтворення."""
+        queue = self.get_queue(ctx.guild.id)
+        if not queue:
+            await ctx.send("Черга порожня — нічого перемішувати.")
+            return
+        queue.shuffle()
+        await ctx.message.add_reaction('🔀')
+        await ctx.send("🔀 Чергу перемішано!")
+        await self.update_player(ctx)
+
+    @commands.command(name='move', help='Перемістити трек: !move <з_позиції> <на_позицію>')
+    async def move(self, ctx, from_pos: int, to_pos: int):
+        """Переміщує трек з однієї позиції на іншу (нумерація з 1)."""
+        queue = self.get_queue(ctx.guild.id)
+        if not queue:
+            await ctx.send("Черга порожня.")
+            return
+        # Користувач вводить 1-based індекси
+        from_idx, to_idx = from_pos - 1, to_pos - 1
+        if queue.move(from_idx, to_idx):
+            await ctx.message.add_reaction('✅')
+            await ctx.send(f"✅ Трек переміщено з позиції {from_pos} на позицію {to_pos}.")
+            await self.update_player(ctx)
+        else:
+            await ctx.send(f"❌ Невірні позиції. У черзі зараз {len(queue)} треків (використовуйте числа від 1 до {len(queue)}).")
 
 
 # Функція для додавання кога до бота (зазвичай викликається в main.py)

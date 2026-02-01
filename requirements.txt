@@ -1,5 +1,5 @@
-discord.py==2.4.1
+discord.py>=2.4.0
 python-dotenv
 yt-dlp
 PyNaCl
-certifi==2024.2.2
+certifi>=2024.2.2
