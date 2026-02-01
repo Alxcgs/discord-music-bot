@@ -106,6 +106,23 @@ async def main():
     else:
         logging.info("Бібліотека Opus вже завантажена.")
 
+    # Ініціалізація БД (aiosqlite + міграції) — історія треків і налаштування
+    try:
+        import aiosqlite
+    except ImportError:
+        logging.warning(
+            "БД вимкнено: не встановлено aiosqlite. "
+            "Щоб увімкнути збереження історії та гучності, виконайте: pip install aiosqlite"
+        )
+    else:
+        try:
+            from discord_music_bot.db import init_db, get_db_path
+            await init_db()
+            path = get_db_path()
+            logging.info(f"БД підключена: {path}")
+        except Exception as e:
+            logging.warning(f"БД не ініціалізована (історія/налаштування тільки в пам'яті): {e}")
+
     async with bot:
         await bot.start(DISCORD_TOKEN)
 

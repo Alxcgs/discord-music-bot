@@ -6,6 +6,12 @@ from discord_music_bot.audio_source import YTDLSource
 from discord_music_bot.services import QueueService, PlayerController
 import yt_dlp
 
+try:
+    from discord_music_bot.db import HistoryRepository, SettingsRepository, get_db_path
+    _db_available = True
+except ImportError:
+    _db_available = False
+
 def format_duration(duration):
     """Форматує тривалість у читабельний формат."""
     if not duration:
@@ -20,6 +26,11 @@ def format_duration(duration):
         return f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
     else:
         return f"{int(minutes):02d}:{int(seconds):02d}"
+
+
+def _requester_text(requester):
+    """Повертає текст для відображення замовника (без падіння при None після перезапуску)."""
+    return requester.mention if requester else "—"
 
 # Перевірка наявності YTDLSource
 try:
@@ -63,6 +74,79 @@ class MoveTrackModal(discord.ui.Modal, title="Перемістити трек"):
             )
 
 
+class VolumeModal(discord.ui.Modal, title="Гучність"):
+    """Модальне вікно для введення гучності 0–100."""
+    vol_input = discord.ui.TextInput(label="Гучність (0–100)", placeholder="50", min_length=1, max_length=3)
+
+    def __init__(self, cog, ctx):
+        super().__init__()
+        self.cog = cog
+        self.ctx = ctx
+
+    async def on_submit(self, interaction: discord.Interaction):
+        try:
+            level = int(self.vol_input.value.strip())
+        except ValueError:
+            await interaction.response.send_message("❌ Введіть число від 0 до 100.", ephemeral=True)
+            return
+        level = max(0, min(100, level))
+        vol = level / 100.0
+        if self.cog._settings_repo:
+            await self.cog._settings_repo.set_volume(self.ctx.guild.id, vol)
+        if interaction.guild.voice_client and interaction.guild.voice_client.source and hasattr(interaction.guild.voice_client.source, 'volume'):
+            interaction.guild.voice_client.source.volume = vol
+        await interaction.response.send_message(f"🔊 Гучність: **{level}%**", ephemeral=True)
+        await self.cog.update_player(self.ctx)
+
+
+class VolumeSelectView(discord.ui.View):
+    """Вибір гучності: випадаючий список (як повзунок) + кнопка «Інше»."""
+    def __init__(self, cog, ctx, timeout=60):
+        super().__init__(timeout=timeout)
+        self.cog = cog
+        self.ctx = ctx
+        
+        options = [
+            discord.SelectOption(label=f"{p}%", value=str(p), description=f"Гучність {p}%")
+            for p in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+        ]
+        options.append(discord.SelectOption(label="Інше (0–100)", value="other", description="Ввести своє значення"))
+        
+        select = discord.ui.Select(
+            placeholder="Оберіть гучність...",
+            min_values=1,
+            max_values=1,
+            options=options,
+            custom_id="volume_select",
+        )
+        select.callback = self._on_select
+        self.add_item(select)
+        
+        btn = discord.ui.Button(style=discord.ButtonStyle.secondary, label="Ввести число 0–100", custom_id="volume_other")
+        btn.callback = self._on_other
+        self.add_item(btn)
+
+    async def _on_select(self, interaction: discord.Interaction):
+        value = interaction.data["values"][0]
+        if value == "other":
+            modal = VolumeModal(self.cog, self.ctx)
+            await interaction.response.send_modal(modal)
+            return
+        level = int(value)
+        vol = level / 100.0
+        if self.cog._settings_repo:
+            await self.cog._settings_repo.set_volume(self.ctx.guild.id, vol)
+        vc = interaction.guild.voice_client
+        if vc and vc.source and hasattr(vc.source, 'volume'):
+            vc.source.volume = vol
+        await interaction.response.send_message(f"🔊 Гучність: **{level}%**", ephemeral=True)
+        await self.cog.update_player(self.ctx)
+
+    async def _on_other(self, interaction: discord.Interaction):
+        modal = VolumeModal(self.cog, self.ctx)
+        await interaction.response.send_modal(modal)
+
+
 # --- Клас для кнопок керування ---
 class MusicControls(discord.ui.View):
     def __init__(self, ctx, cog, timeout=None):
@@ -88,39 +172,48 @@ class MusicControls(discord.ui.View):
             return
         
         self.cog.processing_buttons.add(guild_id)
+        await interaction.response.defer(ephemeral=True)
         
         try:
+            await self.cog.ensure_track_history_loaded(self.ctx.guild)
             if not self.cog.track_history.get(guild_id, []):
-                self.cog.logger.warning(f"No track history for guild {guild_id}")
-                await interaction.response.send_message("Немає попередніх треків.", ephemeral=True)
+                if not self.cog._history_repo:
+                    await interaction.followup.send(
+                        "Немає попередніх треків. Історія зберігається лише при підключеній БД — "
+                        "встановіть aiosqlite (`pip install aiosqlite`) і перезапустіть бота. "
+                        "Після перезапуску спочатку зробіть **!play** щоб з’явилася нова панель з кнопками.",
+                        ephemeral=True
+                    )
+                else:
+                    await interaction.followup.send("Немає попередніх треків.", ephemeral=True)
                 return
             
-            self.cog.logger.info(f"Track history for guild {guild_id}: {len(self.cog.track_history[guild_id])} tracks")
-            
             prev_track = self.cog.track_history[guild_id].pop()
-            self.cog.logger.info(f"Retrieved previous track: {prev_track.get('title')}")
+            if prev_track.get('requester') is None:
+                prev_track = {**prev_track, 'requester': interaction.user}
             
             if guild_id in self.cog.current_song:
                 current = self.cog.current_song[guild_id].copy()
                 self.cog.get_queue(guild_id).add_first(current)
-                self.cog.logger.info(f"Saved current track to queue: {current.get('title')}")
             
             self.cog.get_queue(guild_id).add_first(prev_track)
-            self.cog.logger.info(f"Added previous track to queue: {prev_track.get('title')}")
             
             voice_client = self.ctx.voice_client
             if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
                 voice_client.stop()
-                self.cog.logger.info("Stopped current track")
+                # Після stop() callback «after» сам викличе play_next_song
+            else:
+                # Нічого не грає (наприклад після рестарту) — запускаємо відтворення вручну
+                await self.cog.play_next_song(self.ctx)
             
-            await interaction.response.send_message(
-                f"⏮️ Повертаємось до треку: {prev_track.get('title', 'Невідомий трек')}", 
+            await interaction.followup.send(
+                f"⏮️ Повертаємось до треку: {prev_track.get('title', 'Невідомий трек')}",
                 ephemeral=True
             )
             
         except Exception as e:
             self.cog.logger.error(f"Error in previous_button: {e}", exc_info=True)
-            await interaction.response.send_message("❌ Помилка при поверненні до попереднього треку.", ephemeral=True)
+            await interaction.followup.send("❌ Помилка при поверненні до попереднього треку.", ephemeral=True)
         
         finally:
             self.cog.processing_buttons.discard(guild_id)
@@ -184,6 +277,45 @@ class MusicControls(discord.ui.View):
     async def queue_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = QueueView(self.cog, self.ctx)
         await interaction.response.send_message(embed=view.create_embed(), view=view)
+
+    @discord.ui.button(label="Гучність", style=discord.ButtonStyle.secondary, emoji="🔊", custom_id="volume")
+    async def volume_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if not self.cog._settings_repo:
+            await interaction.response.send_message("Гучність наразі не зберігається.", ephemeral=True)
+            return
+        view = VolumeSelectView(self.cog, self.ctx)
+        await interaction.response.send_message("🔊 Оберіть гучність або введіть своє значення:", view=view, ephemeral=True)
+
+    @discord.ui.button(label="Історія", style=discord.ButtonStyle.secondary, emoji="📜", custom_id="history")
+    async def history_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        guild_id = self.ctx.guild.id
+        await self.cog.ensure_track_history_loaded(self.ctx.guild)
+        history_list = self.cog.track_history.get(guild_id, [])
+        if not history_list:
+            if not self.cog._history_repo:
+                await interaction.response.send_message(
+                    "Історія порожня. Щоб зберігати історію після перезапуску: "
+                    "`pip install aiosqlite`, перезапустіть бота, потім зробіть **!play** щоб оновити панель.",
+                    ephemeral=True
+                )
+            else:
+                await interaction.response.send_message("Історія порожня.", ephemeral=True)
+            return
+        show = list(reversed(history_list))[:15]
+        embed = discord.Embed(title="📜 Історія треків", color=discord.Color.blue())
+        for i, t in enumerate(show, 1):
+            title = t.get('title', 'Невідомий трек')
+            url = t.get('webpage_url') or t.get('url') or '#'
+            dur = format_duration(t.get('duration'))
+            req = t.get('requester')
+            req_text = req.mention if req else "—"
+            embed.add_field(
+                name=f"{i}. {title[:80]}{'…' if len(title) > 80 else ''}",
+                value=f"⏱️ {dur} | Замовив: {req_text}\n🔗 [Посилання]({url})",
+                inline=False
+            )
+        embed.set_footer(text=f"Останні {len(show)} з {len(history_list)} треків")
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @discord.ui.button(label="Вийти", style=discord.ButtonStyle.secondary, emoji="🚪", custom_id="leave")
     async def leave_button(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -352,7 +484,7 @@ class QueueView(discord.ui.View):
             current_track = f"[{song_info.get('title', 'Невідомий трек')}]({song_info.get('url', '#')}) | `{duration_str}`"
             embed.add_field(
                 name="🎶 Зараз грає",
-                value=f"{current_track}\nЗамовив користувач: {song_info['requester'].mention}",
+                value=f"{current_track}\nЗамовив користувач: {_requester_text(song_info.get('requester'))}",
                 inline=False
             )
 
@@ -504,9 +636,11 @@ class MusicCog(commands.Cog):
         self.current_song = {}
         self.control_messages = {}
         self.player_channels = {}
-        self.track_history = {}  # Історія треків для кожного сервера
+        self.track_history = {}  # Історія треків для кожного сервера (in-memory + БД)
         self.processing_buttons = set()  # Для запобігання подвійних натискань
         self.logger = logging.getLogger('MusicBot')
+        self._history_repo = HistoryRepository() if _db_available else None
+        self._settings_repo = SettingsRepository() if _db_available else None
         self.logger.setLevel(logging.INFO)
         
         # Оптимізовані налаштування для швидкого завантаження
@@ -655,7 +789,7 @@ class MusicCog(commands.Cog):
                     name="🎶 Зараз грає",
                     value=f"[{song_info.get('title', 'Невідомий трек')}]({song_info.get('url', '#')})\n"
                           f"Тривалість: `{duration_str}`\n"
-                          f"Замовив користувач: {song_info['requester'].mention}",
+                          f"Замовив користувач: {_requester_text(song_info.get('requester'))}",
                     inline=False
                 )
                 if song_info.get('thumbnail'):
@@ -675,7 +809,9 @@ class MusicCog(commands.Cog):
                     "**!queue** - показати чергу\n"
                     "**!clear** - очистити чергу\n"
                     "**!stop** - зупинити\n"
-                    "**!nowplaying** - що зараз грає"
+                    "**!nowplaying** - що зараз грає\n"
+                    "**!volume 0-100** - гучність\n"
+                    "**!history** - історія треків"
                 ),
                 inline=False
             )
@@ -704,6 +840,31 @@ class MusicCog(commands.Cog):
             self.logger.error(f"Error updating player: {e}", exc_info=True)
             await ctx.send("❌ Помилка оновлення плеєра. Спробуйте ще раз.")
 
+    async def ensure_track_history_loaded(self, guild):
+        """Завантажує історію з БД у пам'ять, якщо черга порожня і є репозиторій."""
+        guild_id = guild.id
+        if self.track_history.get(guild_id):
+            return
+        if not self._history_repo:
+            return
+        try:
+            rows = await self._history_repo.get_recent(guild_id, limit=150)
+            # Нові зверху в БД; для кнопки «Попередній» потрібен порядок: останній відтворений — останній у списку
+            self.track_history[guild_id] = []
+            for r in reversed(rows):
+                rid = r.get('requester_id')
+                requester = guild.get_member(rid) if rid else None
+                self.track_history[guild_id].append({
+                    'title': r.get('title', 'Невідомий трек'),
+                    'url': r.get('url'),
+                    'webpage_url': r.get('webpage_url'),
+                    'duration': r.get('duration'),
+                    'thumbnail': r.get('thumbnail'),
+                    'requester': requester,
+                })
+        except Exception as e:
+            self.logger.debug(f"ensure_track_history_loaded: {e}")
+
     async def add_to_history(self, guild_id, track_info):
         """Додає трек до історії."""
         if not track_info:
@@ -728,6 +889,23 @@ class MusicCog(commands.Cog):
             self.track_history[guild_id].append(track_copy)
             self.logger.info(f"Added track to history: {track_copy.get('title')} for guild {guild_id}")
             
+            # Зберігаємо в БД (якщо є)
+            if self._history_repo:
+                try:
+                    requester = track_info.get('requester')
+                    requester_id = getattr(requester, 'id', 0) or 0
+                    await self._history_repo.add(
+                        guild_id,
+                        requester_id,
+                        track_copy.get('title', 'Невідомий трек'),
+                        url=track_copy.get('url'),
+                        webpage_url=track_copy.get('webpage_url'),
+                        duration=track_copy.get('duration'),
+                        thumbnail=track_copy.get('thumbnail'),
+                    )
+                except Exception as e:
+                    self.logger.debug(f"HistoryRepository.add: {e}")
+            
             # Обмежуємо історію до 150 треків
             if len(self.track_history[guild_id]) > 150:
                 self.track_history[guild_id].pop(0)
@@ -751,6 +929,11 @@ class MusicCog(commands.Cog):
                     
                     player = await self.player_controller.create_player(url, stream=True)
                     if player:
+                        if self._settings_repo:
+                            try:
+                                player.volume = await self._settings_repo.get_volume(guild_id)
+                            except Exception:
+                                pass
                         self.current_song[guild_id] = {
                             'title': player.title,
                             'url': player.url,
@@ -1246,7 +1429,7 @@ class MusicCog(commands.Cog):
             for i, item in enumerate(queue[:10]):
                 title = item.get('title', 'Завантаження...')
                 url = item.get('webpage_url', '#')
-                next_up.append(f"`{i+1}.` [{title}]({url}) (Замовив користувач: {item['requester'].mention})")
+                next_up.append(f"`{i+1}.` [{title}]({url}) (Замовив користувач: {_requester_text(item.get('requester'))})")
 
             if next_up:
                  embed.add_field(name="⏭️ Далі в черзі", value="\n".join(next_up), inline=False)
@@ -1281,7 +1464,7 @@ class MusicCog(commands.Cog):
             if song_info.get('thumbnail'):
                 embed.set_thumbnail(url=song_info['thumbnail'])
             embed.add_field(name="Тривалість", value=duration_str, inline=True)
-            embed.add_field(name="Замовив користувач", value=song_info['requester'].mention, inline=True)
+            embed.add_field(name="Замовив користувач", value=_requester_text(song_info.get('requester')), inline=True)
             # Додати прогрес бар, якщо можливо
             # embed.add_field(name="Прогрес", value=f"`{format_duration(current_time)} / {duration_str}`", inline=False)
 
@@ -1389,6 +1572,51 @@ class MusicCog(commands.Cog):
         queue.clear()
         await ctx.send(f"🗑️ Черга очищена! Видалено {queue_length} треків.")
         await self.update_player(ctx)
+
+    @commands.command(name='volume', aliases=['vol', 'v'], help='Гучність 0–100: !volume 50')
+    async def volume(self, ctx, level: int = None):
+        """Показує або встановлює гучність (0–100)."""
+        guild_id = ctx.guild.id
+        if not self._settings_repo:
+            await ctx.send("Гучність наразі не зберігається.")
+            return
+        if level is None:
+            vol = await self._settings_repo.get_volume(guild_id)
+            await ctx.send(f"🔊 Гучність: **{int(vol * 100)}%**")
+            return
+        vol = max(0, min(100, level)) / 100.0
+        await self._settings_repo.set_volume(guild_id, vol)
+        if ctx.voice_client and ctx.voice_client.source and hasattr(ctx.voice_client.source, 'volume'):
+            ctx.voice_client.source.volume = vol
+            await ctx.send(f"🔊 Гучність встановлено на **{int(vol * 100)}%** (поточний трек оновлено).")
+        else:
+            await ctx.send(f"🔊 Гучність встановлено на **{int(vol * 100)}%** (застосується до наступного треку).")
+
+    @commands.command(name='history', aliases=['hist', 'h'], help='Показати останні відтворені треки.')
+    async def history(self, ctx, limit: int = 15):
+        """Показує останні відтворені треки (з пам'яті або БД)."""
+        guild_id = ctx.guild.id
+        limit = max(1, min(30, limit))
+        await self.ensure_track_history_loaded(ctx.guild)
+        history_list = self.track_history.get(guild_id, [])
+        if not history_list:
+            await ctx.send("Історія порожня.")
+            return
+        show = list(reversed(history_list))[:limit]
+        embed = discord.Embed(title="📜 Історія треків", color=discord.Color.blue())
+        for i, t in enumerate(show, 1):
+            title = t.get('title', 'Невідомий трек')
+            url = t.get('webpage_url') or t.get('url') or '#'
+            dur = format_duration(t.get('duration'))
+            req = t.get('requester')
+            req_text = req.mention if req else "—"
+            embed.add_field(
+                name=f"{i}. {title[:80]}{'…' if len(title) > 80 else ''}",
+                value=f"⏱️ {dur} | Замовив: {req_text}\n🔗 [Посилання]({url})",
+                inline=False
+            )
+        embed.set_footer(text=f"Останні {len(show)} з {len(history_list)} треків")
+        await ctx.send(embed=embed)
 
     @commands.command(name='shuffle', help='Перемішати чергу.')
     async def shuffle(self, ctx):
