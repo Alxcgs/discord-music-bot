@@ -4,10 +4,13 @@
 ITEMS_PER_PAGE = 10
 SEARCH_ITEMS_PER_PAGE = 5
 MAX_QUEUE_FIELD_LENGTH = 1000
+MAX_HISTORY_SIZE = 50
+PREVIEW_QUEUE_SIZE = 5
 
 # --- Timeouts (Seconds) ---
 TIMEOUT_VOICE_DISCONNECT = 60
 TIMEOUT_SEARCH_MENU = 60
+TIMEOUT_VIEW = 60
 TIMEOUT_BUTTON_INTERACTION = None # Persistent view usually, but View(timeout=X) uses this
 
 # --- Colors ---

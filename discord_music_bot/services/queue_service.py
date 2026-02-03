@@ -38,7 +38,7 @@ class QueueService:
             self._history[guild_id] = []
         self._history[guild_id].append(track)
         # Keep history size manageable (optional)
-        if len(self._history[guild_id]) > 50:
+        if len(self._history[guild_id]) > consts.MAX_HISTORY_SIZE:
             self._history[guild_id].pop(0)
 
     def get_last_track(self, guild_id: int) -> Optional[Dict[str, Any]]:

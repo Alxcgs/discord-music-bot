@@ -118,7 +118,7 @@ class MusicControls(discord.ui.View):
             await interaction.response.send_message("Бот не підключений до голосового каналу.", ephemeral=True)
 
 class QueueView(discord.ui.View):
-    def __init__(self, cog, guild, timeout=60):
+    def __init__(self, cog, guild, timeout=consts.TIMEOUT_VIEW):
         super().__init__(timeout=timeout)
         self.cog = cog
         self.guild = guild
@@ -159,7 +159,7 @@ class QueueView(discord.ui.View):
                 current_chunk = []
                 current_length = 0
                 for track in queue_text:
-                    if current_length + len(track) > 1000:
+                    if current_length + len(track) > consts.MAX_QUEUE_FIELD_LENGTH:
                         if current_chunk: chunks.append("\n".join(current_chunk))
                         current_chunk = [track]
                         current_length = len(track)
@@ -215,7 +215,7 @@ class QueueView(discord.ui.View):
 
 
 class SearchResultsView(discord.ui.View):
-    def __init__(self, cog, user, results, timeout=60):
+    def __init__(self, cog, user, results, timeout=consts.TIMEOUT_SEARCH_MENU):
         super().__init__(timeout=timeout)
         self.cog = cog
         self.user = user
@@ -338,7 +338,7 @@ class MusicCog(commands.Cog):
                 embed.add_field(name="🎶 Зараз грає", value="Нічого не грає", inline=False)
 
             queue = self.queue_service.get_queue(guild_id)
-            q_text = "\n".join([f"`{i+1}.` {t['title']}" for i, t in enumerate(queue[:5])]) or "Черга порожня"
+            q_text = "\n".join([f"`{i+1}.` {t['title']}" for i, t in enumerate(queue[:consts.PREVIEW_QUEUE_SIZE])]) or "Черга порожня"
             embed.add_field(name="📑 Далі", value=q_text, inline=False)
 
             view = MusicControls(self, guild)
@@ -386,7 +386,7 @@ class MusicCog(commands.Cog):
                 if guild_id in self.player_channels:
                     channel = self.bot.get_channel(self.player_channels[guild_id])
                     if channel: await self.update_player(guild, channel)
-                await asyncio.sleep(60)
+                await asyncio.sleep(consts.TIMEOUT_VOICE_DISCONNECT)
                 if not self.player_service.is_playing(voice_client) and not self.queue_service.get_queue(guild_id):
                     await voice_client.disconnect()
         except Exception as e:
