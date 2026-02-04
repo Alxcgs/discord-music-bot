@@ -47,6 +47,24 @@ MIGRATIONS = [
             updated_at REAL
         );
     """),
+    (4, """
+        CREATE TABLE IF NOT EXISTS queue_state (
+            guild_id INTEGER PRIMARY KEY,
+            voice_channel_id INTEGER,
+            text_channel_id INTEGER,
+            current_track_json TEXT,
+            is_paused INTEGER DEFAULT 0,
+            updated_at REAL
+        );
+        CREATE TABLE IF NOT EXISTS queue_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            guild_id INTEGER NOT NULL,
+            position INTEGER NOT NULL,
+            track_json TEXT NOT NULL,
+            FOREIGN KEY(guild_id) REFERENCES queue_state(guild_id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_queue_items_guild ON queue_items(guild_id);
+    """),
 ]
 
 
