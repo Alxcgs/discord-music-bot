@@ -53,9 +53,9 @@ async def on_ready():
 async def on_command_error(ctx, error):
     """Глобальний обробник помилок команд."""
     if isinstance(error, commands.CommandNotFound):
-        await ctx.send("❓ Невідома команда. Використовуйте `!help`, щоб побачити список команд.")
+        await ctx.send("❓ Невідома команда. Використовуйте Slash-команди (почніть з `/`).")
     elif isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send(f"🤔 Не вистачає аргументів для команди `{ctx.command.name}`. Перевірте `!help {ctx.command.name}`.")
+        await ctx.send(f"🤔 Не вистачає аргументів для команди `{ctx.command.name}`.")
     elif isinstance(error, commands.CheckFailure):
         await ctx.send("🚫 У вас недостатньо прав або умови для виконання цієї команди не виконані.")
     elif isinstance(error, commands.CommandInvokeError):

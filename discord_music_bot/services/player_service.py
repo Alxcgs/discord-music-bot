@@ -1,7 +1,6 @@
 import discord
 import asyncio
 from discord_music_bot.audio_source import YTDLSource
-from discord_music_bot import consts
 import logging
 
 class PlayerService:
@@ -12,6 +11,8 @@ class PlayerService:
         """Creates a player and starts playing on the voice client."""
         try:
             player = await YTDLSource.from_url(url, loop=loop, stream=True)
+            if player is None:
+                raise ValueError(f"Failed to create audio source for URL: {url}")
             voice_client.play(player, after=after_callback)
             return player
         except Exception as e:

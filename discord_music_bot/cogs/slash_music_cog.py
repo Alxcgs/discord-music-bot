@@ -5,23 +5,11 @@ import asyncio
 import logging
 from discord_music_bot.services.queue_service import QueueService
 from discord_music_bot.services.player_service import PlayerService
+from discord_music_bot.utils import format_duration
 import yt_dlp
 from discord_music_bot import consts
 
-def format_duration(duration):
-    """Форматує тривалість у читабельний формат."""
-    if not duration:
-        return "∞"
-    
-    minutes = duration // 60
-    seconds = duration % 60
-    hours = minutes // 60
-    minutes = minutes % 60
-    
-    if hours > 0:
-        return f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
-    else:
-        return f"{int(minutes):02d}:{int(seconds):02d}"
+
 
 class MusicControls(discord.ui.View):
     def __init__(self, cog, guild, timeout=None):
@@ -362,25 +350,34 @@ class MusicCog(commands.Cog):
                 # Add to history
                 if guild_id not in self.track_history: self.track_history[guild_id] = []
                 self.track_history[guild_id].append(self.current_song[guild_id])
+                # Keep history size manageable
+                if len(self.track_history[guild_id]) > consts.MAX_HISTORY_SIZE:
+                    self.track_history[guild_id].pop(0)
             
             queue = self.queue_service.get_queue(guild_id)
             if queue:
                 item = self.queue_service.get_next_track(guild_id)
-                player = await self.player_service.play_stream(
-                    voice_client, 
-                    item['url'], 
-                    self.bot.loop, 
-                    lambda e: self.bot.loop.create_task(self.check_after_play(guild, voice_client, e))
-                )
-                
-                self.current_song[guild_id] = {
-                    'title': player.title, 'url': player.url, 'thumbnail': player.thumbnail,
-                    'duration': player.duration, 'requester': item['requester'], 'player': player
-                }
-                
-                if guild_id in self.player_channels:
-                    channel = self.bot.get_channel(self.player_channels[guild_id])
-                    if channel: await self.update_player(guild, channel)
+                try:
+                    player = await self.player_service.play_stream(
+                        voice_client, 
+                        item['url'], 
+                        self.bot.loop, 
+                        lambda e: self.bot.loop.create_task(self.check_after_play(guild, voice_client, e))
+                    )
+                    
+                    self.current_song[guild_id] = {
+                        'title': player.title, 'url': player.url, 'thumbnail': player.thumbnail,
+                        'duration': player.duration, 'requester': item['requester'], 'player': player
+                    }
+                    
+                    if guild_id in self.player_channels:
+                        channel = self.bot.get_channel(self.player_channels[guild_id])
+                        if channel: await self.update_player(guild, channel)
+                except Exception as track_error:
+                    self.logger.error(f"Failed to play track '{item.get('title', 'Unknown')}': {track_error}")
+                    # Try next track instead of stopping
+                    if voice_client.is_connected():
+                        await self.play_next_song(guild, voice_client)
             else:
                 if guild_id in self.current_song: del self.current_song[guild_id]
                 if guild_id in self.player_channels:
@@ -393,6 +390,8 @@ class MusicCog(commands.Cog):
             self.logger.error(f"Play next error: {e}")
 
     async def check_after_play(self, guild, voice_client, error):
+        if error:
+            self.logger.error(f"Playback error in guild {guild.id}: {error}")
         if voice_client.is_connected():
             await self.play_next_song(guild, voice_client)
 
@@ -510,6 +509,9 @@ class MusicCog(commands.Cog):
 
     @app_commands.command(name="leave", description="Вигнати бота")
     async def leave(self, interaction: discord.Interaction):
+        if not interaction.guild.voice_client:
+            await interaction.response.send_message("Бот не в голосовому каналі.", ephemeral=True)
+            return
         await self.leave_logic(interaction.guild)
         await interaction.response.send_message("👋 Бувай!")
 
