@@ -52,3 +52,9 @@ class QueueService:
         if guild_id not in self._queues:
             self._queues[guild_id] = []
         self._queues[guild_id].insert(0, track)
+
+    def peek_next(self, guild_id: int) -> Optional[Dict[str, Any]]:
+        """Returns the next track WITHOUT removing it from the queue."""
+        if guild_id in self._queues and self._queues[guild_id]:
+            return self._queues[guild_id][0]
+        return None

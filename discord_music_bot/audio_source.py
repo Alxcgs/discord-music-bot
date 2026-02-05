@@ -2,7 +2,6 @@ import discord
 import yt_dlp
 import asyncio
 import logging
-import os
 from discord_music_bot.config import YDL_OPTIONS, FFMPEG_OPTIONS
 
 class YTDLSource(discord.PCMVolumeTransformer):
@@ -98,6 +97,12 @@ class YTDLSource(discord.PCMVolumeTransformer):
                     if best_audio:
                         audio_url = best_audio.get('url')
                         logging.info(f"Selected format with best audio quality: {best_audio.get('format_id')} (bitrate: {best_bitrate})")
+
+                # Етап 3: Fallback на прямий URL з data (FFmpeg витягне аудіо автоматично)
+                if not audio_url:
+                    audio_url = data.get('url')
+                    if audio_url:
+                        logging.warning(f"Using fallback direct URL for '{data.get('title', 'unknown')}'")
 
                 if not audio_url:
                     logging.error("Could not find valid audio URL in any format")

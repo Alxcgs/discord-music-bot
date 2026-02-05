@@ -5,6 +5,7 @@ import asyncio
 import logging
 from discord_music_bot.services.queue_service import QueueService
 from discord_music_bot.services.player_service import PlayerService
+from discord_music_bot.audio_source import YTDLSource
 from discord_music_bot.utils import format_duration
 import yt_dlp
 from discord_music_bot import consts
@@ -289,12 +290,12 @@ class MusicCog(commands.Cog):
         self.control_messages = {}
         self.player_channels = {}
         self.track_history = {}
+        self.preloaded_sources = {}  # {guild_id: YTDLSource} for gapless playback
         self.processing_buttons = set()
         self.logger = logging.getLogger('MusicBot')
         self.logger.setLevel(logging.INFO)
         
         self.light_ydl_opts = consts.YTDL_OPTIONS_LIGHT
-        self.preload_next = True
 
     async def get_video_info(self, url):
         search_url = url if any(x in url.lower() for x in ['youtube.com', 'youtu.be', 'soundcloud.com']) else f"ytsearch:{url}"
@@ -358,12 +359,21 @@ class MusicCog(commands.Cog):
             if queue:
                 item = self.queue_service.get_next_track(guild_id)
                 try:
-                    player = await self.player_service.play_stream(
-                        voice_client, 
-                        item['url'], 
-                        self.bot.loop, 
-                        lambda e: self.bot.loop.create_task(self.check_after_play(guild, voice_client, e))
-                    )
+                    # Використати preloaded source якщо є
+                    if guild_id in self.preloaded_sources:
+                        player = self.preloaded_sources.pop(guild_id)
+                        self.logger.info(f"Using preloaded source: {player.title}")
+                        voice_client.play(
+                            player, 
+                            after=lambda e: self.bot.loop.create_task(self.check_after_play(guild, voice_client, e))
+                        )
+                    else:
+                        player = await self.player_service.play_stream(
+                            voice_client, 
+                            item['url'], 
+                            self.bot.loop, 
+                            lambda e: self.bot.loop.create_task(self.check_after_play(guild, voice_client, e))
+                        )
                     
                     self.current_song[guild_id] = {
                         'title': player.title, 'url': player.url, 'thumbnail': player.thumbnail,
@@ -373,8 +383,14 @@ class MusicCog(commands.Cog):
                     if guild_id in self.player_channels:
                         channel = self.bot.get_channel(self.player_channels[guild_id])
                         if channel: await self.update_player(guild, channel)
+                    
+                    # Preload наступний трек у фоні
+                    asyncio.create_task(self.preload_next_track(guild_id))
+                    
                 except Exception as track_error:
                     self.logger.error(f"Failed to play track '{item.get('title', 'Unknown')}': {track_error}")
+                    # Очистити битий preload якщо є
+                    self.preloaded_sources.pop(guild_id, None)
                     # Try next track instead of stopping
                     if voice_client.is_connected():
                         await self.play_next_song(guild, voice_client)
@@ -395,11 +411,31 @@ class MusicCog(commands.Cog):
         if voice_client.is_connected():
             await self.play_next_song(guild, voice_client)
 
+    async def preload_next_track(self, guild_id: int):
+        """Попередньо завантажує наступний трек для gapless playback."""
+        try:
+            next_track = self.queue_service.peek_next(guild_id)
+            if not next_track:
+                return
+            
+            # Не завантажувати повторно якщо вже є
+            if guild_id in self.preloaded_sources:
+                return
+            
+            self.logger.info(f"Preloading next track: {next_track.get('title', 'Unknown')}")
+            source = await YTDLSource.from_url(next_track['url'], loop=self.bot.loop, stream=True)
+            if source:
+                self.preloaded_sources[guild_id] = source
+                self.logger.info(f"Successfully preloaded: {source.title}")
+        except Exception as e:
+            self.logger.warning(f"Preload failed (non-critical): {e}")
+
     async def leave_logic(self, guild):
         voice_client = guild.voice_client
         if voice_client:
             self.queue_service.clear(guild.id)
             if guild.id in self.current_song: del self.current_song[guild.id]
+            self.preloaded_sources.pop(guild.id, None)  # Clear preloaded source
             await voice_client.disconnect()
 
     @commands.Cog.listener()
@@ -443,7 +479,7 @@ class MusicCog(commands.Cog):
         # Check for playlist
         if 'list=' in query or '/sets/' in query:
              await interaction.followup.send("Плейлисти поки мають обмежену підтримку у Slash. Спробуйте посилання на трек.")
-             # Simplified for now to avoid copying the massive process_playlist logic logic blindly
+             # Simplified for now to avoid copying the massive process_playlist logic blindly
              # If needed, can be ported similarly.
              return
 
@@ -496,6 +532,7 @@ class MusicCog(commands.Cog):
         voice_client = interaction.guild.voice_client
         if voice_client:
             self.queue_service.clear(interaction.guild.id)
+            self.preloaded_sources.pop(interaction.guild.id, None)  # Clear preloaded source
             self.player_service.stop(voice_client)
             await self.update_player(interaction.guild, interaction.channel)
             await interaction.response.send_message("⏹️ Зупинено.")
