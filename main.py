@@ -3,11 +3,45 @@ from discord.ext import commands
 import asyncio
 import logging
 import os
+import sys
 import ssl
 import certifi
 from discord_music_bot.config import DISCORD_TOKEN # Імпортуємо токен з конфігурації
+import atexit
 
-# Налаштування логування
+# --- Singleton Lock ---
+LOCK_FILE = "discord_music_bot.lock"
+
+def check_single_instance():
+    """Перевіряє, чи не запущений вже бот, використовуючи pid-файл."""
+    if os.path.exists(LOCK_FILE):
+        try:
+            with open(LOCK_FILE, 'r') as f:
+                pid = int(f.read().strip())
+            
+            # Перевірка чи процес живий
+            try:
+                os.kill(pid, 0) # 0 signal just checks existence
+                print(f"ERROR: Bot is already running (PID: {pid}). Exiting.")
+                sys.exit(1)
+            except OSError:
+                print(f"WARNING: Lock file exists but process {pid} is dead. Cleaning up.")
+                os.remove(LOCK_FILE)
+        except (ValueError, FileNotFoundError):
+            os.remove(LOCK_FILE)
+            
+    # Створюємо lock file
+    with open(LOCK_FILE, 'w') as f:
+        f.write(str(os.getpid()))
+        
+    def cleanup_lock():
+        if os.path.exists(LOCK_FILE):
+            os.remove(LOCK_FILE)
+            
+    atexit.register(cleanup_lock)
+
+check_single_instance()
+
 logging.basicConfig(level=logging.INFO)
 
 # Налаштування інтентів (перенесено з bot.py/config.py)
@@ -73,14 +107,35 @@ async def main():
     ssl_context = ssl.create_default_context()
     ssl_context.load_verify_locations(cafile=certifi.where())
     
-    # Перевірка наявності FFmpeg
+    # Завантаження Opus (крос-платформенно)
     if not discord.opus.is_loaded():
-        try:
-            # На Windows discord.py автоматично знайде libopus
-            discord.opus._load_default()
-            logging.info("Бібліотеку Opus успішно завантажено")
-        except Exception as e:
-            logging.warning(f"Не вдалося завантажити бібліотеку Opus. Переконайтеся, що FFmpeg встановлено. Помилка: {e}")
+        opus_paths = []
+        if sys.platform == 'darwin':
+            # macOS: homebrew ARM та Intel
+            opus_paths = ['/opt/homebrew/lib/libopus.dylib', '/usr/local/lib/libopus.dylib']
+        elif sys.platform == 'win32':
+            # Windows: discord.py зазвичай знаходить автоматично
+            opus_paths = []
+        else:
+            # Linux
+            opus_paths = ['/usr/lib/x86_64-linux-gnu/libopus.so.0', '/usr/lib/libopus.so']
+        
+        loaded = False
+        for path in opus_paths:
+            try:
+                discord.opus.load_opus(path)
+                logging.info(f"Opus завантажено з: {path}")
+                loaded = True
+                break
+            except Exception:
+                continue
+        
+        if not loaded:
+            try:
+                discord.opus._load_default()
+                logging.info("Opus завантажено (default)")
+            except Exception as e:
+                logging.warning(f"Не вдалося завантажити Opus: {e}")
     else:
         logging.info("Бібліотека Opus вже завантажена.")
 

@@ -314,6 +314,29 @@ class MusicCog(commands.Cog):
                 self.logger.error(f"Error extracting info: {e}")
                 return None
 
+    async def search_videos(self, query, max_results=10):
+        """Шукає кілька відео за текстовим запитом для меню вибору."""
+        search_url = f"ytsearch{max_results}:{query}"
+        with yt_dlp.YoutubeDL(self.light_ydl_opts) as ydl:
+            try:
+                info = await self.bot.loop.run_in_executor(None, lambda: ydl.extract_info(search_url, download=False))
+                if not info or 'entries' not in info:
+                    return []
+                results = []
+                for entry in info['entries']:
+                    if entry:
+                        results.append({
+                            'title': entry.get('title', 'Unknown'),
+                            'url': entry.get('webpage_url', entry.get('url', '')),
+                            'webpage_url': entry.get('webpage_url', entry.get('url', '')),
+                            'duration': entry.get('duration'),
+                            'thumbnail': entry.get('thumbnail')
+                        })
+                return results
+            except Exception as e:
+                self.logger.error(f"Error searching videos: {e}")
+                return []
+
     async def update_player(self, guild, channel):
         try:
             guild_id = guild.id
@@ -440,9 +463,36 @@ class MusicCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
+        # 1. Bot disconnected manually or kicked
         if member.id == self.bot.user.id and after.channel is None:
-            # Bot disconnected
-            pass
+             self.queue_service.clear(member.guild.id)
+             if member.guild.id in self.current_song: del self.current_song[member.guild.id]
+             self.preloaded_sources.pop(member.guild.id, None)
+             return
+
+        # 2. Someone left the bot's channel
+        voice_client = member.guild.voice_client
+        if voice_client and voice_client.channel and before.channel == voice_client.channel:
+            # Check if bot is alone
+            if len(voice_client.channel.members) == 1:
+                # Wait to see if someone comes back
+                await asyncio.sleep(consts.TIMEOUT_EMPTY_CHANNEL)
+                
+                # Check again
+                if voice_client.is_connected() and len(voice_client.channel.members) == 1:
+                    voice_client.stop()
+                    await voice_client.disconnect()
+                    
+                    # Cleanup
+                    self.queue_service.clear(member.guild.id)
+                    if member.guild.id in self.current_song: del self.current_song[member.guild.id]
+                    self.preloaded_sources.pop(member.guild.id, None)
+
+                    # Notify text channel if known
+                    if member.guild.id in self.player_channels:
+                        channel = self.bot.get_channel(self.player_channels[member.guild.id])
+                        if channel:
+                            await channel.send("👻 Всі пішли, тому я теж пішов. (10с тиші)")
 
     @app_commands.command(name="join", description="Підключити бота до голосового каналу")
     async def join(self, interaction: discord.Interaction):
@@ -453,15 +503,18 @@ class MusicCog(commands.Cog):
         channel = interaction.user.voice.channel
         voice_client = interaction.guild.voice_client
 
+        await interaction.response.defer()
+
         if voice_client and voice_client.is_connected():
             if voice_client.channel != channel:
                 await voice_client.move_to(channel)
-                await interaction.response.send_message(f"Перемістився до {channel.mention}")
+                await interaction.followup.send(f"Перемістився до {channel.mention}")
             else:
-                await interaction.response.send_message("Я вже тут!", ephemeral=True)
+                await interaction.followup.send("Я вже тут!", ephemeral=True)
         else:
-            await channel.connect()
-            await interaction.response.send_message(f"Приєднався до {channel.mention}")
+            await channel.connect(timeout=consts.TIMEOUT_VOICE_CONNECT, reconnect=True)
+            self.player_channels[interaction.guild.id] = interaction.channel.id # Save channel for notifications
+            await interaction.followup.send(f"Приєднався до {channel.mention}")
 
     @app_commands.command(name="play", description="Відтворити музику (URL або пошук)")
     @app_commands.describe(query="Посилання або назва пісні")
@@ -474,26 +527,45 @@ class MusicCog(commands.Cog):
         
         voice_client = interaction.guild.voice_client
         if not voice_client:
-            voice_client = await interaction.user.voice.channel.connect()
-
+            voice_client = await interaction.user.voice.channel.connect(timeout=consts.TIMEOUT_VOICE_CONNECT, reconnect=True)
+        
+        self.player_channels[interaction.guild.id] = interaction.channel.id # Save channel for notifications
         # Check for playlist
         if 'list=' in query or '/sets/' in query:
              await interaction.followup.send("Плейлисти поки мають обмежену підтримку у Slash. Спробуйте посилання на трек.")
-             # Simplified for now to avoid copying the massive process_playlist logic blindly
-             # If needed, can be ported similarly.
              return
 
-        info = await self.get_video_info(query)
-        if not info:
-            await interaction.followup.send("❌ Не вдалося знайти трек.")
-            return
-
-        guild_id = interaction.guild.id
+        is_url = query.startswith('http') or any(x in query.lower() for x in ['youtube.com', 'youtu.be', 'soundcloud.com'])
         
-        info['requester'] = interaction.user
-        self.queue_service.add_track(guild_id, info)
-        
-        await interaction.followup.send(f"✅ Додано: **{info['title']}**")
+        if is_url:
+            # Пряме посилання — додаємо одразу
+            info = await self.get_video_info(query)
+            if not info:
+                await interaction.followup.send("❌ Не вдалося знайти трек.")
+                return
+            info['requester'] = interaction.user
+            self.queue_service.add_track(interaction.guild.id, info)
+            await interaction.followup.send(f"✅ Додано: **{info['title']}**")
+        else:
+            # Текстовий запит — показуємо меню вибору
+            results = await self.search_videos(query)
+            if not results:
+                await interaction.followup.send("❌ Не вдалося знайти треки за запитом.")
+                return
+            
+            view = SearchResultsView(self, interaction.user, results)
+            msg = await interaction.followup.send(embed=view.create_embed(), view=view)
+            
+            # Чекаємо вибір користувача
+            timed_out = await view.wait()
+            
+            if timed_out or view.selected_track is None:
+                return
+            
+            info = view.selected_track
+            info['requester'] = interaction.user
+            self.queue_service.add_track(interaction.guild.id, info)
+            await interaction.channel.send(f"✅ Додано: **{info['title']}**")
         
         await self.update_player(interaction.guild, interaction.channel)
         
@@ -527,15 +599,35 @@ class MusicCog(commands.Cog):
         else:
             await interaction.response.send_message("Немає чого продовжувати.", ephemeral=True)
 
+    @app_commands.command(name="reset", description="Скинути стан бота (якщо завис або не грає)")
+    async def reset(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        
+        guild_id = interaction.guild_id
+        
+        # 1. Очистка черги і стану
+        self.queue_service.clear(guild_id)
+        if guild_id in self.current_song: del self.current_song[guild_id]
+        if guild_id in self.preloaded_sources: self.preloaded_sources.pop(guild_id)
+        
+        # 2. Примусовий дисконект
+        voice_client = interaction.guild.voice_client
+        if voice_client:
+            await voice_client.disconnect(force=True)
+            await interaction.followup.send("♻️ Бот перезавантажив з'єднання! Спробуйте `/join` або `/play` знову.")
+        else:
+            await interaction.followup.send("♻️ Чергу очищено (бот не був у голосовому каналі).")
+
     @app_commands.command(name="stop", description="Зупинити та очистити")
     async def stop(self, interaction: discord.Interaction):
         voice_client = interaction.guild.voice_client
         if voice_client:
-            self.queue_service.clear(interaction.guild.id)
+            self.queue_service.clear(interaction.guild_id)
             self.preloaded_sources.pop(interaction.guild.id, None)  # Clear preloaded source
             self.player_service.stop(voice_client)
             await self.update_player(interaction.guild, interaction.channel)
-            await interaction.response.send_message("⏹️ Зупинено.")
+            await voice_client.disconnect() # Force disconnect on stop to be sure
+            await interaction.response.send_message("⏹️ Зупинено та відключено.")
         else:
             await interaction.response.send_message("Я не граю.", ephemeral=True)
 

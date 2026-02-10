@@ -9,6 +9,8 @@ PREVIEW_QUEUE_SIZE = 5
 
 # --- Timeouts (Seconds) ---
 TIMEOUT_VOICE_DISCONNECT = 60
+TIMEOUT_EMPTY_CHANNEL = 10
+TIMEOUT_VOICE_CONNECT = 60.0 # Connection timeout (increased for stability)
 TIMEOUT_SEARCH_MENU = 60
 TIMEOUT_VIEW = 60
 TIMEOUT_BUTTON_INTERACTION = None # Persistent view usually, but View(timeout=X) uses this
