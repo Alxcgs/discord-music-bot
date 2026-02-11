@@ -7,9 +7,52 @@ from discord_music_bot.services.queue_service import QueueService
 from discord_music_bot.services.player_service import PlayerService
 from discord_music_bot.audio_source import YTDLSource
 from discord_music_bot.utils import format_duration
+from discord_music_bot.database import init_db
+from discord_music_bot.repository import MusicRepository
+from discord_music_bot.services.auto_resume import auto_resume
 import yt_dlp
 from discord_music_bot import consts
 
+
+
+class VolumeModal(discord.ui.Modal, title="🔊 Гучність"):
+    """Модальне вікно для встановлення гучності."""
+    volume_input = discord.ui.TextInput(
+        label="Гучність (0-200%)",
+        placeholder="Наприклад: 50",
+        required=True,
+        max_length=3,
+        default="50",
+    )
+
+    def __init__(self, voice_client):
+        super().__init__()
+        self.voice_client = voice_client
+        if voice_client and voice_client.source and hasattr(voice_client.source, 'volume'):
+            self.volume_input.default = str(int(voice_client.source.volume * 100))
+
+    async def on_submit(self, interaction: discord.Interaction):
+        try:
+            value = int(self.volume_input.value)
+            clamped = max(0, min(200, value))
+            if self.voice_client and self.voice_client.source and hasattr(self.voice_client.source, 'volume'):
+                self.voice_client.source.volume = clamped / 100.0
+                emoji = "🔇" if clamped == 0 else "🔉" if clamped < 50 else "🔊"
+                await interaction.response.send_message(f"{emoji} Гучність: **{clamped}%**", ephemeral=True)
+            else:
+                await interaction.response.send_message("Зараз нічого не грає.", ephemeral=True)
+        except ValueError:
+            await interaction.response.send_message("❌ Введіть число від 0 до 200.", ephemeral=True)
+
+
+class DismissView(discord.ui.View):
+    """Кнопка 'Закрити' для ephemeral повідомлень."""
+    def __init__(self):
+        super().__init__(timeout=300)
+
+    @discord.ui.button(label="Закрити", style=discord.ButtonStyle.danger, emoji="❌")
+    async def dismiss_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.message.delete()
 
 
 class MusicControls(discord.ui.View):
@@ -28,7 +71,11 @@ class MusicControls(discord.ui.View):
             return False
         return True
 
-    @discord.ui.button(label="Попередній", style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_PREVIOUS, custom_id="previous")
+    async def _resend_player(self, interaction: discord.Interaction):
+        """Пересилає панель керування внизу чату."""
+        await self.cog.update_player(interaction.guild, interaction.channel)
+
+    @discord.ui.button(label="Попередній", style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_PREVIOUS, custom_id="previous", row=0)
     async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         guild_id = interaction.guild.id
         
@@ -39,11 +86,12 @@ class MusicControls(discord.ui.View):
         self.cog.processing_buttons.add(guild_id)
         
         try:
-            if not self.cog.track_history.get(guild_id, []):
+            history = self.cog.queue_service._history.get(guild_id, [])
+            if not history:
                 await interaction.response.send_message("Немає попередніх треків.", ephemeral=True)
                 return
             
-            prev_track = self.cog.track_history[guild_id].pop()
+            prev_track = self.cog.queue_service.get_last_track(guild_id)
             
             if guild_id in self.cog.current_song:
                 current = self.cog.current_song[guild_id].copy()
@@ -66,23 +114,21 @@ class MusicControls(discord.ui.View):
         finally:
             self.cog.processing_buttons.discard(guild_id)
 
-    @discord.ui.button(label="Пауза", style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_PAUSE, custom_id="pause_resume")
+    @discord.ui.button(label="Пауза", style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_PAUSE, custom_id="pause_resume", row=0)
     async def pause_resume_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         voice_client = interaction.guild.voice_client
         if voice_client and voice_client.is_playing():
             voice_client.pause()
-            button.label = "Відновити"
-            button.emoji = "▶️"
-            await interaction.response.edit_message(view=self)
+            await interaction.response.defer()
+            await self._resend_player(interaction)
         elif self.cog.player_service.is_paused(voice_client):
             self.cog.player_service.resume(voice_client)
-            button.label = "Пауза"
-            button.emoji = "⏸️"
-            await interaction.response.edit_message(view=self)
+            await interaction.response.defer()
+            await self._resend_player(interaction)
         else:
             await interaction.response.send_message("Зараз нічого не грає.", ephemeral=True)
 
-    @discord.ui.button(label="Пропустити", style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_SKIP, custom_id="skip")
+    @discord.ui.button(label="Пропустити", style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_SKIP, custom_id="skip", row=0)
     async def skip_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         voice_client = interaction.guild.voice_client
         if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
@@ -91,12 +137,12 @@ class MusicControls(discord.ui.View):
         else:
             await interaction.response.send_message("Нічого пропускати.", ephemeral=True)
 
-    @discord.ui.button(label="Черга", style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_QUEUE, custom_id="queue")
+    @discord.ui.button(label="Черга", style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_QUEUE, custom_id="queue", row=0)
     async def queue_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = QueueView(self.cog, interaction.guild)
         await interaction.response.send_message(embed=view.create_embed(), view=view, ephemeral=True)
 
-    @discord.ui.button(label="Вийти", style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_LEAVE, custom_id="leave")
+    @discord.ui.button(label="Вийти", style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_LEAVE, custom_id="leave", row=0)
     async def leave_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         voice_client = interaction.guild.voice_client
         if voice_client and voice_client.is_connected():
@@ -105,6 +151,67 @@ class MusicControls(discord.ui.View):
             self.stop()
         else:
             await interaction.response.send_message("Бот не підключений до голосового каналу.", ephemeral=True)
+
+    # --- Другий рядок кнопок ---
+
+    @discord.ui.button(label="Гучність", style=discord.ButtonStyle.secondary, emoji="🔊", custom_id="volume_modal", row=1)
+    async def volume_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        voice_client = interaction.guild.voice_client
+        if voice_client and voice_client.source and hasattr(voice_client.source, 'volume'):
+            modal = VolumeModal(voice_client)
+            await interaction.response.send_modal(modal)
+        else:
+            await interaction.response.send_message("Зараз нічого не грає.", ephemeral=True)
+
+    @discord.ui.button(label="Історія", style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_HISTORY, custom_id="history", row=1)
+    async def history_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        guild_id = interaction.guild.id
+        try:
+            tracks = await self.cog.repository.get_history(guild_id, limit=10)
+            embed = discord.Embed(title="📜 Остання історія", color=consts.COLOR_EMBED_NORMAL)
+
+            if tracks:
+                lines = []
+                for i, t in enumerate(tracks, 1):
+                    duration = format_duration(t.get('duration'))
+                    played = t.get('played_at', '')
+                    if played:
+                        played = played[:16].replace('T', ' ')
+                    lines.append(f"`{i}.` **{t['title'][:40]}** | `{duration}` | {played}")
+                embed.add_field(name="🎵 Треки", value="\n".join(lines), inline=False)
+            else:
+                embed.add_field(name="🎵 Треки", value="Історія порожня", inline=False)
+
+            await interaction.response.send_message(embed=embed, view=DismissView(), ephemeral=True)
+        except Exception as e:
+            self.cog.logger.error(f"History button error: {e}", exc_info=True)
+            await interaction.response.send_message("❌ Помилка отримання історії.", ephemeral=True)
+
+    @discord.ui.button(label="Статистика", style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_STATS, custom_id="stats_btn", row=1)
+    async def stats_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        guild_id = interaction.guild.id
+        try:
+            top_tracks = await self.cog.repository.get_top_tracks(guild_id, limit=5)
+            total_seconds = await self.cog.repository.get_total_listening_time(guild_id)
+
+            embed = discord.Embed(title="📊 Швидка статистика", color=consts.COLOR_EMBED_NORMAL)
+
+            hours = total_seconds // 3600
+            minutes = (total_seconds % 3600) // 60
+            time_str = f"{hours}г {minutes}хв" if hours > 0 else f"{minutes}хв"
+            embed.add_field(name="⏱️ Загальний час", value=time_str, inline=True)
+
+            if top_tracks:
+                top_text = "\n".join([
+                    f"`{i+1}.` **{t['title'][:35]}** — {t['play_count']}x"
+                    for i, t in enumerate(top_tracks)
+                ])
+                embed.add_field(name="🏆 Топ-5", value=top_text, inline=False)
+
+            await interaction.response.send_message(embed=embed, view=DismissView(), ephemeral=True)
+        except Exception as e:
+            self.cog.logger.error(f"Stats button error: {e}", exc_info=True)
+            await interaction.response.send_message("❌ Помилка отримання статистики.", ephemeral=True)
 
 class QueueView(discord.ui.View):
     def __init__(self, cog, guild, timeout=consts.TIMEOUT_VIEW):
@@ -125,9 +232,10 @@ class QueueView(discord.ui.View):
             song_info = self.cog.current_song[guild_id]
             duration_str = format_duration(song_info.get('duration'))
             current_track = f"[{song_info.get('title', 'Невідомий трек')}]({song_info.get('url', '#')}) | `{duration_str}`"
+            requester_line = f"\nЗамовив користувач: {song_info['requester'].mention}" if song_info.get('requester') else ""
             embed.add_field(
                 name="🎶 Зараз грає",
-                value=f"{current_track}\nЗамовив користувач: {song_info['requester'].mention}",
+                value=f"{current_track}{requester_line}",
                 inline=False
             )
 
@@ -190,6 +298,10 @@ class QueueView(discord.ui.View):
         refresh_button.callback = self.refresh_page
         self.add_item(refresh_button)
 
+        close_button = discord.ui.Button(style=discord.ButtonStyle.danger, emoji="❌", label="Закрити", custom_id="close_queue")
+        close_button.callback = self.close_view
+        self.add_item(close_button)
+
     async def _handle_page_change(self, interaction: discord.Interaction, new_page):
         self.current_page = new_page
         self.queue = self.cog.queue_service.get_queue(self.guild.id) # Update local queue ref
@@ -201,6 +313,7 @@ class QueueView(discord.ui.View):
     async def next_page(self, interaction): await self._handle_page_change(interaction, min(self.total_pages - 1, self.current_page + 1))
     async def last_page(self, interaction): await self._handle_page_change(interaction, self.total_pages - 1)
     async def refresh_page(self, interaction): await self._handle_page_change(interaction, self.current_page)
+    async def close_view(self, interaction): await interaction.message.delete()
 
 
 class SearchResultsView(discord.ui.View):
@@ -284,18 +397,32 @@ class SearchResultsView(discord.ui.View):
 class MusicCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.queue_service = QueueService()
+        self.repository = MusicRepository()
+        self.queue_service = QueueService(self.repository)
         self.player_service = PlayerService()
         self.current_song = {}
         self.control_messages = {}
         self.player_channels = {}
-        self.track_history = {}
         self.preloaded_sources = {}  # {guild_id: YTDLSource} for gapless playback
         self.processing_buttons = set()
         self.logger = logging.getLogger('MusicBot')
         self.logger.setLevel(logging.INFO)
         
         self.light_ydl_opts = consts.YTDL_OPTIONS_LIGHT
+
+    async def cog_load(self):
+        """Викликається при завантаженні когу — ініціалізує БД та запускає auto-resume."""
+        await init_db()
+        self.logger.info("БД ініціалізована, ког MusicCog завантажений.")
+        # Auto-resume запускається після готовності бота (чекаємо on_ready)
+        self.bot.add_listener(self._on_ready_auto_resume, 'on_ready')
+
+    async def _on_ready_auto_resume(self):
+        """Запускає auto-resume після повної готовності бота."""
+        await asyncio.sleep(3)  # Невелика затримка для стабільності
+        count = await auto_resume(self.bot, self)
+        if count > 0:
+            self.logger.info(f"Auto-Resume: відновлено {count} сервер(ів).")
 
     async def get_video_info(self, url):
         search_url = url if any(x in url.lower() for x in ['youtube.com', 'youtu.be', 'soundcloud.com']) else f"ytsearch:{url}"
@@ -344,7 +471,8 @@ class MusicCog(commands.Cog):
             
             if guild_id in self.current_song:
                 song = self.current_song[guild_id]
-                embed.add_field(name="🎶 Зараз грає", value=f"[{song['title']}]({song['url']})\n👤 {song['requester'].mention}", inline=False)
+                requester_text = f"\nЄ️ {song['requester'].mention}" if song.get('requester') else ""
+                embed.add_field(name="🎶 Зараз грає", value=f"[{song['title']}]({song['url']}){requester_text}", inline=False)
                 if song.get('thumbnail'): embed.set_thumbnail(url=song['thumbnail'])
             else:
                 embed.add_field(name="🎶 Зараз грає", value="Нічого не грає", inline=False)
@@ -371,12 +499,8 @@ class MusicCog(commands.Cog):
         try:
             guild_id = guild.id
             if guild_id in self.current_song:
-                # Add to history
-                if guild_id not in self.track_history: self.track_history[guild_id] = []
-                self.track_history[guild_id].append(self.current_song[guild_id])
-                # Keep history size manageable
-                if len(self.track_history[guild_id]) > consts.MAX_HISTORY_SIZE:
-                    self.track_history[guild_id].pop(0)
+                # Додаємо в історію через QueueService (зберігає і в пам'ять, і в БД)
+                self.queue_service.add_to_history(guild_id, self.current_song[guild_id])
             
             queue = self.queue_service.get_queue(guild_id)
             if queue:
@@ -400,8 +524,22 @@ class MusicCog(commands.Cog):
                     
                     self.current_song[guild_id] = {
                         'title': player.title, 'url': player.url, 'thumbnail': player.thumbnail,
-                        'duration': player.duration, 'requester': item['requester'], 'player': player
+                        'duration': player.duration, 'requester': item.get('requester'), 'player': player
                     }
+                    
+                    # Зберігаємо стан у БД для auto-resume
+                    voice_channel_id = voice_client.channel.id if voice_client.channel else None
+                    text_channel_id = self.player_channels.get(guild_id)
+                    asyncio.ensure_future(self.repository.save_guild_state(
+                        guild_id=guild_id,
+                        voice_channel_id=voice_channel_id,
+                        text_channel_id=text_channel_id,
+                        track_url=player.url,
+                        track_title=player.title,
+                        track_duration=player.duration,
+                        track_thumbnail=player.thumbnail,
+                        is_paused=False,
+                    ))
                     
                     if guild_id in self.player_channels:
                         channel = self.bot.get_channel(self.player_channels[guild_id])
@@ -419,6 +557,8 @@ class MusicCog(commands.Cog):
                         await self.play_next_song(guild, voice_client)
             else:
                 if guild_id in self.current_song: del self.current_song[guild_id]
+                # Очищаємо стан у БД — нічого не грає
+                asyncio.ensure_future(self.repository.clear_guild_state(guild_id))
                 if guild_id in self.player_channels:
                     channel = self.bot.get_channel(self.player_channels[guild_id])
                     if channel: await self.update_player(guild, channel)
@@ -459,6 +599,8 @@ class MusicCog(commands.Cog):
             self.queue_service.clear(guild.id)
             if guild.id in self.current_song: del self.current_song[guild.id]
             self.preloaded_sources.pop(guild.id, None)  # Clear preloaded source
+            # Очищаємо стан у БД
+            await self.repository.clear_guild_state(guild.id)
             await voice_client.disconnect()
 
     @commands.Cog.listener()
@@ -468,6 +610,7 @@ class MusicCog(commands.Cog):
              self.queue_service.clear(member.guild.id)
              if member.guild.id in self.current_song: del self.current_song[member.guild.id]
              self.preloaded_sources.pop(member.guild.id, None)
+             asyncio.ensure_future(self.repository.clear_guild_state(member.guild.id))
              return
 
         # 2. Someone left the bot's channel
@@ -643,6 +786,113 @@ class MusicCog(commands.Cog):
             return
         await self.leave_logic(interaction.guild)
         await interaction.response.send_message("👋 Бувай!")
+
+    @app_commands.command(name="volume", description="Встановити гучність (0-200%)")
+    @app_commands.describe(level="Гучність у відсотках (0-200)")
+    async def volume(self, interaction: discord.Interaction, level: int):
+        voice_client = interaction.guild.voice_client
+        if not voice_client or not voice_client.source or not hasattr(voice_client.source, 'volume'):
+            await interaction.response.send_message("Зараз нічого не грає.", ephemeral=True)
+            return
+        
+        clamped = max(0, min(200, level))
+        voice_client.source.volume = clamped / 100.0
+        emoji = "🔇" if clamped == 0 else "🔉" if clamped < 50 else "🔊"
+        await interaction.response.send_message(f"{emoji} Гучність встановлена: **{clamped}%**")
+
+    @app_commands.command(name="stats", description="Статистика прослуховування сервера")
+    async def stats(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        guild_id = interaction.guild_id
+
+        try:
+            top_tracks = await self.repository.get_top_tracks(guild_id, limit=10)
+            total_seconds = await self.repository.get_total_listening_time(guild_id)
+            stats_30d = await self.repository.get_listening_stats(guild_id, days=30)
+
+            embed = discord.Embed(
+                title="📊 Статистика прослуховування",
+                color=consts.COLOR_EMBED_NORMAL
+            )
+
+            # Загальна статистика
+            hours = total_seconds // 3600
+            minutes = (total_seconds % 3600) // 60
+            time_str = f"{hours}г {minutes}хв" if hours > 0 else f"{minutes}хв"
+            
+            embed.add_field(
+                name="📈 Загалом",
+                value=f"⏱️ Загальний час: **{time_str}**",
+                inline=False
+            )
+
+            # 30-денна статистика
+            s = stats_30d
+            embed.add_field(
+                name="📅 За 30 днів",
+                value=(
+                    f"🎵 Треків: **{s['total_tracks']}**\n"
+                    f"🆕 Унікальних: **{s['unique_tracks']}**\n"
+                    f"⏱️ Час: **{format_duration(s['total_seconds'])}**"
+                ),
+                inline=False
+            )
+
+            # Топ треки
+            if top_tracks:
+                top_text = "\n".join([
+                    f"`{i+1}.` **{t['title'][:40]}** — {t['play_count']}x"
+                    for i, t in enumerate(top_tracks)
+                ])
+                embed.add_field(name="🏆 Топ треки", value=top_text, inline=False)
+            else:
+                embed.add_field(name="🏆 Топ треки", value="Поки немає даних", inline=False)
+
+            await interaction.followup.send(embed=embed, view=DismissView(), ephemeral=True)
+        except Exception as e:
+            self.logger.error(f"Stats error: {e}", exc_info=True)
+            await interaction.followup.send("❌ Помилка отримання статистики.", ephemeral=True)
+
+    @app_commands.command(name="history", description="Історія прослуховувань")
+    @app_commands.describe(query="Пошук в історії (опціонально)")
+    async def history(self, interaction: discord.Interaction, query: str = None):
+        await interaction.response.defer(ephemeral=True)
+        guild_id = interaction.guild_id
+
+        try:
+            if query:
+                tracks = await self.repository.search_history(guild_id, query, limit=20)
+                title = f"🔍 Історія: «{query}»"
+            else:
+                tracks = await self.repository.get_history(guild_id, limit=25)
+                title = "📜 Історія прослуховувань"
+
+            embed = discord.Embed(title=title, color=consts.COLOR_EMBED_NORMAL)
+
+            if tracks:
+                lines = []
+                for i, t in enumerate(tracks, 1):
+                    duration = format_duration(t.get('duration'))
+                    played = t.get('played_at', '')
+                    if played:
+                        # Показуємо тільки дату і час
+                        played = played[:16].replace('T', ' ')
+                    lines.append(f"`{i}.` **{t['title'][:35]}** | `{duration}` | {played}")
+                
+                # Розбиваємо на chunk-и щоб не перевищити ліміт
+                text = "\n".join(lines)
+                if len(text) > 1024:
+                    text = "\n".join(lines[:15]) + f"\n... та ще {len(lines) - 15}"
+                
+                embed.add_field(name="🎵 Треки", value=text, inline=False)
+                embed.set_footer(text=f"Знайдено: {len(tracks)} трек(ів)")
+            else:
+                embed.add_field(name="🎵 Треки", value="Історія порожня", inline=False)
+
+            await interaction.followup.send(embed=embed, view=DismissView(), ephemeral=True)
+        except Exception as e:
+            self.logger.error(f"History error: {e}", exc_info=True)
+            await interaction.followup.send("❌ Помилка отримання історії.", ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(MusicCog(bot))

@@ -1,0 +1,28 @@
+services:
+  music-bot:
+    build: .
+    container_name: discord-music-bot
+    restart: unless-stopped
+    env_file:
+      - discord_music_bot/.env
+    environment:
+      - DB_DATA_DIR=/app/data
+      - PYTHONUNBUFFERED=1
+    volumes:
+      # Персистентне сховище для SQLite БД
+      - bot-data:/app/data
+      # Логи
+      - bot-logs:/app/logs
+    # Обмеження ресурсів (опціонально)
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+
+volumes:
+  bot-data:
+    driver: local
+  bot-logs:
+    driver: local

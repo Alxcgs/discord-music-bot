@@ -1,0 +1,121 @@
+2026-02-11 22:01:09 [INFO] root: Opus завантажено (default)
+2026-02-11 22:01:09 [INFO] discord.client: logging in using static token
+2026-02-11 22:01:11 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 91db18486ec46941efd204e045a542c8).
+2026-02-11 22:01:13 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-02-11 22:01:13 [INFO] root: ID бота: 1368988347619479635
+2026-02-11 22:01:13 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot1\data\music_bot.db
+2026-02-11 22:01:13 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-02-11 22:01:13 [INFO] root: Завантажено ког: slash_music_cog
+2026-02-11 22:01:14 [ERROR] root: Помилка синхронізації команд: 503 Service Unavailable (error code: 0): 503: Service Unavailable
+2026-02-11 22:01:14 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-02-11 22:01:31 [INFO] discord.voice_state: Connecting to voice...
+2026-02-11 22:01:31 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-02-11 22:01:31 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: warsaw10010.discord.media:443
+2026-02-11 22:01:31 [INFO] discord.voice_state: Voice connection complete.
+2026-02-11 22:02:39 [ERROR] MusicBot.QueueService: Помилка збереження черги для 1369110517070823464: FOREIGN KEY constraint failed
+2026-02-11 22:02:40 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=O0v_B5Y_4w0
+2026-02-11 22:02:41 [INFO] root: Creating audio pipeline for: Ніч мене кличе
+2026-02-11 22:02:41 [INFO] root: Audio pipeline started for: Ніч мене кличе
+2026-02-11 22:06:38 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-02-11 22:06:56 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-02-11 22:06:56 [INFO] root: Бот вимикається...
+2026-02-11 22:06:59 [INFO] root: Opus завантажено (default)
+2026-02-11 22:06:59 [INFO] discord.client: logging in using static token
+2026-02-11 22:07:00 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 285b0e3365814069a6521a9f8a1262ec).
+2026-02-11 22:07:02 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-02-11 22:07:02 [INFO] root: ID бота: 1368988347619479635
+2026-02-11 22:07:03 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot1\data\music_bot.db
+2026-02-11 22:07:03 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-02-11 22:07:03 [INFO] root: Завантажено ког: slash_music_cog
+2026-02-11 22:07:03 [INFO] root: Синхронізовано 12 Slash-команд.
+2026-02-11 22:07:03 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-02-11 22:07:07 [INFO] discord.voice_state: Connecting to voice...
+2026-02-11 22:07:07 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-02-11 22:07:07 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: warsaw10010.discord.media:443
+2026-02-11 22:07:07 [INFO] discord.voice_state: Voice connection complete.
+2026-02-11 22:07:53 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=cSnkWzZ7ZAA
+2026-02-11 22:07:55 [INFO] root: Creating audio pipeline for: Flo Rida - Whistle [Official Video]
+2026-02-11 22:07:55 [INFO] root: Audio pipeline started for: Flo Rida - Whistle [Official Video]
+2026-02-11 22:12:21 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=hPHGzIb0_8A
+2026-02-11 22:12:22 [INFO] root: Creating audio pipeline for: grouping
+2026-02-11 22:12:22 [INFO] root: Audio pipeline started for: grouping
+2026-02-11 22:13:09 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=cSnkWzZ7ZAA
+2026-02-11 22:13:11 [INFO] root: Creating audio pipeline for: Flo Rida - Whistle [Official Video]
+2026-02-11 22:13:11 [INFO] root: Audio pipeline started for: Flo Rida - Whistle [Official Video]
+2026-02-11 22:13:12 [INFO] MusicBot: Preloading next track: grouping
+2026-02-11 22:13:12 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=hPHGzIb0_8A
+2026-02-11 22:13:14 [INFO] root: Creating audio pipeline for: grouping
+2026-02-11 22:13:14 [INFO] root: Audio pipeline started for: grouping
+2026-02-11 22:13:14 [INFO] MusicBot: Successfully preloaded: grouping
+2026-02-11 22:13:17 [INFO] MusicBot: Using preloaded source: grouping
+2026-02-11 22:13:18 [INFO] MusicBot: Preloading next track: Flo Rida - Whistle [Official Video]
+2026-02-11 22:13:18 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=cSnkWzZ7ZAA
+2026-02-11 22:13:20 [INFO] root: Creating audio pipeline for: Flo Rida - Whistle [Official Video]
+2026-02-11 22:13:20 [INFO] root: Audio pipeline started for: Flo Rida - Whistle [Official Video]
+2026-02-11 22:13:20 [INFO] MusicBot: Successfully preloaded: Flo Rida - Whistle [Official Video]
+2026-02-11 22:15:30 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-02-11 22:15:32 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-02-11 22:15:32 [INFO] root: Бот вимикається...
+2026-02-11 22:15:37 [INFO] root: Opus завантажено (default)
+2026-02-11 22:15:37 [INFO] discord.client: logging in using static token
+2026-02-11 22:15:38 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 08f99e6ec78f0dcc3bacb19fc8010832).
+2026-02-11 22:15:40 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-02-11 22:15:40 [INFO] root: ID бота: 1368988347619479635
+2026-02-11 22:15:40 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot1\data\music_bot.db
+2026-02-11 22:15:40 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-02-11 22:15:40 [INFO] root: Завантажено ког: slash_music_cog
+2026-02-11 22:15:41 [INFO] root: Синхронізовано 12 Slash-команд.
+2026-02-11 22:15:41 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-02-11 22:15:57 [INFO] discord.voice_state: Connecting to voice...
+2026-02-11 22:15:57 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-02-11 22:15:57 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: warsaw10010.discord.media:443
+2026-02-11 22:15:57 [INFO] discord.voice_state: Voice connection complete.
+2026-02-11 22:16:43 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=fHJJKGpRxQw
+2026-02-11 22:16:44 [INFO] root: Creating audio pipeline for: Jeny Vesna – Свет по венам
+2026-02-11 22:16:45 [INFO] root: Audio pipeline started for: Jeny Vesna – Свет по венам
+2026-02-11 22:17:00 [ERROR] discord.ui.view: Ignoring exception in view <DismissView timeout=300 children=1> for item <Button style=<ButtonStyle.danger: 4> url=None disabled=False label='Закрити' emoji=<PartialEmoji animated=False name='❌' id=None> row=None sku_id=None id=None>
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\ui\view.py", line 555, in _scheduled_task
+    await item.callback(interaction)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\discord_music_bot\cogs\slash_music_cog.py", line 55, in dismiss_button
+    await interaction.message.delete()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\message.py", line 1308, in delete
+    await self._state.http.delete_message(self.channel.id, self.id)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\http.py", line 769, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10008): Unknown Message
+2026-02-11 22:17:04 [ERROR] discord.ui.view: Ignoring exception in view <DismissView timeout=300 children=1> for item <Button style=<ButtonStyle.danger: 4> url=None disabled=False label='Закрити' emoji=<PartialEmoji animated=False name='❌' id=None> row=None sku_id=None id=None>
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\ui\view.py", line 555, in _scheduled_task
+    await item.callback(interaction)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\discord_music_bot\cogs\slash_music_cog.py", line 55, in dismiss_button
+    await interaction.message.delete()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\message.py", line 1308, in delete
+    await self._state.http.delete_message(self.channel.id, self.id)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\http.py", line 769, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10008): Unknown Message
+2026-02-11 22:17:11 [ERROR] discord.ui.view: Ignoring exception in view <DismissView timeout=300 children=1> for item <Button style=<ButtonStyle.danger: 4> url=None disabled=False label='Закрити' emoji=<PartialEmoji animated=False name='❌' id=None> row=None sku_id=None id=None>
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\ui\view.py", line 555, in _scheduled_task
+    await item.callback(interaction)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\discord_music_bot\cogs\slash_music_cog.py", line 55, in dismiss_button
+    await interaction.message.delete()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\message.py", line 1308, in delete
+    await self._state.http.delete_message(self.channel.id, self.id)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\http.py", line 769, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10008): Unknown Message
+2026-02-11 22:17:40 [ERROR] discord.ui.view: Ignoring exception in view <QueueView timeout=60 children=6> for item <Button style=<ButtonStyle.danger: 4> url=None disabled=False label='Закрити' emoji=<PartialEmoji animated=False name='❌' id=None> row=None sku_id=None id=None>
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\ui\view.py", line 555, in _scheduled_task
+    await item.callback(interaction)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\discord_music_bot\cogs\slash_music_cog.py", line 316, in close_view
+    async def close_view(self, interaction): await interaction.message.delete()
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\message.py", line 1308, in delete
+    await self._state.http.delete_message(self.channel.id, self.id)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\http.py", line 769, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10008): Unknown Message
+2026-02-11 22:21:03 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
