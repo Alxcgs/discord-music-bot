@@ -4,7 +4,7 @@ services:
     container_name: discord-music-bot
     restart: unless-stopped
     env_file:
-      - discord_music_bot/.env
+      - .env
     environment:
       - DB_DATA_DIR=/app/data
       - PYTHONUNBUFFERED=1

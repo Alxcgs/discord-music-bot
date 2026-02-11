@@ -119,3 +119,33 @@ Traceback (most recent call last):
     raise NotFound(response, data)
 discord.errors.NotFound: 404 Not Found (error code: 10008): Unknown Message
 2026-02-11 22:21:03 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-02-11 22:28:01 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-02-11 22:28:01 [INFO] root: Бот вимикається...
+2026-02-11 22:28:04 [INFO] root: Opus завантажено (default)
+2026-02-11 22:28:04 [INFO] discord.client: logging in using static token
+2026-02-11 22:28:08 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: f02bd44c311de8299cb6892cd569ecdf).
+2026-02-11 22:28:10 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-02-11 22:28:10 [INFO] root: ID бота: 1368988347619479635
+2026-02-11 22:28:10 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot1\data\music_bot.db
+2026-02-11 22:28:10 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-02-11 22:28:10 [INFO] root: Завантажено ког: slash_music_cog
+2026-02-11 22:28:10 [INFO] root: Синхронізовано 12 Slash-команд.
+2026-02-11 22:28:10 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-02-11 22:28:13 [INFO] discord.voice_state: Connecting to voice...
+2026-02-11 22:28:13 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-02-11 22:28:13 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: warsaw10010.discord.media:443
+2026-02-11 22:28:13 [INFO] discord.voice_state: Voice connection complete.
+2026-02-11 22:28:38 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=hPHGzIb0_8A
+2026-02-11 22:28:39 [INFO] root: Creating audio pipeline for: grouping
+2026-02-11 22:28:39 [INFO] root: Audio pipeline started for: grouping
+2026-02-11 22:28:49 [ERROR] discord.ui.view: Ignoring exception in view <DismissView timeout=300 children=1> for item <Button style=<ButtonStyle.danger: 4> url=None disabled=False label='Закрити' emoji=<PartialEmoji animated=False name='❌' id=None> row=None sku_id=None id=None>
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\ui\view.py", line 555, in _scheduled_task
+    await item.callback(interaction)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\discord_music_bot\cogs\slash_music_cog.py", line 55, in dismiss_button
+    await interaction.message.delete()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\message.py", line 1308, in delete
+    await self._state.http.delete_message(self.channel.id, self.id)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\http.py", line 769, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10008): Unknown Message
