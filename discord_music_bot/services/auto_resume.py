@@ -79,7 +79,7 @@ async def auto_resume(bot, cog) -> int:
                 # Почати відтворення
                 await cog.play_next_song(guild, voice_client)
 
-                # Повідомити в текстовий канал
+                # Повідомити в текстовий канал та показати панель керування
                 if text_channel_id:
                     text_channel = guild.get_channel(text_channel_id)
                     if text_channel:
@@ -89,6 +89,9 @@ async def auto_resume(bot, cog) -> int:
                             f"🔄 **Auto-Resume:** Бот повернувся після рестарту!\n"
                             f"▶️ Продовжую з: **{track_title}**{queue_info}"
                         )
+                        # Показуємо панель керування з кнопками
+                        await asyncio.sleep(1)
+                        await cog.update_player(guild, text_channel)
 
                 resumed_count += 1
                 logger.info(f"Auto-Resume: Відновлено {guild.name} — {track_title}")

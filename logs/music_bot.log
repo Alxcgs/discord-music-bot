@@ -149,3 +149,93 @@ Traceback (most recent call last):
   File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\http.py", line 769, in request
     raise NotFound(response, data)
 discord.errors.NotFound: 404 Not Found (error code: 10008): Unknown Message
+2026-02-11 22:32:15 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-02-11 22:33:43 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-02-11 22:33:43 [INFO] root: Бот вимикається...
+2026-02-11 22:33:48 [INFO] root: Opus завантажено (default)
+2026-02-11 22:33:48 [INFO] discord.client: logging in using static token
+2026-02-11 22:33:49 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 779e3de09b034480c8c0c203b6ef07e8).
+2026-02-11 22:33:51 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-02-11 22:33:51 [INFO] root: ID бота: 1368988347619479635
+2026-02-11 22:33:51 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot1\data\music_bot.db
+2026-02-11 22:33:51 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-02-11 22:33:51 [INFO] root: Завантажено ког: slash_music_cog
+2026-02-11 22:33:52 [INFO] root: Синхронізовано 12 Slash-команд.
+2026-02-11 22:33:52 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-02-11 22:34:00 [INFO] discord.voice_state: Connecting to voice...
+2026-02-11 22:34:00 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-02-11 22:34:00 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: warsaw10010.discord.media:443
+2026-02-11 22:34:01 [INFO] discord.voice_state: Voice connection complete.
+2026-02-11 22:34:32 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=3oInv06i21E
+2026-02-11 22:34:33 [INFO] root: Creating audio pipeline for: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 22:34:33 [INFO] root: Audio pipeline started for: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 22:35:15 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=hPHGzIb0_8A
+2026-02-11 22:35:16 [INFO] root: Creating audio pipeline for: grouping
+2026-02-11 22:35:16 [INFO] root: Audio pipeline started for: grouping
+2026-02-11 22:35:17 [INFO] MusicBot: Preloading next track: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 22:35:17 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=3oInv06i21E
+2026-02-11 22:35:19 [INFO] root: Creating audio pipeline for: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 22:35:19 [INFO] root: Audio pipeline started for: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 22:35:19 [INFO] MusicBot: Successfully preloaded: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 22:35:20 [INFO] MusicBot: Using preloaded source: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 22:35:21 [INFO] MusicBot: Preloading next track: grouping
+2026-02-11 22:35:21 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=hPHGzIb0_8A
+2026-02-11 22:35:23 [INFO] root: Creating audio pipeline for: grouping
+2026-02-11 22:35:23 [INFO] root: Audio pipeline started for: grouping
+2026-02-11 22:35:23 [INFO] MusicBot: Successfully preloaded: grouping
+2026-02-11 22:36:57 [INFO] MusicBot: Using preloaded source: grouping
+2026-02-11 22:36:58 [INFO] MusicBot: Preloading next track: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 22:36:58 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=3oInv06i21E
+2026-02-11 22:36:59 [INFO] root: Creating audio pipeline for: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 22:36:59 [INFO] root: Audio pipeline started for: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 22:36:59 [INFO] MusicBot: Successfully preloaded: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 22:38:53 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 4 зомбі-процес(ів).
+2026-02-11 22:38:53 [INFO] MusicBot: Using preloaded source: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 22:38:53 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=hPHGzIb0_8A
+2026-02-11 22:38:54 [INFO] MusicBot: Preloading next track: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 22:38:54 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=3oInv06i21E
+2026-02-11 22:38:55 [INFO] root: Creating audio pipeline for: grouping
+2026-02-11 22:38:55 [INFO] root: Audio pipeline started for: grouping
+2026-02-11 22:38:56 [INFO] root: Creating audio pipeline for: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 22:38:56 [INFO] root: Audio pipeline started for: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 22:38:56 [INFO] MusicBot: Successfully preloaded: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 22:39:27 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-02-11 22:39:28 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-02-11 22:39:28 [INFO] root: Бот вимикається...
+2026-02-11 22:39:32 [INFO] root: Opus завантажено (default)
+2026-02-11 22:39:32 [INFO] discord.client: logging in using static token
+2026-02-11 22:39:33 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 034b1805334f6469591fa98cd5806fca).
+2026-02-11 22:39:35 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-02-11 22:39:35 [INFO] root: ID бота: 1368988347619479635
+2026-02-11 22:39:35 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot1\data\music_bot.db
+2026-02-11 22:39:35 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-02-11 22:39:35 [INFO] root: Завантажено ког: slash_music_cog
+2026-02-11 22:39:36 [INFO] root: Синхронізовано 12 Slash-команд.
+2026-02-11 22:39:36 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-02-11 22:39:55 [INFO] discord.voice_state: Connecting to voice...
+2026-02-11 22:39:55 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-02-11 22:39:55 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: warsaw10010.discord.media:443
+2026-02-11 22:39:56 [INFO] discord.voice_state: Voice connection complete.
+2026-02-11 22:40:01 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=jFrxbsRnWy0
+2026-02-11 22:40:03 [INFO] root: Creating audio pipeline for: Злий репер Зеник - ГМО (GMO)
+2026-02-11 22:40:03 [INFO] root: Audio pipeline started for: Злий репер Зеник - ГМО (GMO)
+2026-02-11 22:40:31 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=3oInv06i21E
+2026-02-11 22:40:32 [INFO] root: Creating audio pipeline for: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 22:40:32 [INFO] root: Audio pipeline started for: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 22:40:33 [INFO] MusicBot: Preloading next track: Злий репер Зеник - ГМО (GMO)
+2026-02-11 22:40:33 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=jFrxbsRnWy0
+2026-02-11 22:40:34 [INFO] root: Creating audio pipeline for: Злий репер Зеник - ГМО (GMO)
+2026-02-11 22:40:34 [INFO] root: Audio pipeline started for: Злий репер Зеник - ГМО (GMO)
+2026-02-11 22:40:34 [INFO] MusicBot: Successfully preloaded: Злий репер Зеник - ГМО (GMO)
+2026-02-11 22:40:37 [INFO] MusicBot: Using preloaded source: Злий репер Зеник - ГМО (GMO)
+2026-02-11 22:40:38 [INFO] MusicBot: Preloading next track: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 22:40:38 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=3oInv06i21E
+2026-02-11 22:40:40 [INFO] root: Creating audio pipeline for: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 22:40:40 [INFO] root: Audio pipeline started for: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 22:40:40 [INFO] MusicBot: Successfully preloaded: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 22:40:45 [INFO] MusicBot: Using preloaded source: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 22:40:46 [INFO] MusicBot: Preloading next track: Злий репер Зеник - ГМО (GMO)
+2026-02-11 22:40:46 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=jFrxbsRnWy0
+2026-02-11 22:40:47 [INFO] root: Creating audio pipeline for: Злий репер Зеник - ГМО (GMO)
+2026-02-11 22:40:47 [INFO] root: Audio pipeline started for: Злий репер Зеник - ГМО (GMO)
+2026-02-11 22:40:47 [INFO] MusicBot: Successfully preloaded: Злий репер Зеник - ГМО (GMO)

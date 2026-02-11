@@ -52,7 +52,13 @@ class DismissView(discord.ui.View):
 
     @discord.ui.button(label="Закрити", style=discord.ButtonStyle.danger, emoji="❌")
     async def dismiss_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.message.delete()
+        try:
+            await interaction.response.edit_message(content="✅ Закрито", embed=None, view=None, delete_after=0)
+        except Exception:
+            try:
+                await interaction.message.delete()
+            except Exception:
+                pass
 
 
 class MusicControls(discord.ui.View):
@@ -88,19 +94,45 @@ class MusicControls(discord.ui.View):
         try:
             history = self.cog.queue_service._history.get(guild_id, [])
             if not history:
+                # Спробувати завантажити з БД
+                db_tracks = await self.cog.repository.get_history(guild_id, limit=20)
+                if db_tracks:
+                    for t in reversed(db_tracks):
+                        self.cog.queue_service._history.setdefault(guild_id, []).append({
+                            'title': t['title'],
+                            'url': t.get('url', ''),
+                            'webpage_url': t.get('url', ''),
+                            'duration': t.get('duration'),
+                            'thumbnail': t.get('thumbnail'),
+                            'requester': None
+                        })
+                    history = self.cog.queue_service._history.get(guild_id, [])
+            
+            if not history:
                 await interaction.response.send_message("Немає попередніх треків.", ephemeral=True)
                 return
             
+            # Беремо попередній трек з історії
             prev_track = self.cog.queue_service.get_last_track(guild_id)
             
+            # Зберігаємо поточний трек у чергу (щоб він грав далі після prev)
             if guild_id in self.cog.current_song:
                 current = self.cog.current_song[guild_id].copy()
+                current.pop('player', None)  # Видаляємо player об'єкт
                 self.cog.queue_service.push_front(guild_id, current)
             
+            # Додаємо prev на початок черги
             self.cog.queue_service.push_front(guild_id, prev_track)
             
+            # Очищаємо current_song ДО stop() — так play_next_song не додасть нічого в історію
+            self.cog.current_song.pop(guild_id, None)
+            
             voice_client = interaction.guild.voice_client
-            self.cog.player_service.stop(voice_client)
+            if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
+                voice_client.stop()  # Це викличе play_next_song через after callback
+            else:
+                # Якщо нічого не грає, запустити вручну
+                await self.cog.play_next_song(interaction.guild, voice_client)
             
             await interaction.response.send_message(
                 f"⏮️ Повертаємось до треку: {prev_track.get('title', 'Невідомий трек')}", 
@@ -313,7 +345,14 @@ class QueueView(discord.ui.View):
     async def next_page(self, interaction): await self._handle_page_change(interaction, min(self.total_pages - 1, self.current_page + 1))
     async def last_page(self, interaction): await self._handle_page_change(interaction, self.total_pages - 1)
     async def refresh_page(self, interaction): await self._handle_page_change(interaction, self.current_page)
-    async def close_view(self, interaction): await interaction.message.delete()
+    async def close_view(self, interaction):
+        try:
+            await interaction.response.edit_message(content="✅ Закрито", embed=None, view=None, delete_after=0)
+        except Exception:
+            try:
+                await interaction.message.delete()
+            except Exception:
+                pass
 
 
 class SearchResultsView(discord.ui.View):
