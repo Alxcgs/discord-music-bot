@@ -118,20 +118,36 @@ class MusicControls(discord.ui.View):
             # Зберігаємо поточний трек у чергу (щоб він грав далі після prev)
             if guild_id in self.cog.current_song:
                 current = self.cog.current_song[guild_id].copy()
-                current.pop('player', None)  # Видаляємо player об'єкт
+                current.pop('player', None)
                 self.cog.queue_service.push_front(guild_id, current)
             
             # Додаємо prev на початок черги
             self.cog.queue_service.push_front(guild_id, prev_track)
             
-            # Очищаємо current_song ДО stop() — так play_next_song не додасть нічого в історію
+            # Очищаємо current_song
             self.cog.current_song.pop(guild_id, None)
             
             voice_client = interaction.guild.voice_client
+            
+            # Блокуємо after-callback щоб він НЕ викликав play_next_song
+            self.cog._skip_after_play.add(guild_id)
+            
             if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
-                voice_client.stop()  # Це викличе play_next_song через after callback
-            else:
-                # Якщо нічого не грає, запустити вручну
+                voice_client.stop()
+            
+            # Чекаємо поки after-callback відпрацює (і пропустить play_next_song)
+            await asyncio.sleep(0.5)
+            
+            # Очищаємо preloaded source — він для СТАРОЇ черги, не для нової
+            old_preload = self.cog.preloaded_sources.pop(guild_id, None)
+            if old_preload:
+                try:
+                    old_preload.cleanup()
+                except Exception:
+                    pass
+            
+            # Руками запускаємо наступний трек (без додавання в історію — current_song пустий)
+            if voice_client and voice_client.is_connected():
                 await self.cog.play_next_song(interaction.guild, voice_client)
             
             await interaction.response.send_message(
@@ -141,9 +157,13 @@ class MusicControls(discord.ui.View):
             
         except Exception as e:
             self.cog.logger.error(f"Error in previous_button: {e}", exc_info=True)
-            await interaction.response.send_message("❌ Помилка при поверненні до попереднього треку.", ephemeral=True)
+            try:
+                await interaction.response.send_message("❌ Помилка при поверненні до попереднього треку.", ephemeral=True)
+            except Exception:
+                pass
         
         finally:
+            self.cog._skip_after_play.discard(guild_id)
             self.cog.processing_buttons.discard(guild_id)
 
     @discord.ui.button(label="Пауза", style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_PAUSE, custom_id="pause_resume", row=0)
@@ -199,20 +219,25 @@ class MusicControls(discord.ui.View):
     async def history_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         guild_id = interaction.guild.id
         try:
-            tracks = await self.cog.repository.get_history(guild_id, limit=10)
-            embed = discord.Embed(title="📜 Остання історія", color=consts.COLOR_EMBED_NORMAL)
+            # Поточна сесія — тільки з пам'яті (з моменту запуску бота)
+            mem_history = list(reversed(self.cog.queue_service._history.get(guild_id, [])))
+            embed = discord.Embed(title="📜 Історія (поточна сесія)", color=consts.COLOR_EMBED_NORMAL)
 
-            if tracks:
+            # Додаємо поточний трек на верхівку
+            if guild_id in self.cog.current_song:
+                song = self.cog.current_song[guild_id]
+                duration = format_duration(song.get('duration'))
+                embed.add_field(name="🎶 Зараз грає", value=f"**{song['title'][:45]}** | `{duration}`", inline=False)
+
+            if mem_history:
                 lines = []
-                for i, t in enumerate(tracks, 1):
+                for i, t in enumerate(mem_history[:15], 1):
                     duration = format_duration(t.get('duration'))
-                    played = t.get('played_at', '')
-                    if played:
-                        played = played[:16].replace('T', ' ')
-                    lines.append(f"`{i}.` **{t['title'][:40]}** | `{duration}` | {played}")
-                embed.add_field(name="🎵 Треки", value="\n".join(lines), inline=False)
+                    lines.append(f"`{i}.` **{t.get('title', '?')[:40]}** | `{duration}`")
+                embed.add_field(name="⏪ Раніше грало", value="\n".join(lines), inline=False)
+                embed.set_footer(text=f"Всього за сесію: {len(mem_history)} трек(ів)")
             else:
-                embed.add_field(name="🎵 Треки", value="Історія порожня", inline=False)
+                embed.add_field(name="⏪ Раніше грало", value="Поки порожньо", inline=False)
 
             await interaction.response.send_message(embed=embed, view=DismissView(), ephemeral=True)
         except Exception as e:
@@ -444,6 +469,7 @@ class MusicCog(commands.Cog):
         self.player_channels = {}
         self.preloaded_sources = {}  # {guild_id: YTDLSource} for gapless playback
         self.processing_buttons = set()
+        self._skip_after_play = set()  # guild_ids де after-callback має бути пропущений
         self.logger = logging.getLogger('MusicBot')
         self.logger.setLevel(logging.INFO)
         
@@ -610,6 +636,10 @@ class MusicCog(commands.Cog):
     async def check_after_play(self, guild, voice_client, error):
         if error:
             self.logger.error(f"Playback error in guild {guild.id}: {error}")
+        # Якщо прапорець встановлено (напр. кнопка "Попередній"), пропускаємо play_next_song
+        if guild.id in self._skip_after_play:
+            self.logger.info(f"check_after_play: skipped for guild {guild.id} (previous button)")
+            return
         if voice_client.is_connected():
             await self.play_next_song(guild, voice_client)
 

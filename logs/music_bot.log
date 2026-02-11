@@ -239,3 +239,176 @@ discord.errors.NotFound: 404 Not Found (error code: 10008): Unknown Message
 2026-02-11 22:40:47 [INFO] root: Creating audio pipeline for: Злий репер Зеник - ГМО (GMO)
 2026-02-11 22:40:47 [INFO] root: Audio pipeline started for: Злий репер Зеник - ГМО (GMO)
 2026-02-11 22:40:47 [INFO] MusicBot: Successfully preloaded: Злий репер Зеник - ГМО (GMO)
+2026-02-11 22:43:51 [INFO] MusicBot: Using preloaded source: Злий репер Зеник - ГМО (GMO)
+2026-02-11 22:44:36 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-02-11 22:45:37 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-02-11 22:51:23 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-02-11 22:51:23 [INFO] root: Бот вимикається...
+2026-02-11 22:51:26 [INFO] root: Opus завантажено (default)
+2026-02-11 22:51:26 [INFO] discord.client: logging in using static token
+2026-02-11 22:51:27 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 222c6205e173a44e20fbf5ab4a719c70).
+2026-02-11 22:51:29 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-02-11 22:51:29 [INFO] root: ID бота: 1368988347619479635
+2026-02-11 22:51:29 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot1\data\music_bot.db
+2026-02-11 22:51:29 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-02-11 22:51:29 [INFO] root: Завантажено ког: slash_music_cog
+2026-02-11 22:51:29 [INFO] root: Синхронізовано 12 Slash-команд.
+2026-02-11 22:51:29 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-02-11 22:51:40 [INFO] discord.voice_state: Connecting to voice...
+2026-02-11 22:51:40 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-02-11 22:51:41 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: warsaw10010.discord.media:443
+2026-02-11 22:51:41 [INFO] discord.voice_state: Voice connection complete.
+2026-02-11 22:51:46 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=yaOSGGvtXV4
+2026-02-11 22:51:47 [INFO] root: Creating audio pipeline for: OKS - Ніченька (official video 2023)        #новаукраїнськамузика #хітиукраїни #oks #тінакароль
+2026-02-11 22:51:47 [INFO] root: Audio pipeline started for: OKS - Ніченька (official video 2023)        #новаукраїнськамузика #хітиукраїни #oks #тінакароль
+2026-02-11 22:54:46 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=fHJJKGpRxQw
+2026-02-11 22:54:47 [INFO] root: Creating audio pipeline for: Jeny Vesna – Свет по венам
+2026-02-11 22:54:47 [INFO] root: Audio pipeline started for: Jeny Vesna – Свет по венам
+2026-02-11 22:54:49 [INFO] MusicBot: Preloading next track: Джиган feat. Лоя - Береги любовь ( Премьера клипа, HD )
+2026-02-11 22:54:49 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=GzupXDPOUbs
+2026-02-11 22:54:50 [INFO] root: Creating audio pipeline for: Джиган feat. Лоя - Береги любовь ( Премьера клипа, HD )
+2026-02-11 22:54:50 [INFO] root: Audio pipeline started for: Джиган feat. Лоя - Береги любовь ( Премьера клипа, HD )
+2026-02-11 22:54:50 [INFO] MusicBot: Successfully preloaded: Джиган feat. Лоя - Береги любовь ( Премьера клипа, HD )
+2026-02-11 22:55:28 [INFO] MusicBot: Using preloaded source: Джиган feat. Лоя - Береги любовь ( Премьера клипа, HD )
+2026-02-11 22:55:29 [INFO] MusicBot: Preloading next track: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:55:29 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=hr_qy_d41t4
+2026-02-11 22:55:30 [INFO] root: Creating audio pipeline for: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:55:30 [INFO] root: Audio pipeline started for: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:55:30 [INFO] MusicBot: Successfully preloaded: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:55:42 [INFO] MusicBot: Using preloaded source: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:55:43 [INFO] MusicBot: Preloading next track: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:55:43 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=Fc5mwNxaWFw
+2026-02-11 22:55:45 [INFO] root: Creating audio pipeline for: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:55:45 [INFO] root: Audio pipeline started for: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:55:45 [INFO] MusicBot: Successfully preloaded: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:55:50 [INFO] MusicBot: check_after_play: skipped for guild 1369110517070823464 (previous button)
+2026-02-11 22:55:50 [INFO] MusicBot: Using preloaded source: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:55:51 [INFO] MusicBot: Preloading next track: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:55:51 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=hr_qy_d41t4
+2026-02-11 22:55:53 [INFO] root: Creating audio pipeline for: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:55:53 [INFO] root: Audio pipeline started for: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:55:53 [INFO] MusicBot: Successfully preloaded: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:55:58 [INFO] MusicBot: check_after_play: skipped for guild 1369110517070823464 (previous button)
+2026-02-11 22:55:58 [INFO] MusicBot: Using preloaded source: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:55:59 [INFO] MusicBot: Preloading next track: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:55:59 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=Fc5mwNxaWFw
+2026-02-11 22:56:01 [INFO] root: Creating audio pipeline for: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:56:01 [INFO] root: Audio pipeline started for: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:56:01 [INFO] MusicBot: Successfully preloaded: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:56:06 [INFO] MusicBot: check_after_play: skipped for guild 1369110517070823464 (previous button)
+2026-02-11 22:56:07 [INFO] MusicBot: Using preloaded source: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:56:08 [INFO] MusicBot: Preloading next track: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:56:08 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=hr_qy_d41t4
+2026-02-11 22:56:09 [INFO] root: Creating audio pipeline for: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:56:09 [INFO] root: Audio pipeline started for: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:56:09 [INFO] MusicBot: Successfully preloaded: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:56:11 [INFO] MusicBot: check_after_play: skipped for guild 1369110517070823464 (previous button)
+2026-02-11 22:56:12 [INFO] MusicBot: Using preloaded source: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:56:13 [INFO] MusicBot: Preloading next track: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:56:13 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=Fc5mwNxaWFw
+2026-02-11 22:56:14 [INFO] root: Creating audio pipeline for: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:56:14 [INFO] root: Audio pipeline started for: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:56:14 [INFO] MusicBot: Successfully preloaded: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:56:30 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 4 зомбі-процес(ів).
+2026-02-11 22:56:30 [INFO] MusicBot: Using preloaded source: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:56:30 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=hr_qy_d41t4
+2026-02-11 22:56:31 [INFO] MusicBot: Preloading next track: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:56:31 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=Fc5mwNxaWFw
+2026-02-11 22:56:32 [INFO] root: Creating audio pipeline for: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:56:32 [INFO] root: Audio pipeline started for: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:56:33 [INFO] MusicBot: Preloading next track: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:56:33 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=Fc5mwNxaWFw
+2026-02-11 22:56:33 [INFO] root: Creating audio pipeline for: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:56:33 [INFO] root: Audio pipeline started for: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:56:33 [INFO] MusicBot: Successfully preloaded: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:56:34 [INFO] root: Creating audio pipeline for: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:56:34 [INFO] root: Audio pipeline started for: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:56:34 [INFO] MusicBot: Successfully preloaded: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:57:19 [INFO] MusicBot: check_after_play: skipped for guild 1369110517070823464 (previous button)
+2026-02-11 22:57:20 [INFO] MusicBot: Using preloaded source: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:57:21 [INFO] MusicBot: Preloading next track: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:57:21 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=hr_qy_d41t4
+2026-02-11 22:57:22 [INFO] root: Creating audio pipeline for: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:57:22 [INFO] root: Audio pipeline started for: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:57:22 [INFO] MusicBot: Successfully preloaded: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:57:30 [INFO] MusicBot: check_after_play: skipped for guild 1369110517070823464 (previous button)
+2026-02-11 22:57:30 [INFO] MusicBot: Using preloaded source: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:57:31 [INFO] MusicBot: Preloading next track: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:57:31 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=Fc5mwNxaWFw
+2026-02-11 22:57:32 [INFO] root: Creating audio pipeline for: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:57:32 [INFO] root: Audio pipeline started for: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:57:32 [INFO] MusicBot: Successfully preloaded: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:57:33 [INFO] MusicBot: check_after_play: skipped for guild 1369110517070823464 (previous button)
+2026-02-11 22:57:34 [INFO] MusicBot: Using preloaded source: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 22:57:35 [INFO] MusicBot: Preloading next track: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:57:35 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=hr_qy_d41t4
+2026-02-11 22:57:36 [INFO] root: Creating audio pipeline for: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:57:36 [INFO] root: Audio pipeline started for: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 22:57:36 [INFO] MusicBot: Successfully preloaded: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 23:00:51 [INFO] MusicBot: check_after_play: skipped for guild 1369110517070823464 (previous button)
+2026-02-11 23:00:51 [INFO] MusicBot: Using preloaded source: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 23:00:52 [INFO] MusicBot: Preloading next track: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 23:00:52 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=Fc5mwNxaWFw
+2026-02-11 23:00:54 [INFO] root: Creating audio pipeline for: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 23:00:54 [INFO] root: Audio pipeline started for: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 23:00:54 [INFO] MusicBot: Successfully preloaded: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 23:00:55 [INFO] MusicBot: check_after_play: skipped for guild 1369110517070823464 (previous button)
+2026-02-11 23:00:55 [INFO] MusicBot: Using preloaded source: Сергей Лазарев "Это всё она"  ( FAN LYRIC VIDEO)
+2026-02-11 23:00:56 [INFO] MusicBot: Preloading next track: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 23:00:56 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=hr_qy_d41t4
+2026-02-11 23:00:57 [INFO] root: Creating audio pipeline for: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 23:00:57 [INFO] root: Audio pipeline started for: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 23:00:57 [INFO] MusicBot: Successfully preloaded: Эльбрус Джанмирзоев - Ты огонь
+2026-02-11 23:01:00 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-02-11 23:01:02 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-02-11 23:01:02 [INFO] root: Бот вимикається...
+2026-02-11 23:01:05 [INFO] root: Opus завантажено (default)
+2026-02-11 23:01:05 [INFO] discord.client: logging in using static token
+2026-02-11 23:01:06 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 5fc87887971f8a6d1d1436b45401cf3c).
+2026-02-11 23:01:08 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-02-11 23:01:08 [INFO] root: ID бота: 1368988347619479635
+2026-02-11 23:01:08 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot1\data\music_bot.db
+2026-02-11 23:01:08 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-02-11 23:01:08 [INFO] root: Завантажено ког: slash_music_cog
+2026-02-11 23:01:08 [INFO] root: Синхронізовано 12 Slash-команд.
+2026-02-11 23:01:08 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-02-11 23:01:25 [INFO] discord.voice_state: Connecting to voice...
+2026-02-11 23:01:25 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-02-11 23:01:25 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: warsaw10010.discord.media:443
+2026-02-11 23:01:26 [INFO] discord.voice_state: Voice connection complete.
+2026-02-11 23:01:30 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=3oInv06i21E
+2026-02-11 23:01:32 [INFO] root: Creating audio pipeline for: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 23:01:32 [INFO] root: Audio pipeline started for: DZIDZIO feat. Вова зі Львова - Павук
+2026-02-11 23:02:52 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=kD9lWg1qidg
+2026-02-11 23:02:54 [INFO] root: Creating audio pipeline for: NIKITA - КОРОЛЕВА [OFFICIAL VIDEO]
+2026-02-11 23:02:54 [INFO] root: Audio pipeline started for: NIKITA - КОРОЛЕВА [OFFICIAL VIDEO]
+2026-02-11 23:02:55 [INFO] MusicBot: Preloading next track: Francuzskiy Poceluy
+2026-02-11 23:02:55 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=Hy-Y9QQ4k30
+2026-02-11 23:02:56 [INFO] root: Creating audio pipeline for: Francuzskiy Poceluy
+2026-02-11 23:02:56 [INFO] root: Audio pipeline started for: Francuzskiy Poceluy
+2026-02-11 23:02:56 [INFO] MusicBot: Successfully preloaded: Francuzskiy Poceluy
+2026-02-11 23:03:31 [INFO] MusicBot: Using preloaded source: Francuzskiy Poceluy
+2026-02-11 23:03:32 [INFO] MusicBot: Preloading next track: Два Квитки До Сонця
+2026-02-11 23:03:32 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=02MHmTM1kis
+2026-02-11 23:03:33 [INFO] root: Creating audio pipeline for: Два Квитки До Сонця
+2026-02-11 23:03:33 [INFO] root: Audio pipeline started for: Два Квитки До Сонця
+2026-02-11 23:03:33 [INFO] MusicBot: Successfully preloaded: Два Квитки До Сонця
+2026-02-11 23:03:35 [INFO] MusicBot: Using preloaded source: Два Квитки До Сонця
+2026-02-11 23:03:38 [INFO] MusicBot: check_after_play: skipped for guild 1369110517070823464 (previous button)
+2026-02-11 23:03:39 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=Hy-Y9QQ4k30
+2026-02-11 23:03:40 [INFO] root: Creating audio pipeline for: Francuzskiy Poceluy
+2026-02-11 23:03:40 [INFO] root: Audio pipeline started for: Francuzskiy Poceluy
+2026-02-11 23:03:41 [INFO] MusicBot: Preloading next track: Два Квитки До Сонця
+2026-02-11 23:03:41 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=02MHmTM1kis
+2026-02-11 23:03:42 [INFO] root: Creating audio pipeline for: Два Квитки До Сонця
+2026-02-11 23:03:42 [INFO] root: Audio pipeline started for: Два Квитки До Сонця
+2026-02-11 23:03:42 [INFO] MusicBot: Successfully preloaded: Два Квитки До Сонця
+2026-02-11 23:03:45 [INFO] MusicBot: check_after_play: skipped for guild 1369110517070823464 (previous button)
+2026-02-11 23:03:46 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=kD9lWg1qidg
+2026-02-11 23:03:47 [INFO] root: Creating audio pipeline for: NIKITA - КОРОЛЕВА [OFFICIAL VIDEO]
+2026-02-11 23:03:47 [INFO] root: Audio pipeline started for: NIKITA - КОРОЛЕВА [OFFICIAL VIDEO]
+2026-02-11 23:03:48 [INFO] MusicBot: Preloading next track: Francuzskiy Poceluy
+2026-02-11 23:03:48 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=Hy-Y9QQ4k30
+2026-02-11 23:03:49 [INFO] root: Creating audio pipeline for: Francuzskiy Poceluy
+2026-02-11 23:03:50 [INFO] root: Audio pipeline started for: Francuzskiy Poceluy
+2026-02-11 23:03:50 [INFO] MusicBot: Successfully preloaded: Francuzskiy Poceluy
