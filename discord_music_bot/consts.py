@@ -48,6 +48,8 @@ EMOJI_VOLUME_UP = "🔊"
 EMOJI_VOLUME_MUTE = "🔇"
 EMOJI_HISTORY = "📜"
 EMOJI_STATS = "📊"
+EMOJI_SHUFFLE = "🔀"
+EMOJI_MOVE = "↕️"
 
 # --- Volume ---
 DEFAULT_VOLUME = 0.5

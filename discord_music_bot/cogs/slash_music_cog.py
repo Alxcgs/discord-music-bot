@@ -355,7 +355,12 @@ class QueueView(discord.ui.View):
         refresh_button.callback = self.refresh_page
         self.add_item(refresh_button)
 
-        close_button = discord.ui.Button(style=discord.ButtonStyle.danger, emoji="❌", label="Закрити", custom_id="close_queue")
+        # Row 2: Shuffle + Close
+        shuffle_button = discord.ui.Button(style=discord.ButtonStyle.success, emoji=consts.EMOJI_SHUFFLE, label="Перемішати", custom_id="shuffle_queue", row=1, disabled=len(self.queue) < 2)
+        shuffle_button.callback = self.shuffle_queue
+        self.add_item(shuffle_button)
+
+        close_button = discord.ui.Button(style=discord.ButtonStyle.danger, emoji="❌", label="Закрити", custom_id="close_queue", row=1)
         close_button.callback = self.close_view
         self.add_item(close_button)
 
@@ -370,6 +375,21 @@ class QueueView(discord.ui.View):
     async def next_page(self, interaction): await self._handle_page_change(interaction, min(self.total_pages - 1, self.current_page + 1))
     async def last_page(self, interaction): await self._handle_page_change(interaction, self.total_pages - 1)
     async def refresh_page(self, interaction): await self._handle_page_change(interaction, self.current_page)
+    async def shuffle_queue(self, interaction):
+        guild_id = self.guild.id
+        queue = self.cog.queue_service.get_queue(guild_id)
+        if len(queue) < 2:
+            await interaction.response.send_message("Недостатньо треків для перемішування.", ephemeral=True)
+            return
+        self.cog.queue_service.shuffle(guild_id)
+        self.queue = self.cog.queue_service.get_queue(guild_id)
+        self.current_page = 0
+        self.total_pages = max((len(self.queue) - 1) // self.items_per_page + 1, 1)
+        self.update_buttons()
+        embed = self.create_embed()
+        embed.set_author(name=f"{consts.EMOJI_SHUFFLE} Чергу перемішано! ({len(self.queue)} треків)")
+        await interaction.response.edit_message(embed=embed, view=self)
+
     async def close_view(self, interaction):
         try:
             await interaction.response.edit_message(content="✅ Закрито", embed=None, view=None, delete_after=0)
@@ -491,13 +511,18 @@ class MusicCog(commands.Cog):
 
     async def get_video_info(self, url):
         search_url = url if any(x in url.lower() for x in ['youtube.com', 'youtu.be', 'soundcloud.com']) else f"ytsearch:{url}"
-        with yt_dlp.YoutubeDL(self.light_ydl_opts) as ydl:
+        # SoundCloud потребує повної екстракції для отримання назв
+        is_soundcloud = 'soundcloud.com' in url.lower()
+        ydl_opts = self.light_ydl_opts.copy()
+        if is_soundcloud:
+            ydl_opts['extract_flat'] = False
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             try:
                 info = await self.bot.loop.run_in_executor(None, lambda: ydl.extract_info(search_url, download=False))
                 if not info: return None
                 if 'entries' in info: info = info['entries'][0]
                 return {
-                    'title': info.get('title', 'Unknown'),
+                    'title': info.get('title') or info.get('fulltitle') or 'Unknown',
                     'url': info.get('webpage_url', url) or info.get('url', url),
                     'duration': info.get('duration'),
                     'thumbnail': info.get('thumbnail')
@@ -531,10 +556,12 @@ class MusicCog(commands.Cog):
 
     async def extract_playlist(self, url):
         """Витягує список треків з плейлиста (тільки метадані, швидко)."""
+        # SoundCloud не підтримує extract_flat — використовуємо повну екстракцію
+        is_soundcloud = 'soundcloud.com' in url.lower()
         ydl_opts = {
             'quiet': True,
             'no_warnings': True,
-            'extract_flat': 'in_playlist',
+            'extract_flat': False if is_soundcloud else 'in_playlist',
             'skip_download': True,
             'ignoreerrors': True,
         }
@@ -914,6 +941,77 @@ class MusicCog(commands.Cog):
     async def queue(self, interaction: discord.Interaction):
         view = QueueView(self, interaction.guild)
         await interaction.response.send_message(embed=view.create_embed(), view=view)
+
+    @app_commands.command(name="shuffle", description="Перемішати чергу рандомно")
+    async def shuffle(self, interaction: discord.Interaction):
+        guild_id = interaction.guild_id
+        queue = self.queue_service.get_queue(guild_id)
+        if len(queue) < 2:
+            await interaction.response.send_message("Недостатньо треків для перемішування.", ephemeral=True)
+            return
+        self.queue_service.shuffle(guild_id)
+        queue = self.queue_service.get_queue(guild_id)
+
+        embed = discord.Embed(
+            title=f"{consts.EMOJI_SHUFFLE} Чергу перемішано!",
+            color=consts.COLOR_EMBED_NORMAL
+        )
+        # Показуємо перші 5 треків нового порядку
+        preview = "\n".join([
+            f"`{i+1}.` **{t.get('title', '?')[:45]}**"
+            for i, t in enumerate(queue[:5])
+        ])
+        if len(queue) > 5:
+            preview += f"\n... та ще {len(queue) - 5} треків"
+        embed.add_field(name="📑 Нова черга", value=preview, inline=False)
+        embed.set_footer(text=f"Всього: {len(queue)} треків")
+        await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="move", description="Перемістити трек на іншу позицію")
+    @app_commands.describe(from_pos="Поточна позиція треку", to_pos="Нова позиція треку")
+    async def move(self, interaction: discord.Interaction, from_pos: int, to_pos: int):
+        guild_id = interaction.guild_id
+        queue = self.queue_service.get_queue(guild_id)
+
+        if not queue:
+            await interaction.response.send_message("Черга порожня.", ephemeral=True)
+            return
+
+        if from_pos < 1 or from_pos > len(queue) or to_pos < 1 or to_pos > len(queue):
+            await interaction.response.send_message(
+                f"Некоректні позиції. Допустимий діапазон: **1–{len(queue)}**.", ephemeral=True
+            )
+            return
+
+        if from_pos == to_pos:
+            await interaction.response.send_message("Трек вже на цій позиції.", ephemeral=True)
+            return
+
+        track = self.queue_service.move_track(guild_id, from_pos, to_pos)
+        if not track:
+            await interaction.response.send_message("Помилка переміщення.", ephemeral=True)
+            return
+
+        direction = "⬆️" if to_pos < from_pos else "⬇️"
+        embed = discord.Embed(
+            title=f"{consts.EMOJI_MOVE} Трек переміщено",
+            color=consts.COLOR_EMBED_NORMAL
+        )
+        embed.add_field(
+            name=track.get('title', 'Unknown')[:50],
+            value=f"{direction} `#{from_pos}` → `#{to_pos}`",
+            inline=False
+        )
+        # Показуємо оновлені сусідні позиції
+        queue = self.queue_service.get_queue(guild_id)
+        start = max(0, to_pos - 3)
+        end = min(len(queue), to_pos + 2)
+        context_lines = []
+        for i in range(start, end):
+            prefix = "▸ " if i == to_pos - 1 else "  "
+            context_lines.append(f"{prefix}`{i+1}.` {queue[i].get('title', '?')[:40]}")
+        embed.add_field(name="📑 Контекст", value="\n".join(context_lines), inline=False)
+        await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="leave", description="Вигнати бота")
     async def leave(self, interaction: discord.Interaction):

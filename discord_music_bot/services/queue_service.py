@@ -65,6 +65,24 @@ class QueueService:
         self._queues[guild_id].insert(0, track)
         asyncio.ensure_future(self._persist_queue(guild_id))
 
+    def move_track(self, guild_id: int, from_pos: int, to_pos: int) -> Optional[Dict[str, Any]]:
+        """Переміщує трек з позиції from_pos на позицію to_pos (1-indexed).
+        Повертає переміщений трек або None якщо позиції некоректні."""
+        queue = self.get_queue(guild_id)
+        if not queue:
+            return None
+        # Конвертуємо з 1-indexed в 0-indexed
+        from_idx = from_pos - 1
+        to_idx = to_pos - 1
+        if from_idx < 0 or from_idx >= len(queue) or to_idx < 0 or to_idx >= len(queue):
+            return None
+        if from_idx == to_idx:
+            return queue[from_idx]
+        track = queue.pop(from_idx)
+        queue.insert(to_idx, track)
+        asyncio.ensure_future(self._persist_queue(guild_id))
+        return track
+
     def peek_next(self, guild_id: int) -> Optional[Dict[str, Any]]:
         """Returns the next track WITHOUT removing it from the queue."""
         if guild_id in self._queues and self._queues[guild_id]:

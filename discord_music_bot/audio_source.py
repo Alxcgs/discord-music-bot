@@ -7,19 +7,52 @@ import shlex
 from discord_music_bot.config import YDL_OPTIONS, FFMPEG_OPTIONS
 
 class YTDLPPipeSource(discord.AudioSource):
-    """Аудіо source що використовує yt-dlp → FFmpeg pipeline."""
+    """Аудіо source що використовує yt-dlp → FFmpeg pipeline.
+    Буферизує дані щоб уникнути передчасного закінчення треку
+    при тимчасових затримках в pipe."""
     
     FRAME_SIZE = 3840  # 20ms of 48kHz 16-bit stereo PCM
+    MAX_READ_RETRIES = 3  # Кількість повторних спроб читання при неповному буфері
     
     def __init__(self, ytdlp_process, ffmpeg_process):
         self._ytdlp = ytdlp_process
         self._ffmpeg = ffmpeg_process
+        self._buffer = b''
     
     def read(self):
-        data = self._ffmpeg.stdout.read(self.FRAME_SIZE)
-        if len(data) < self.FRAME_SIZE:
-            return b''
-        return data
+        # Зчитуємо з pipe поки не наберемо повний фрейм
+        retries = 0
+        while len(self._buffer) < self.FRAME_SIZE:
+            chunk = self._ffmpeg.stdout.read(self.FRAME_SIZE - len(self._buffer))
+            if chunk:
+                self._buffer += chunk
+                retries = 0  # Скидаємо лічильник при успішному читанні
+            else:
+                # Порожнє читання — перевіряємо чи FFmpeg ще працює
+                if self._ffmpeg.poll() is not None:
+                    # FFmpeg завершився — віддаємо залишок буфера (з padding тишею)
+                    if self._buffer:
+                        frame = self._buffer.ljust(self.FRAME_SIZE, b'\x00')
+                        self._buffer = b''
+                        return frame
+                    return b''  # Справжній кінець трека
+                
+                # FFmpeg ще працює, але pipe тимчасово порожній (мережева затримка)
+                retries += 1
+                if retries >= self.MAX_READ_RETRIES:
+                    # Занадто багато порожніх читань — мабуть справді кінець
+                    if self._buffer:
+                        frame = self._buffer.ljust(self.FRAME_SIZE, b'\x00')
+                        self._buffer = b''
+                        return frame
+                    return b''
+                import time
+                time.sleep(0.05)  # Коротка пауза перед повторною спробою (50ms)
+        
+        # Витягуємо рівно один фрейм з буфера
+        frame = self._buffer[:self.FRAME_SIZE]
+        self._buffer = self._buffer[self.FRAME_SIZE:]
+        return frame
     
     def cleanup(self):
         try:
@@ -73,7 +106,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
             logging.info(f"Creating audio pipeline for: {data.get('title')}")
             
             # Розбираємо глобальні FFMPEG опції для використання в subprocess
-            # FFMPEG_OPTIONS['options'] містить рядок параметрів, треба его розбити на list
+            # FFMPEG_OPTIONS['options'] містить рядок параметрів, треба його розбити на list
             ffmpeg_opts_list = shlex.split(FFMPEG_OPTIONS['options'])
             
             # yt-dlp → pipe → FFmpeg
@@ -92,7 +125,10 @@ class YTDLSource(discord.PCMVolumeTransformer):
                 'ffmpeg',
                 '-i', 'pipe:0',
                 '-f', 's16le',
-            ] + ffmpeg_opts_list + ['pipe:1'] # Додаємо опції з config.py (aresample, rate, etc)
+                # aresample фіксить "chipmunk" ефект — синхронізує timestamps
+                # щоб FFmpeg правильно ресемплив аудіо з перших секунд
+                '-af', 'aresample=async=1:first_pts=0',
+            ] + ffmpeg_opts_list + ['pipe:1'] # Додаємо опції з config.py (rate, channels, etc)
             
             ffmpeg_process = subprocess.Popen(
                 ffmpeg_cmd,
