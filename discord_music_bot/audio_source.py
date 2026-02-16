@@ -82,7 +82,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
                     'yt-dlp',
                     '--format', ydl_opts['format'], # Використовуємо формат з конфігу (opus HQ)
                     '--output', '-',
-                    '--quiet', '--no-warnings', '--no-playlist',
+                    '--quiet', '--no-warnings',
                     webpage_url
                 ],
                 stdout=subprocess.PIPE, stderr=subprocess.DEVNULL

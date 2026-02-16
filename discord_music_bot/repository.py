@@ -113,28 +113,31 @@ class MusicRepository:
     async def save_queue(self, guild_id: int, tracks: List[Dict[str, Any]]) -> None:
         """
         Атомарно зберігає чергу — видаляє стару і записує нову.
-        Використовує транзакцію для консистентності.
+        Використовує транзакцію та executemany для ефективності.
         """
         conn = await get_connection()
         try:
             await conn.execute(
                 "DELETE FROM queue_tracks WHERE guild_id = ?", (guild_id,)
             )
-            for pos, track in enumerate(tracks):
-                await conn.execute(
+            if tracks:
+                await conn.executemany(
                     """
                     INSERT INTO queue_tracks 
                         (guild_id, position, url, title, duration, thumbnail)
                     VALUES (?, ?, ?, ?, ?, ?)
                     """,
-                    (
-                        guild_id,
-                        pos,
-                        track.get("url") or track.get("webpage_url", ""),
-                        track.get("title", "Unknown"),
-                        track.get("duration"),
-                        track.get("thumbnail"),
-                    ),
+                    [
+                        (
+                            guild_id,
+                            pos,
+                            track.get("url") or track.get("webpage_url", ""),
+                            track.get("title", "Unknown"),
+                            track.get("duration"),
+                            track.get("thumbnail"),
+                        )
+                        for pos, track in enumerate(tracks)
+                    ],
                 )
             await conn.commit()
         finally:

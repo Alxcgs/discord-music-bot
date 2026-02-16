@@ -33,6 +33,13 @@ class QueueService:
         # Фонове збереження в БД
         asyncio.ensure_future(self._persist_queue(guild_id))
 
+    def add_tracks(self, guild_id: int, tracks: List[Dict[str, Any]]) -> None:
+        """Додає список треків у чергу (для плейлистів)."""
+        if guild_id not in self._queues:
+            self._queues[guild_id] = []
+        self._queues[guild_id].extend(tracks)
+        asyncio.ensure_future(self._persist_queue(guild_id))
+
     def get_next_track(self, guild_id: int) -> Optional[Dict[str, Any]]:
         """Returns the next track and removes it from the queue."""
         if guild_id in self._queues and self._queues[guild_id]:
@@ -99,7 +106,12 @@ class QueueService:
         """Завантажує чергу та історію з БД в пам'ять (для recovery)."""
         try:
             self._queues[guild_id] = await self._repo.load_queue(guild_id)
-            self._history[guild_id] = await self._repo.get_history(guild_id, consts.MAX_HISTORY_SIZE)
+            db_history = await self._repo.get_history(guild_id, consts.MAX_HISTORY_SIZE)
+            # Нормалізуємо записи — додаємо webpage_url якщо відсутній
+            for track in db_history:
+                if 'webpage_url' not in track:
+                    track['webpage_url'] = track.get('url', '')
+            self._history[guild_id] = db_history
             logger.info(
                 f"Guild {guild_id}: завантажено {len(self._queues[guild_id])} треків з черги, "
                 f"{len(self._history[guild_id])} з історії"

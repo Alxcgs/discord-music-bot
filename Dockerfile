@@ -40,6 +40,6 @@ USER botuser
 
 # Healthcheck — перевіряємо що процес бота живий
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-    CMD python -c "import os, signal; pid = int(open('/app/data/bot.pid').read().strip()); os.kill(pid, 0)" || exit 1
+    CMD python -c "import os, signal; f='/app/data/bot.pid'; os.path.exists(f) or exit(1); pid=int(open(f).read().strip()); os.kill(pid, 0)" || exit 1
 
 CMD ["python", "main.py"]

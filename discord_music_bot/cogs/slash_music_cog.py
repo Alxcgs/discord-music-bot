@@ -326,7 +326,7 @@ class QueueView(discord.ui.View):
                     field_name = "📑 Треки в черзі" if i == 0 else "\u200b"
                     embed.add_field(name=field_name, value=chunk, inline=False)
 
-            total_duration = sum(item.get('duration', 0) for item in self.queue)
+            total_duration = sum(item.get('duration') or 0 for item in self.queue)
             embed.set_footer(text=f"Всього треків: {len(self.queue)} | Загальна тривалість: {format_duration(total_duration)} | Сторінка {self.current_page + 1}/{self.total_pages}")
         else:
             embed.add_field(name="📑 Треки в черзі", value="Черга порожня", inline=False)
@@ -529,6 +529,45 @@ class MusicCog(commands.Cog):
                 self.logger.error(f"Error searching videos: {e}")
                 return []
 
+    async def extract_playlist(self, url):
+        """Витягує список треків з плейлиста (тільки метадані, швидко)."""
+        ydl_opts = {
+            'quiet': True,
+            'no_warnings': True,
+            'extract_flat': 'in_playlist',
+            'skip_download': True,
+            'ignoreerrors': True,
+        }
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = await self.bot.loop.run_in_executor(
+                    None, lambda: ydl.extract_info(url, download=False)
+                )
+                if not info or 'entries' not in info:
+                    return None, []
+
+                playlist_title = info.get('title', 'Плейлист')
+                tracks = []
+                for entry in info['entries']:
+                    if not entry:
+                        continue
+                    track_url = entry.get('url') or entry.get('webpage_url', '')
+                    if not track_url:
+                        continue
+                    # Для flat extraction URL може бути ID — конвертуємо у повний URL
+                    if not track_url.startswith('http'):
+                        track_url = f"https://www.youtube.com/watch?v={track_url}"
+                    tracks.append({
+                        'title': entry.get('title', 'Unknown'),
+                        'url': track_url,
+                        'duration': entry.get('duration'),
+                        'thumbnail': None,
+                    })
+                return playlist_title, tracks
+        except Exception as e:
+            self.logger.error(f"Error extracting playlist: {e}")
+            return None, []
+
     async def update_player(self, guild, channel):
         try:
             guild_id = guild.id
@@ -565,7 +604,17 @@ class MusicCog(commands.Cog):
             guild_id = guild.id
             if guild_id in self.current_song:
                 # Додаємо в історію через QueueService (зберігає і в пам'ять, і в БД)
-                self.queue_service.add_to_history(guild_id, self.current_song[guild_id])
+                song = self.current_song[guild_id]
+                # Нормалізуємо дані трека — гарантуємо url і webpage_url
+                history_track = {
+                    'title': song.get('title', 'Unknown'),
+                    'url': song.get('url') or song.get('webpage_url', ''),
+                    'webpage_url': song.get('webpage_url') or song.get('url', ''),
+                    'duration': song.get('duration'),
+                    'thumbnail': song.get('thumbnail'),
+                    'requester': song.get('requester'),
+                }
+                self.queue_service.add_to_history(guild_id, history_track)
             
             queue = self.queue_service.get_queue(guild_id)
             if queue:
@@ -743,9 +792,27 @@ class MusicCog(commands.Cog):
         
         self.player_channels[interaction.guild.id] = interaction.channel.id # Save channel for notifications
         # Check for playlist
-        if 'list=' in query or '/sets/' in query:
-             await interaction.followup.send("Плейлисти поки мають обмежену підтримку у Slash. Спробуйте посилання на трек.")
-             return
+        is_playlist = 'list=' in query or '/sets/' in query or '/playlist' in query
+        if is_playlist:
+            playlist_title, tracks = await self.extract_playlist(query)
+            if not tracks:
+                await interaction.followup.send("❌ Не вдалося завантажити плейлист або він порожній.")
+                return
+
+            # Обмежуємо розмір плейлиста
+            tracks = tracks[:consts.MAX_PLAYLIST_SIZE]
+            for t in tracks:
+                t['requester'] = interaction.user
+
+            self.queue_service.add_tracks(interaction.guild.id, tracks)
+            await interaction.followup.send(
+                f"{consts.EMOJI_PLAYLIST} Плейлист **{playlist_title}** — додано **{len(tracks)}** треків у чергу!"
+            )
+
+            await self.update_player(interaction.guild, interaction.channel)
+            if not self.player_service.is_playing(voice_client) and not self.player_service.is_paused(voice_client):
+                await self.play_next_song(interaction.guild, voice_client)
+            return
 
         is_url = query.startswith('http') or any(x in query.lower() for x in ['youtube.com', 'youtu.be', 'soundcloud.com'])
         

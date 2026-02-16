@@ -412,3 +412,256 @@ discord.errors.NotFound: 404 Not Found (error code: 10008): Unknown Message
 2026-02-11 23:03:49 [INFO] root: Creating audio pipeline for: Francuzskiy Poceluy
 2026-02-11 23:03:50 [INFO] root: Audio pipeline started for: Francuzskiy Poceluy
 2026-02-11 23:03:50 [INFO] MusicBot: Successfully preloaded: Francuzskiy Poceluy
+2026-02-11 23:05:56 [INFO] MusicBot: Using preloaded source: Francuzskiy Poceluy
+2026-02-11 23:05:57 [INFO] MusicBot: Preloading next track: Два Квитки До Сонця
+2026-02-11 23:05:57 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=02MHmTM1kis
+2026-02-11 23:05:58 [INFO] root: Creating audio pipeline for: Два Квитки До Сонця
+2026-02-11 23:05:58 [INFO] root: Audio pipeline started for: Два Квитки До Сонця
+2026-02-11 23:05:58 [INFO] MusicBot: Successfully preloaded: Два Квитки До Сонця
+2026-02-11 23:06:07 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-02-11 23:06:25 [INFO] discord.voice_state: Connecting to voice...
+2026-02-11 23:06:25 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-02-11 23:06:25 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: warsaw10010.discord.media:443
+2026-02-11 23:06:25 [INFO] discord.voice_state: Voice connection complete.
+2026-02-11 23:06:42 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=KuVAeTHqijk
+2026-02-11 23:06:44 [INFO] root: Creating audio pipeline for: Wiz Khalifa - No Sleep [Music Video]
+2026-02-11 23:06:44 [INFO] root: Audio pipeline started for: Wiz Khalifa - No Sleep [Music Video]
+2026-02-11 23:07:00 [INFO] MusicBot: check_after_play: skipped for guild 1369110517070823464 (previous button)
+2026-02-11 23:07:01 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=kD9lWg1qidg
+2026-02-11 23:07:02 [INFO] root: Creating audio pipeline for: NIKITA - КОРОЛЕВА [OFFICIAL VIDEO]
+2026-02-11 23:07:02 [INFO] root: Audio pipeline started for: NIKITA - КОРОЛЕВА [OFFICIAL VIDEO]
+2026-02-11 23:07:04 [INFO] MusicBot: Preloading next track: Wiz Khalifa - No Sleep [Music Video]
+2026-02-11 23:07:04 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=KuVAeTHqijk
+2026-02-11 23:07:04 [ERROR] MusicBot: Error in previous_button: 404 Not Found (error code: 10062): Unknown interaction
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\discord_music_bot\cogs\slash_music_cog.py", line 153, in previous_button
+    await interaction.response.send_message(
+    ...<2 lines>...
+    )
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\interactions.py", line 1051, in send_message
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\webhook\async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-02-11 23:07:05 [INFO] root: Creating audio pipeline for: Wiz Khalifa - No Sleep [Music Video]
+2026-02-11 23:07:05 [INFO] root: Audio pipeline started for: Wiz Khalifa - No Sleep [Music Video]
+2026-02-11 23:07:05 [INFO] MusicBot: Successfully preloaded: Wiz Khalifa - No Sleep [Music Video]
+2026-02-11 23:07:15 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-02-11 23:07:19 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-02-11 23:07:19 [INFO] root: Бот вимикається...
+2026-02-15 21:49:24 [INFO] root: Opus завантажено (default)
+2026-02-15 21:49:24 [INFO] discord.client: logging in using static token
+2026-02-15 21:49:25 [CRITICAL] root: Критична помилка під час запуску бота: Improper token has been passed.
+2026-02-16 21:50:07 [INFO] root: Opus завантажено (default)
+2026-02-16 21:50:07 [INFO] discord.client: logging in using static token
+2026-02-16 21:50:08 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 7e92d676fa9443478b20d0308d254710).
+2026-02-16 21:50:10 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-02-16 21:50:10 [INFO] root: ID бота: 1368988347619479635
+2026-02-16 21:50:10 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot1\data\music_bot.db
+2026-02-16 21:50:10 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-02-16 21:50:10 [INFO] root: Завантажено ког: slash_music_cog
+2026-02-16 21:50:11 [INFO] root: Синхронізовано 12 Slash-команд.
+2026-02-16 21:50:11 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-02-16 21:50:32 [INFO] discord.voice_state: Connecting to voice...
+2026-02-16 21:50:32 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-02-16 21:50:32 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw05-f6887df4.discord.media:2053
+2026-02-16 21:50:32 [INFO] discord.voice_state: Voice connection complete.
+2026-02-16 21:51:29 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=3PZXFNDDJ_w
+2026-02-16 21:51:31 [INFO] root: Creating audio pipeline for: Tom Ford
+2026-02-16 21:51:32 [INFO] root: Audio pipeline started for: Tom Ford
+2026-02-16 21:53:47 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=3LmSjmcUNh8
+2026-02-16 21:53:49 [INFO] root: Creating audio pipeline for: My Love
+2026-02-16 21:53:49 [INFO] root: Audio pipeline started for: My Love
+2026-02-16 21:55:11 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-02-16 21:55:13 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=bnrcK9fgndw
+2026-02-16 21:55:14 [INFO] root: Creating audio pipeline for: Полиграф ШарикOFF - Какао белого цвета
+2026-02-16 21:55:14 [INFO] root: Audio pipeline started for: Полиграф ШарикOFF - Какао белого цвета
+2026-02-16 21:55:15 [INFO] MusicBot: Preloading next track: Полиграф ШарикOFF - Только секс
+2026-02-16 21:55:15 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=mNaKmOMQNGI
+2026-02-16 21:55:17 [INFO] root: Creating audio pipeline for: Полиграф ШарикOFF - Только секс
+2026-02-16 21:55:17 [INFO] root: Audio pipeline started for: Полиграф ШарикOFF - Только секс
+2026-02-16 21:55:17 [INFO] MusicBot: Successfully preloaded: Полиграф ШарикOFF - Только секс
+2026-02-16 22:00:13 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 4 зомбі-процес(ів).
+2026-02-16 22:00:13 [INFO] MusicBot: Using preloaded source: Полиграф ШарикOFF - Только секс
+2026-02-16 22:00:13 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=wRm1FpvqE4E
+2026-02-16 22:00:14 [INFO] root: Creating audio pipeline for: DZIDZIO - Каділак
+2026-02-16 22:00:14 [INFO] root: Audio pipeline started for: DZIDZIO - Каділак
+2026-02-16 22:00:59 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-02-16 22:01:00 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-02-16 22:01:00 [INFO] root: Бот вимикається...
+2026-02-16 22:01:04 [INFO] root: Opus завантажено (default)
+2026-02-16 22:01:04 [INFO] discord.client: logging in using static token
+2026-02-16 22:01:05 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 404b971798fede6233869c87ea6836de).
+2026-02-16 22:01:07 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-02-16 22:01:07 [INFO] root: ID бота: 1368988347619479635
+2026-02-16 22:01:09 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot1\data\music_bot.db
+2026-02-16 22:01:09 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-02-16 22:01:09 [INFO] root: Завантажено ког: slash_music_cog
+2026-02-16 22:01:09 [INFO] root: Синхронізовано 12 Slash-команд.
+2026-02-16 22:01:09 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-02-16 22:01:26 [INFO] discord.voice_state: Connecting to voice...
+2026-02-16 22:01:26 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-02-16 22:01:27 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw05-f6887df4.discord.media:2053
+2026-02-16 22:01:27 [INFO] discord.voice_state: Voice connection complete.
+2026-02-16 22:01:38 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=OMmTiDRuq1E
+2026-02-16 22:01:40 [INFO] root: Creating audio pipeline for: DREVO - ЕНКАРАПІСТА
+2026-02-16 22:01:40 [INFO] root: Audio pipeline started for: DREVO - ЕНКАРАПІСТА
+2026-02-16 22:01:40 [INFO] MusicBot: Preloading next track: Alena Omargalieva - Не П'яна - Закохана (Official Music Video)
+2026-02-16 22:01:40 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=Ck1IHXLsX-0
+2026-02-16 22:01:42 [INFO] root: Creating audio pipeline for: Alena Omargalieva - Не П'яна - Закохана (Official Music Video)
+2026-02-16 22:01:42 [INFO] root: Audio pipeline started for: Alena Omargalieva - Не П'яна - Закохана (Official Music Video)
+2026-02-16 22:01:42 [INFO] MusicBot: Successfully preloaded: Alena Omargalieva - Не П'яна - Закохана (Official Music Video)
+2026-02-16 22:04:37 [INFO] MusicBot: Using preloaded source: Alena Omargalieva - Не П'яна - Закохана (Official Music Video)
+2026-02-16 22:04:38 [INFO] MusicBot: Preloading next track: Max Barskih - Не складається | Official video
+2026-02-16 22:04:38 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=y0HbYiVdKQA
+2026-02-16 22:04:40 [INFO] root: Creating audio pipeline for: Max Barskih - Не складається | Official video
+2026-02-16 22:04:40 [INFO] root: Audio pipeline started for: Max Barskih - Не складається | Official video
+2026-02-16 22:04:40 [INFO] MusicBot: Successfully preloaded: Max Barskih - Не складається | Official video
+2026-02-16 22:06:10 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 4 зомбі-процес(ів).
+2026-02-16 22:06:10 [INFO] MusicBot: Using preloaded source: Max Barskih - Не складається | Official video
+2026-02-16 22:06:10 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=C-NR51vxvjo
+2026-02-16 22:06:11 [INFO] MusicBot: Preloading next track: Victoria Niro - Питань нема
+2026-02-16 22:06:11 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=N7FEo6t6w5w
+2026-02-16 22:06:12 [INFO] root: Creating audio pipeline for: FIЇNKA - Афини
+2026-02-16 22:06:12 [INFO] root: Audio pipeline started for: FIЇNKA - Афини
+2026-02-16 22:06:13 [INFO] MusicBot: Preloading next track: Victoria Niro - Питань нема
+2026-02-16 22:06:13 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=N7FEo6t6w5w
+2026-02-16 22:06:14 [INFO] root: Creating audio pipeline for: Victoria Niro - Питань нема
+2026-02-16 22:06:14 [INFO] root: Audio pipeline started for: Victoria Niro - Питань нема
+2026-02-16 22:06:14 [INFO] MusicBot: Successfully preloaded: Victoria Niro - Питань нема
+2026-02-16 22:06:15 [INFO] root: Creating audio pipeline for: Victoria Niro - Питань нема
+2026-02-16 22:06:15 [INFO] root: Audio pipeline started for: Victoria Niro - Питань нема
+2026-02-16 22:06:15 [INFO] MusicBot: Successfully preloaded: Victoria Niro - Питань нема
+2026-02-16 22:09:43 [INFO] MusicBot: Using preloaded source: Victoria Niro - Питань нема
+2026-02-16 22:09:44 [INFO] MusicBot: Preloading next track: Jerry Heil -  Додай гучності (12 points) [Official Music Video]
+2026-02-16 22:09:44 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=h28H0Ho9Sk8
+2026-02-16 22:09:46 [INFO] root: Creating audio pipeline for: Jerry Heil -  Додай гучності (12 points) [Official Music Video]
+2026-02-16 22:09:46 [INFO] root: Audio pipeline started for: Jerry Heil -  Додай гучності (12 points) [Official Music Video]
+2026-02-16 22:09:46 [INFO] MusicBot: Successfully preloaded: Jerry Heil -  Додай гучності (12 points) [Official Music Video]
+2026-02-16 22:11:11 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 4 зомбі-процес(ів).
+2026-02-16 22:11:11 [INFO] MusicBot: Using preloaded source: Jerry Heil -  Додай гучності (12 points) [Official Music Video]
+2026-02-16 22:11:11 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=PvVsdj5hE_0
+2026-02-16 22:11:13 [INFO] root: Creating audio pipeline for: DREVO - СМАРАГДОВЕ НЕБО
+2026-02-16 22:11:13 [INFO] root: Audio pipeline started for: DREVO - СМАРАГДОВЕ НЕБО
+2026-02-16 22:11:14 [INFO] MusicBot: Preloading next track: Настя Борщ & Шугар - Йо-Йо
+2026-02-16 22:11:14 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=mFst1AeKTWI
+2026-02-16 22:11:14 [INFO] MusicBot: Preloading next track: Настя Борщ & Шугар - Йо-Йо
+2026-02-16 22:11:14 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=mFst1AeKTWI
+2026-02-16 22:11:15 [INFO] root: Creating audio pipeline for: Настя Борщ & Шугар - Йо-Йо
+2026-02-16 22:11:15 [INFO] root: Audio pipeline started for: Настя Борщ & Шугар - Йо-Йо
+2026-02-16 22:11:15 [INFO] MusicBot: Successfully preloaded: Настя Борщ & Шугар - Йо-Йо
+2026-02-16 22:11:15 [INFO] root: Creating audio pipeline for: Настя Борщ & Шугар - Йо-Йо
+2026-02-16 22:11:15 [INFO] root: Audio pipeline started for: Настя Борщ & Шугар - Йо-Йо
+2026-02-16 22:11:15 [INFO] MusicBot: Successfully preloaded: Настя Борщ & Шугар - Йо-Йо
+2026-02-16 22:14:17 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-02-16 22:14:18 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-02-16 22:14:18 [INFO] root: Бот вимикається...
+2026-02-16 22:14:22 [INFO] root: Opus завантажено (default)
+2026-02-16 22:14:22 [INFO] discord.client: logging in using static token
+2026-02-16 22:14:23 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: e92f87c0cfc83479255402f713fd1a73).
+2026-02-16 22:14:25 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-02-16 22:14:25 [INFO] root: ID бота: 1368988347619479635
+2026-02-16 22:14:25 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot1\data\music_bot.db
+2026-02-16 22:14:25 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-02-16 22:14:25 [INFO] root: Завантажено ког: slash_music_cog
+2026-02-16 22:14:26 [INFO] root: Синхронізовано 12 Slash-команд.
+2026-02-16 22:14:26 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-02-16 22:14:37 [INFO] discord.voice_state: Connecting to voice...
+2026-02-16 22:14:37 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-02-16 22:14:37 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw05-f6887df4.discord.media:2053
+2026-02-16 22:14:38 [INFO] discord.voice_state: Voice connection complete.
+2026-02-16 22:15:25 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=yMzRXSGYpuA
+2026-02-16 22:15:26 [INFO] root: Creating audio pipeline for: ТАНЦЮВАЛЬНІ ХІТИ 2024 - НАЙКРАЩА УКРАЇНСЬКА МУЗИКА 2024 - МУЗИКА ДЛЯ ВЕЧІРКИ 2024
+2026-02-16 22:15:26 [INFO] root: Audio pipeline started for: ТАНЦЮВАЛЬНІ ХІТИ 2024 - НАЙКРАЩА УКРАЇНСЬКА МУЗИКА 2024 - МУЗИКА ДЛЯ ВЕЧІРКИ 2024
+2026-02-16 22:15:28 [INFO] MusicBot: Preloading next track: ХІТОВИЙ ПЛЕЙЛИСТ | Найкращі пісні тижня від ХІТ FM #11
+2026-02-16 22:15:28 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=rELrLqU-d8o
+2026-02-16 22:15:29 [INFO] root: Creating audio pipeline for: ХІТОВИЙ ПЛЕЙЛИСТ | Найкращі пісні тижня від ХІТ FM #11
+2026-02-16 22:15:29 [INFO] root: Audio pipeline started for: ХІТОВИЙ ПЛЕЙЛИСТ | Найкращі пісні тижня від ХІТ FM #11
+2026-02-16 22:15:29 [INFO] MusicBot: Successfully preloaded: ХІТОВИЙ ПЛЕЙЛИСТ | Найкращі пісні тижня від ХІТ FM #11
+2026-02-16 22:16:45 [INFO] MusicBot: Using preloaded source: ХІТОВИЙ ПЛЕЙЛИСТ | Найкращі пісні тижня від ХІТ FM #11
+2026-02-16 22:16:46 [INFO] MusicBot: Preloading next track: Alena Omargalieva - Не П'яна - Закохана (Official Music Video)
+2026-02-16 22:16:46 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=Ck1IHXLsX-0
+2026-02-16 22:16:48 [INFO] root: Creating audio pipeline for: Alena Omargalieva - Не П'яна - Закохана (Official Music Video)
+2026-02-16 22:16:48 [INFO] root: Audio pipeline started for: Alena Omargalieva - Не П'яна - Закохана (Official Music Video)
+2026-02-16 22:16:48 [INFO] MusicBot: Successfully preloaded: Alena Omargalieva - Не П'яна - Закохана (Official Music Video)
+2026-02-16 22:16:51 [INFO] MusicBot: Using preloaded source: Alena Omargalieva - Не П'яна - Закохана (Official Music Video)
+2026-02-16 22:16:51 [INFO] MusicBot: Preloading next track: В саду гуляла remix (Прем'єра 2025)  #українськамузика #українськапісня
+2026-02-16 22:16:51 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=KfMWDS32mMo
+2026-02-16 22:16:53 [INFO] root: Creating audio pipeline for: В саду гуляла remix (Прем'єра 2025)  #українськамузика #українськапісня
+2026-02-16 22:16:53 [INFO] root: Audio pipeline started for: В саду гуляла remix (Прем'єра 2025)  #українськамузика #українськапісня
+2026-02-16 22:16:53 [INFO] MusicBot: Successfully preloaded: В саду гуляла remix (Прем'єра 2025)  #українськамузика #українськапісня
+2026-02-16 22:17:04 [INFO] MusicBot: Using preloaded source: В саду гуляла remix (Прем'єра 2025)  #українськамузика #українськапісня
+2026-02-16 22:17:04 [INFO] MusicBot: Preloading next track: Краща українська музика, сучасні українські пісні
+2026-02-16 22:17:04 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=4BcENfD1PNo
+2026-02-16 22:17:06 [INFO] root: Creating audio pipeline for: Краща українська музика, сучасні українські пісні
+2026-02-16 22:17:06 [INFO] root: Audio pipeline started for: Краща українська музика, сучасні українські пісні
+2026-02-16 22:17:06 [INFO] MusicBot: Successfully preloaded: Краща українська музика, сучасні українські пісні
+2026-02-16 22:17:14 [INFO] MusicBot: Using preloaded source: Краща українська музика, сучасні українські пісні
+2026-02-16 22:17:15 [INFO] MusicBot: Preloading next track: Jerry Heil -  Додай гучності (12 points) [Official Music Video]
+2026-02-16 22:17:15 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=h28H0Ho9Sk8
+2026-02-16 22:17:16 [INFO] root: Creating audio pipeline for: Jerry Heil -  Додай гучності (12 points) [Official Music Video]
+2026-02-16 22:17:16 [INFO] root: Audio pipeline started for: Jerry Heil -  Додай гучності (12 points) [Official Music Video]
+2026-02-16 22:17:16 [INFO] MusicBot: Successfully preloaded: Jerry Heil -  Додай гучності (12 points) [Official Music Video]
+2026-02-16 22:17:18 [INFO] MusicBot: Using preloaded source: Jerry Heil -  Додай гучності (12 points) [Official Music Video]
+2026-02-16 22:17:19 [INFO] MusicBot: Preloading next track: Victoria Niro - Питань нема
+2026-02-16 22:17:19 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=N7FEo6t6w5w
+2026-02-16 22:17:21 [INFO] root: Creating audio pipeline for: Victoria Niro - Питань нема
+2026-02-16 22:17:21 [INFO] root: Audio pipeline started for: Victoria Niro - Питань нема
+2026-02-16 22:17:21 [INFO] MusicBot: Successfully preloaded: Victoria Niro - Питань нема
+2026-02-16 22:19:27 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 4 зомбі-процес(ів).
+2026-02-16 22:19:27 [INFO] MusicBot: Using preloaded source: Victoria Niro - Питань нема
+2026-02-16 22:19:27 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=C-NR51vxvjo
+2026-02-16 22:19:28 [INFO] MusicBot: Preloading next track: YAKTAK - Уночі
+2026-02-16 22:19:28 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=oE8AZNuLfUw
+2026-02-16 22:19:29 [INFO] root: Creating audio pipeline for: FIЇNKA - Афини
+2026-02-16 22:19:29 [INFO] root: Audio pipeline started for: FIЇNKA - Афини
+2026-02-16 22:19:30 [INFO] root: Creating audio pipeline for: YAKTAK - Уночі
+2026-02-16 22:19:30 [INFO] root: Audio pipeline started for: YAKTAK - Уночі
+2026-02-16 22:19:30 [INFO] MusicBot: Successfully preloaded: YAKTAK - Уночі
+2026-02-16 22:19:54 [INFO] MusicBot: Using preloaded source: YAKTAK - Уночі
+2026-02-16 22:19:55 [INFO] MusicBot: Preloading next track: PARFENIUK - Врубай (Official video)
+2026-02-16 22:19:55 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=8M9p8fiJ-o8
+2026-02-16 22:19:57 [INFO] root: Creating audio pipeline for: PARFENIUK - Врубай (Official video)
+2026-02-16 22:19:57 [INFO] root: Audio pipeline started for: PARFENIUK - Врубай (Official video)
+2026-02-16 22:19:57 [INFO] MusicBot: Successfully preloaded: PARFENIUK - Врубай (Official video)
+2026-02-16 22:23:55 [INFO] MusicBot: Using preloaded source: PARFENIUK - Врубай (Official video)
+2026-02-16 22:23:55 [INFO] MusicBot: Preloading next track: IVAN LIULENOV & DAMNITSKYI - ШОВКОВИЦЯ (Official Music Video 2025)
+2026-02-16 22:23:55 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=uTKh_Gm3Shw
+2026-02-16 22:23:57 [INFO] root: Creating audio pipeline for: IVAN LIULENOV & DAMNITSKYI - ШОВКОВИЦЯ (Official Music Video 2025)
+2026-02-16 22:23:57 [INFO] root: Audio pipeline started for: IVAN LIULENOV & DAMNITSKYI - ШОВКОВИЦЯ (Official Music Video 2025)
+2026-02-16 22:23:57 [INFO] MusicBot: Successfully preloaded: IVAN LIULENOV & DAMNITSKYI - ШОВКОВИЦЯ (Official Music Video 2025)
+2026-02-16 22:24:28 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 4 зомбі-процес(ів).
+2026-02-16 22:24:28 [INFO] MusicBot: Using preloaded source: IVAN LIULENOV & DAMNITSKYI - ШОВКОВИЦЯ (Official Music Video 2025)
+2026-02-16 22:24:28 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=o_rWKD-t-tA
+2026-02-16 22:24:29 [INFO] MusicBot: Preloading next track: MONATIK — А що? (Official video)
+2026-02-16 22:24:29 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=3MrTQz8Q-nY
+2026-02-16 22:24:30 [INFO] root: Creating audio pipeline for: Wellboy & Parfeniuk - Забий
+2026-02-16 22:24:30 [INFO] root: Audio pipeline started for: Wellboy & Parfeniuk - Забий
+2026-02-16 22:24:31 [INFO] MusicBot: Preloading next track: MONATIK — А що? (Official video)
+2026-02-16 22:24:31 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=3MrTQz8Q-nY
+2026-02-16 22:24:31 [INFO] root: Creating audio pipeline for: MONATIK — А що? (Official video)
+2026-02-16 22:24:31 [INFO] root: Audio pipeline started for: MONATIK — А що? (Official video)
+2026-02-16 22:24:31 [INFO] MusicBot: Successfully preloaded: MONATIK — А що? (Official video)
+2026-02-16 22:24:32 [INFO] root: Creating audio pipeline for: MONATIK — А що? (Official video)
+2026-02-16 22:24:32 [INFO] root: Audio pipeline started for: MONATIK — А що? (Official video)
+2026-02-16 22:24:32 [INFO] MusicBot: Successfully preloaded: MONATIK — А що? (Official video)
+2026-02-16 22:27:45 [INFO] MusicBot: Using preloaded source: MONATIK — А що? (Official video)
+2026-02-16 22:27:46 [INFO] MusicBot: Preloading next track: VAHA - Не зупиняйте музику I Прем'єра 2023
+2026-02-16 22:27:46 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=xTg0aquTSIQ
+2026-02-16 22:27:48 [INFO] root: Creating audio pipeline for: VAHA - Не зупиняйте музику I Прем'єра 2023
+2026-02-16 22:27:48 [INFO] root: Audio pipeline started for: VAHA - Не зупиняйте музику I Прем'єра 2023
+2026-02-16 22:27:48 [INFO] MusicBot: Successfully preloaded: VAHA - Не зупиняйте музику I Прем'єра 2023
+2026-02-16 22:29:28 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 4 зомбі-процес(ів).
+2026-02-16 22:29:28 [INFO] MusicBot: Using preloaded source: VAHA - Не зупиняйте музику I Прем'єра 2023
+2026-02-16 22:29:28 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=agYRgoeidQs
+2026-02-16 22:29:29 [INFO] MusicBot: Preloading next track: DOROFEEVA - Кохаю, але не зовсім (Official Music Video)
+2026-02-16 22:29:29 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=Qo_cAmJMPx4
+2026-02-16 22:29:30 [INFO] root: Creating audio pipeline for: SKYLERR — Падав туман [Official Video]
+2026-02-16 22:29:30 [INFO] root: Audio pipeline started for: SKYLERR — Падав туман [Official Video]
+2026-02-16 22:29:31 [INFO] root: Creating audio pipeline for: DOROFEEVA - Кохаю, але не зовсім (Official Music Video)
+2026-02-16 22:29:31 [INFO] root: Audio pipeline started for: DOROFEEVA - Кохаю, але не зовсім (Official Music Video)
+2026-02-16 22:29:31 [INFO] MusicBot: Successfully preloaded: DOROFEEVA - Кохаю, але не зовсім (Official Music Video)
