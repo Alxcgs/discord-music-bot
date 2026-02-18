@@ -2,11 +2,11 @@ import discord
 from discord.ext import commands
 import asyncio
 import logging
-import logging.handlers
 import os
 import sys
 import ssl
 import certifi
+from discord_music_bot.logger import setup_logging
 from discord_music_bot.config import DISCORD_TOKEN # Імпортуємо токен з конфігурації
 from discord_music_bot.healthcheck import start_zombie_cleanup
 import atexit
@@ -44,36 +44,8 @@ def check_single_instance():
 
 check_single_instance()
 
-# --- Налаштування логування з ротацією ---
-LOG_DIR = os.environ.get('LOG_DIR', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs'))
-os.makedirs(LOG_DIR, exist_ok=True)
-
-# Формат логів
-log_formatter = logging.Formatter(
-    '%(asctime)s [%(levelname)s] %(name)s: %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-
-# Console handler
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(log_formatter)
-console_handler.setLevel(logging.INFO)
-
-# File handler з ротацією: 5 файлів по 10MB
-file_handler = logging.handlers.RotatingFileHandler(
-    os.path.join(LOG_DIR, 'music_bot.log'),
-    maxBytes=10 * 1024 * 1024,  # 10 MB
-    backupCount=5,
-    encoding='utf-8'
-)
-file_handler.setFormatter(log_formatter)
-file_handler.setLevel(logging.INFO)
-
-# Root logger
-root_logger = logging.getLogger()
-root_logger.setLevel(logging.INFO)
-root_logger.addHandler(console_handler)
-root_logger.addHandler(file_handler)
+# --- Налаштування логування ---
+setup_logging()
 
 # Записати PID для Docker healthcheck
 PID_FILE = os.path.join(os.environ.get('DB_DATA_DIR', 'data'), 'bot.pid')

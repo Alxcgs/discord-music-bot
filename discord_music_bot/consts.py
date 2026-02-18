@@ -81,3 +81,10 @@ MSG_PAUSED = "⏸️ Пауза."
 MSG_RESUMED = "▶️ Продовжуємо."
 MSG_SKIPPED = "⏭️ Пропущено."
 MSG_LEFT = "👋 Бувай!"
+
+# --- Repeat Modes ---
+REPEAT_OFF = 0
+REPEAT_ONE = 1
+REPEAT_ALL = 2
+EMOJI_REPEAT = "🔁"
+EMOJI_REPEAT_ONE = "🔂"

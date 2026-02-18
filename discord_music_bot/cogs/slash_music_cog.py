@@ -5,6 +5,7 @@ import asyncio
 import logging
 from discord_music_bot.services.queue_service import QueueService
 from discord_music_bot.services.player_service import PlayerService
+from discord_music_bot.services.search_service import SearchSourceService
 from discord_music_bot.audio_source import YTDLSource
 from discord_music_bot.utils import format_duration
 from discord_music_bot.database import init_db
@@ -270,6 +271,29 @@ class MusicControls(discord.ui.View):
             self.cog.logger.error(f"Stats button error: {e}", exc_info=True)
             await interaction.response.send_message("❌ Помилка отримання статистики.", ephemeral=True)
 
+    @discord.ui.button(label="Повтор: Вимк", style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_REPEAT, custom_id="repeat_toggle", row=1)
+    async def repeat_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        guild_id = interaction.guild.id
+        current = self.cog.repeat_mode.get(guild_id, consts.REPEAT_OFF)
+        # Цикл: OFF → ONE → ALL → OFF
+        if current == consts.REPEAT_OFF:
+            new_mode = consts.REPEAT_ONE
+            label = "Повтор: 1 трек"
+            emoji = consts.EMOJI_REPEAT_ONE
+        elif current == consts.REPEAT_ONE:
+            new_mode = consts.REPEAT_ALL
+            label = "Повтор: Черга"
+            emoji = consts.EMOJI_REPEAT
+        else:
+            new_mode = consts.REPEAT_OFF
+            label = "Повтор: Вимк"
+            emoji = consts.EMOJI_REPEAT
+        self.cog.repeat_mode[guild_id] = new_mode
+        button.label = label
+        button.emoji = emoji
+        button.style = discord.ButtonStyle.success if new_mode != consts.REPEAT_OFF else discord.ButtonStyle.secondary
+        await interaction.response.edit_message(view=self)
+
 class QueueView(discord.ui.View):
     def __init__(self, cog, guild, timeout=consts.TIMEOUT_VIEW):
         super().__init__(timeout=timeout)
@@ -484,16 +508,16 @@ class MusicCog(commands.Cog):
         self.repository = MusicRepository()
         self.queue_service = QueueService(self.repository)
         self.player_service = PlayerService()
+        self.search_service = SearchSourceService(bot.loop)
         self.current_song = {}
         self.control_messages = {}
         self.player_channels = {}
         self.preloaded_sources = {}  # {guild_id: YTDLSource} for gapless playback
+        self.repeat_mode = {}  # {guild_id: REPEAT_OFF/REPEAT_ONE/REPEAT_ALL}
         self.processing_buttons = set()
         self._skip_after_play = set()  # guild_ids де after-callback має бути пропущений
         self.logger = logging.getLogger('MusicBot')
         self.logger.setLevel(logging.INFO)
-        
-        self.light_ydl_opts = consts.YTDL_OPTIONS_LIGHT
 
     async def cog_load(self):
         """Викликається при завантаженні когу — ініціалізує БД та запускає auto-resume."""
@@ -509,91 +533,7 @@ class MusicCog(commands.Cog):
         if count > 0:
             self.logger.info(f"Auto-Resume: відновлено {count} сервер(ів).")
 
-    async def get_video_info(self, url):
-        search_url = url if any(x in url.lower() for x in ['youtube.com', 'youtu.be', 'soundcloud.com']) else f"ytsearch:{url}"
-        # SoundCloud потребує повної екстракції для отримання назв
-        is_soundcloud = 'soundcloud.com' in url.lower()
-        ydl_opts = self.light_ydl_opts.copy()
-        if is_soundcloud:
-            ydl_opts['extract_flat'] = False
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            try:
-                info = await self.bot.loop.run_in_executor(None, lambda: ydl.extract_info(search_url, download=False))
-                if not info: return None
-                if 'entries' in info: info = info['entries'][0]
-                return {
-                    'title': info.get('title') or info.get('fulltitle') or 'Unknown',
-                    'url': info.get('webpage_url', url) or info.get('url', url),
-                    'duration': info.get('duration'),
-                    'thumbnail': info.get('thumbnail')
-                }
-            except Exception as e:
-                self.logger.error(f"Error extracting info: {e}")
-                return None
 
-    async def search_videos(self, query, max_results=10):
-        """Шукає кілька відео за текстовим запитом для меню вибору."""
-        search_url = f"ytsearch{max_results}:{query}"
-        with yt_dlp.YoutubeDL(self.light_ydl_opts) as ydl:
-            try:
-                info = await self.bot.loop.run_in_executor(None, lambda: ydl.extract_info(search_url, download=False))
-                if not info or 'entries' not in info:
-                    return []
-                results = []
-                for entry in info['entries']:
-                    if entry:
-                        results.append({
-                            'title': entry.get('title', 'Unknown'),
-                            'url': entry.get('webpage_url', entry.get('url', '')),
-                            'webpage_url': entry.get('webpage_url', entry.get('url', '')),
-                            'duration': entry.get('duration'),
-                            'thumbnail': entry.get('thumbnail')
-                        })
-                return results
-            except Exception as e:
-                self.logger.error(f"Error searching videos: {e}")
-                return []
-
-    async def extract_playlist(self, url):
-        """Витягує список треків з плейлиста (тільки метадані, швидко)."""
-        # SoundCloud не підтримує extract_flat — використовуємо повну екстракцію
-        is_soundcloud = 'soundcloud.com' in url.lower()
-        ydl_opts = {
-            'quiet': True,
-            'no_warnings': True,
-            'extract_flat': False if is_soundcloud else 'in_playlist',
-            'skip_download': True,
-            'ignoreerrors': True,
-        }
-        try:
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = await self.bot.loop.run_in_executor(
-                    None, lambda: ydl.extract_info(url, download=False)
-                )
-                if not info or 'entries' not in info:
-                    return None, []
-
-                playlist_title = info.get('title', 'Плейлист')
-                tracks = []
-                for entry in info['entries']:
-                    if not entry:
-                        continue
-                    track_url = entry.get('url') or entry.get('webpage_url', '')
-                    if not track_url:
-                        continue
-                    # Для flat extraction URL може бути ID — конвертуємо у повний URL
-                    if not track_url.startswith('http'):
-                        track_url = f"https://www.youtube.com/watch?v={track_url}"
-                    tracks.append({
-                        'title': entry.get('title', 'Unknown'),
-                        'url': track_url,
-                        'duration': entry.get('duration'),
-                        'thumbnail': None,
-                    })
-                return playlist_title, tracks
-        except Exception as e:
-            self.logger.error(f"Error extracting playlist: {e}")
-            return None, []
 
     async def update_player(self, guild, channel):
         try:
@@ -629,10 +569,10 @@ class MusicCog(commands.Cog):
     async def play_next_song(self, guild, voice_client):
         try:
             guild_id = guild.id
+            repeat = self.repeat_mode.get(guild_id, consts.REPEAT_OFF)
+
             if guild_id in self.current_song:
-                # Додаємо в історію через QueueService (зберігає і в пам'ять, і в БД)
                 song = self.current_song[guild_id]
-                # Нормалізуємо дані трека — гарантуємо url і webpage_url
                 history_track = {
                     'title': song.get('title', 'Unknown'),
                     'url': song.get('url') or song.get('webpage_url', ''),
@@ -642,6 +582,13 @@ class MusicCog(commands.Cog):
                     'requester': song.get('requester'),
                 }
                 self.queue_service.add_to_history(guild_id, history_track)
+
+                # REPEAT_ONE — повторити поточний трек
+                if repeat == consts.REPEAT_ONE:
+                    self.queue_service.push_front(guild_id, history_track)
+                # REPEAT_ALL — додати в кінець черги
+                elif repeat == consts.REPEAT_ALL:
+                    self.queue_service.add_track(guild_id, history_track)
             
             queue = self.queue_service.get_queue(guild_id)
             if queue:
@@ -821,7 +768,7 @@ class MusicCog(commands.Cog):
         # Check for playlist
         is_playlist = 'list=' in query or '/sets/' in query or '/playlist' in query
         if is_playlist:
-            playlist_title, tracks = await self.extract_playlist(query)
+            playlist_title, tracks = await self.search_service.extract_playlist(query)
             if not tracks:
                 await interaction.followup.send("❌ Не вдалося завантажити плейлист або він порожній.")
                 return
@@ -845,7 +792,7 @@ class MusicCog(commands.Cog):
         
         if is_url:
             # Пряме посилання — додаємо одразу
-            info = await self.get_video_info(query)
+            info = await self.search_service.get_video_info(query)
             if not info:
                 await interaction.followup.send("❌ Не вдалося знайти трек.")
                 return
@@ -854,7 +801,7 @@ class MusicCog(commands.Cog):
             await interaction.followup.send(f"✅ Додано: **{info['title']}**")
         else:
             # Текстовий запит — показуємо меню вибору
-            results = await self.search_videos(query)
+            results = await self.search_service.search_videos(query)
             if not results:
                 await interaction.followup.send("❌ Не вдалося знайти треки за запитом.")
                 return
@@ -1127,6 +1074,47 @@ class MusicCog(commands.Cog):
         except Exception as e:
             self.logger.error(f"History error: {e}", exc_info=True)
             await interaction.followup.send("❌ Помилка отримання історії.", ephemeral=True)
+
+    # ── Global Error Handler ────────────────────────────────────
+
+    async def cog_app_command_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
+        """Глобальний обробник помилок Slash Commands."""
+        self.logger.error(f"Slash command error [{interaction.command.name if interaction.command else '?'}]: {error}", exc_info=True)
+
+        message = "❌ Сталася помилка під час виконання команди."
+        if isinstance(error, app_commands.CommandOnCooldown):
+            message = f"⏳ Зачекайте {error.retry_after:.1f}с перед повторним використанням."
+        elif isinstance(error, app_commands.MissingPermissions):
+            message = "🚫 У вас недостатньо прав для цієї команди."
+        elif isinstance(error, app_commands.BotMissingPermissions):
+            message = "🚫 Бот не має необхідних прав."
+
+        try:
+            if interaction.response.is_done():
+                await interaction.followup.send(message, ephemeral=True)
+            else:
+                await interaction.response.send_message(message, ephemeral=True)
+        except Exception:
+            pass
+
+    # ── /repeat command ───────────────────────────────────────────
+
+    @app_commands.command(name="repeat", description="Перемкнути режим повтору")
+    async def repeat(self, interaction: discord.Interaction):
+        guild_id = interaction.guild_id
+        current = self.repeat_mode.get(guild_id, consts.REPEAT_OFF)
+        if current == consts.REPEAT_OFF:
+            new_mode = consts.REPEAT_ONE
+            desc = f"{consts.EMOJI_REPEAT_ONE} Повтор: **1 трек**"
+        elif current == consts.REPEAT_ONE:
+            new_mode = consts.REPEAT_ALL
+            desc = f"{consts.EMOJI_REPEAT} Повтор: **вся черга**"
+        else:
+            new_mode = consts.REPEAT_OFF
+            desc = f"{consts.EMOJI_REPEAT} Повтор: **вимкнено**"
+        self.repeat_mode[guild_id] = new_mode
+        await interaction.response.send_message(desc)
+
 
 async def setup(bot):
     await bot.add_cog(MusicCog(bot))
