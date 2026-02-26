@@ -18,7 +18,7 @@ if not DISCORD_TOKEN:
 # --- Опції для yt-dlp ---
 # --- Опції для yt-dlp (максимальна якість) ---
 YDL_OPTIONS = {
-    'format': 'bestaudio[acodec=opus][abr>=160]/bestaudio/best',
+    'format': 'bestaudio[acodec=opus]/bestaudio*/best',
     'noplaylist': True,
     'nocheckcertificate': True,
     'ignoreerrors': False,
@@ -35,7 +35,7 @@ YDL_OPTIONS = {
 
 # --- Опції для FFmpeg (найстабільніші налаштування) ---
 FFMPEG_OPTIONS = {
-    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -nostdin',
     'options': '-vn -ar 48000 -ac 2'
 }
 

@@ -4,6 +4,7 @@ import asyncio
 import subprocess
 import logging
 import shlex
+import time
 from discord_music_bot.config import YDL_OPTIONS, FFMPEG_OPTIONS
 
 class YTDLPPipeSource(discord.AudioSource):
@@ -12,7 +13,7 @@ class YTDLPPipeSource(discord.AudioSource):
     при тимчасових затримках в pipe."""
     
     FRAME_SIZE = 3840  # 20ms of 48kHz 16-bit stereo PCM
-    MAX_READ_RETRIES = 3  # Кількість повторних спроб читання при неповному буфері
+    MAX_READ_RETRIES = 10  # Кількість повторних спроб читання при неповному буфері (~1с толерантність)
     
     def __init__(self, ytdlp_process, ffmpeg_process):
         self._ytdlp = ytdlp_process
@@ -46,8 +47,7 @@ class YTDLPPipeSource(discord.AudioSource):
                         self._buffer = b''
                         return frame
                     return b''
-                import time
-                time.sleep(0.05)  # Коротка пауза перед повторною спробою (50ms)
+                time.sleep(0.1)  # Пауза перед повторною спробою (100ms)
         
         # Витягуємо рівно один фрейм з буфера
         frame = self._buffer[:self.FRAME_SIZE]
@@ -123,18 +123,20 @@ class YTDLSource(discord.PCMVolumeTransformer):
             
             ffmpeg_cmd = [
                 'ffmpeg',
+                '-fflags', '+discardcorrupt',
+                '-nostdin',
                 '-i', 'pipe:0',
                 '-f', 's16le',
-                # aresample фіксить "chipmunk" ефект — синхронізує timestamps
-                # щоб FFmpeg правильно ресемплив аудіо з перших секунд
-                '-af', 'aresample=async=1:first_pts=0',
+                # aresample синхронізує timestamps, asetpts перераховує PTS
+                # по кількості семплів — фіксить стрибки швидкості
+                '-af', 'aresample=async=1:first_pts=0,asetpts=N/SR/TB',
             ] + ffmpeg_opts_list + ['pipe:1'] # Додаємо опції з config.py (rate, channels, etc)
             
             ffmpeg_process = subprocess.Popen(
                 ffmpeg_cmd,
                 stdin=ytdlp_process.stdout,
                 stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-                bufsize=1024*1024
+                bufsize=4*1024*1024
             )
             
             ytdlp_process.stdout.close()
