@@ -181,6 +181,17 @@ class MusicRepository:
         finally:
             await conn.close()
 
+    async def clear_history(self, guild_id: int) -> None:
+        """Видаляє всю історію прослуховувань для сервера."""
+        conn = await get_connection()
+        try:
+            await conn.execute(
+                "DELETE FROM history_tracks WHERE guild_id = ?", (guild_id,)
+            )
+            await conn.commit()
+        finally:
+            await conn.close()
+
     # ── History ──────────────────────────────────────────────────
 
     async def add_history_track(self, guild_id: int, track: Dict[str, Any]) -> None:
@@ -200,19 +211,6 @@ class MusicRepository:
                     track.get("duration"),
                     track.get("thumbnail"),
                 ),
-            )
-            # Тримаємо максимум 200 записів на guild, видаляємо найстаріші
-            await conn.execute(
-                """
-                DELETE FROM history_tracks 
-                WHERE guild_id = ? AND id NOT IN (
-                    SELECT id FROM history_tracks 
-                    WHERE guild_id = ? 
-                    ORDER BY played_at DESC 
-                    LIMIT 200
-                )
-                """,
-                (guild_id, guild_id),
             )
             await conn.commit()
         finally:

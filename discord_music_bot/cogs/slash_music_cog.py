@@ -4,575 +4,28 @@ from discord.ext import commands
 import asyncio
 import logging
 from discord_music_bot.services.queue_service import QueueService
+from discord_music_bot.services.history_service import HistoryService
 from discord_music_bot.services.player_service import PlayerService
 from discord_music_bot.audio_source import YTDLSource
 from discord_music_bot.utils import format_duration
 from discord_music_bot.database import init_db
 from discord_music_bot.repository import MusicRepository
 from discord_music_bot.services.auto_resume import auto_resume
+from discord_music_bot.views.dismiss_view import DismissView
+from discord_music_bot.views.history_view import HistoryView
+from discord_music_bot.views.music_controls import MusicControls
+from discord_music_bot.views.queue_view import QueueView
+from discord_music_bot.views.search_results_view import SearchResultsView
 import yt_dlp
 from discord_music_bot import consts
 
-
-
-class VolumeModal(discord.ui.Modal, title="🔊 Гучність"):
-    """Модальне вікно для встановлення гучності."""
-    volume_input = discord.ui.TextInput(
-        label="Гучність (0-200%)",
-        placeholder="Наприклад: 50",
-        required=True,
-        max_length=3,
-        default="50",
-    )
-
-    def __init__(self, voice_client):
-        super().__init__()
-        self.voice_client = voice_client
-        if voice_client and voice_client.source and hasattr(voice_client.source, 'volume'):
-            self.volume_input.default = str(int(voice_client.source.volume * 100))
-
-    async def on_submit(self, interaction: discord.Interaction):
-        try:
-            value = int(self.volume_input.value)
-            clamped = max(0, min(200, value))
-            if self.voice_client and self.voice_client.source and hasattr(self.voice_client.source, 'volume'):
-                self.voice_client.source.volume = clamped / 100.0
-                emoji = "🔇" if clamped == 0 else "🔉" if clamped < 50 else "🔊"
-                await interaction.response.send_message(f"{emoji} Гучність: **{clamped}%**", ephemeral=True)
-            else:
-                await interaction.response.send_message("Зараз нічого не грає.", ephemeral=True)
-        except ValueError:
-            await interaction.response.send_message("❌ Введіть число від 0 до 200.", ephemeral=True)
-
-
-class MoveTrackModal(discord.ui.Modal, title="↕️ Перемістити трек"):
-    from_pos = discord.ui.TextInput(
-        label="З позиції (№)",
-        placeholder="Наприклад: 3",
-        max_length=4,
-        required=True
-    )
-    to_pos = discord.ui.TextInput(
-        label="На позицію (№)",
-        placeholder="Наприклад: 1",
-        max_length=4,
-        required=True
-    )
-
-    def __init__(self, queue_view):
-        super().__init__()
-        self.queue_view = queue_view
-
-    async def on_submit(self, interaction: discord.Interaction):
-        try:
-            from_p = int(self.from_pos.value)
-            to_p = int(self.to_pos.value)
-        except ValueError:
-            await interaction.response.send_message("❗ Введіть числа.", ephemeral=True)
-            return
-
-        guild_id = interaction.guild.id
-        queue = self.queue_view.cog.queue_service.get_queue(guild_id)
-
-        if from_p < 1 or from_p > len(queue) or to_p < 1 or to_p > len(queue):
-            await interaction.response.send_message(
-                f"❗ Некоректні позиції. Допустимий діапазон: **1–{len(queue)}**.", ephemeral=True
-            )
-            return
-
-        if from_p == to_p:
-            await interaction.response.send_message("Трек вже на цій позиції.", ephemeral=True)
-            return
-
-        track = self.queue_view.cog.queue_service.move_track(guild_id, from_p, to_p)
-        if not track:
-            await interaction.response.send_message("❗ Помилка переміщення.", ephemeral=True)
-            return
-
-        # Оновити відображення черги
-        qv = self.queue_view
-        qv.queue = qv.cog.queue_service.get_queue(guild_id)
-        qv.total_pages = max((len(qv.queue) - 1) // qv.items_per_page + 1, 1)
-        qv.current_page = min(qv.current_page, qv.total_pages - 1)
-        qv.update_buttons()
-        embed = qv.create_embed()
-        direction = "⬆️" if to_p < from_p else "⬇️"
-        embed.set_author(name=f"{direction} {track.get('title', '?')[:40]}: #{from_p} → #{to_p}")
-        await interaction.response.edit_message(embed=embed, view=qv)
-
-
-class DismissView(discord.ui.View):
-    """Кнопка 'Закрити' для ephemeral повідомлень."""
-    def __init__(self):
-        super().__init__(timeout=300)
-
-    @discord.ui.button(label="Закрити", style=discord.ButtonStyle.danger, emoji="❌")
-    async def dismiss_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        try:
-            await interaction.response.edit_message(content="✅ Закрито", embed=None, view=None, delete_after=0)
-        except Exception:
-            try:
-                await interaction.message.delete()
-            except Exception:
-                pass
-
-
-class MusicControls(discord.ui.View):
-    def __init__(self, cog, guild, timeout=None):
-        super().__init__(timeout=timeout)
-        self.cog = cog
-        self.guild = guild
-
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        voice_client = interaction.guild.voice_client
-        if not voice_client:
-            await interaction.response.send_message("Бот наразі не в голосовому каналі.", ephemeral=True)
-            return False
-        if not interaction.user.voice or interaction.user.voice.channel != voice_client.channel:
-            await interaction.response.send_message("Ви повинні бути в тому ж голосовому каналі, що й бот.", ephemeral=True)
-            return False
-        return True
-
-    async def _resend_player(self, interaction: discord.Interaction):
-        """Пересилає панель керування внизу чату."""
-        await self.cog.update_player(interaction.guild, interaction.channel)
-
-    @discord.ui.button(label="Попередній", style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_PREVIOUS, custom_id="previous", row=0)
-    async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        guild_id = interaction.guild.id
-        
-        if guild_id in self.cog.processing_buttons:
-            await interaction.response.send_message("Зачекайте, обробляється попередня дія.", ephemeral=True)
-            return
-        
-        self.cog.processing_buttons.add(guild_id)
-        
-        # Defer одразу — операція займає 4-5с (sleep + yt-dlp extraction)
-        await interaction.response.defer()
-        
-        try:
-            history = self.cog.queue_service._history.get(guild_id, [])
-            if not history:
-                # Спробувати завантажити з БД
-                db_tracks = await self.cog.repository.get_history(guild_id, limit=20)
-                if db_tracks:
-                    for t in reversed(db_tracks):
-                        self.cog.queue_service._history.setdefault(guild_id, []).append({
-                            'title': t['title'],
-                            'url': t.get('url', ''),
-                            'webpage_url': t.get('url', ''),
-                            'duration': t.get('duration'),
-                            'thumbnail': t.get('thumbnail'),
-                            'requester': None
-                        })
-                    history = self.cog.queue_service._history.get(guild_id, [])
-            
-            if not history:
-                await interaction.followup.send("Немає попередніх треків.", ephemeral=True)
-                return
-            
-            # Беремо попередній трек з історії
-            prev_track = self.cog.queue_service.get_last_track(guild_id)
-            
-            # Зберігаємо поточний трек у чергу (щоб він грав далі після prev)
-            if guild_id in self.cog.current_song:
-                current = self.cog.current_song[guild_id].copy()
-                current.pop('player', None)
-                self.cog.queue_service.push_front(guild_id, current)
-            
-            # Додаємо prev на початок черги
-            self.cog.queue_service.push_front(guild_id, prev_track)
-            
-            # Очищаємо current_song
-            self.cog.current_song.pop(guild_id, None)
-            
-            voice_client = interaction.guild.voice_client
-            
-            # Блокуємо after-callback щоб він НЕ викликав play_next_song
-            self.cog._skip_after_play.add(guild_id)
-            
-            if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
-                voice_client.stop()
-            
-            # Чекаємо поки after-callback відпрацює (і пропустить play_next_song)
-            await asyncio.sleep(0.5)
-            
-            
-            # Руками запускаємо наступний трек (без додавання в історію — current_song пустий)
-            if voice_client and voice_client.is_connected():
-                await self.cog.play_next_song(interaction.guild, voice_client)
-            
-            await interaction.followup.send(
-                f"⏮️ Повертаємось до треку: {prev_track.get('title', 'Невідомий трек')}", 
-                ephemeral=False
-            )
-            
-        except Exception as e:
-            self.cog.logger.error(f"Error in previous_button: {e}", exc_info=True)
-            try:
-                await interaction.followup.send("❌ Помилка при поверненні до попереднього треку.", ephemeral=True)
-            except Exception:
-                pass
-        
-        finally:
-            self.cog._skip_after_play.discard(guild_id)
-            self.cog.processing_buttons.discard(guild_id)
-
-    @discord.ui.button(label="Пауза", style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_PAUSE, custom_id="pause_resume", row=0)
-    async def pause_resume_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        voice_client = interaction.guild.voice_client
-        if voice_client and voice_client.is_playing():
-            voice_client.pause()
-            await interaction.response.defer()
-            await self._resend_player(interaction)
-        elif self.cog.player_service.is_paused(voice_client):
-            self.cog.player_service.resume(voice_client)
-            await interaction.response.defer()
-            await self._resend_player(interaction)
-        else:
-            await interaction.response.send_message("Зараз нічого не грає.", ephemeral=True)
-
-    @discord.ui.button(label="Пропустити", style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_SKIP, custom_id="skip", row=0)
-    async def skip_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        voice_client = interaction.guild.voice_client
-        if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
-            voice_client.stop()
-            await interaction.response.send_message(f"⏭️ Трек пропущено {interaction.user.mention}.", ephemeral=False)
-        else:
-            await interaction.response.send_message("Нічого пропускати.", ephemeral=True)
-
-    @discord.ui.button(label="Черга", style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_QUEUE, custom_id="queue", row=0)
-    async def queue_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        view = QueueView(self.cog, interaction.guild)
-        await interaction.response.send_message(embed=view.create_embed(), view=view, ephemeral=True)
-
-    @discord.ui.button(label="Вийти", style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_LEAVE, custom_id="leave", row=0)
-    async def leave_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        voice_client = interaction.guild.voice_client
-        if voice_client and voice_client.is_connected():
-            await self.cog.leave_logic(interaction.guild)
-            await interaction.response.send_message(f"👋 Бот вийшов з каналу за командою {interaction.user.mention}.", ephemeral=False)
-            self.stop()
-        else:
-            await interaction.response.send_message("Бот не підключений до голосового каналу.", ephemeral=True)
-
-    # --- Другий рядок кнопок ---
-
-    @discord.ui.button(label="Гучність", style=discord.ButtonStyle.secondary, emoji="🔊", custom_id="volume_modal", row=1)
-    async def volume_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        voice_client = interaction.guild.voice_client
-        if voice_client and voice_client.source and hasattr(voice_client.source, 'volume'):
-            modal = VolumeModal(voice_client)
-            await interaction.response.send_modal(modal)
-        else:
-            await interaction.response.send_message("Зараз нічого не грає.", ephemeral=True)
-
-    @discord.ui.button(label="Історія", style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_HISTORY, custom_id="history", row=1)
-    async def history_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        guild_id = interaction.guild.id
-        try:
-            await interaction.response.defer(ephemeral=True)
-            # Завантажуємо всю історію з БД (всі сесії)
-            db_history = await self.cog.repository.get_history(guild_id, limit=20)
-            embed = discord.Embed(title="📜 Історія прослуховувань", color=consts.COLOR_EMBED_NORMAL)
-
-            # Поточний трек
-            if guild_id in self.cog.current_song:
-                song = self.cog.current_song[guild_id]
-                duration = format_duration(song.get('duration'))
-                embed.add_field(name="🎶 Зараз грає", value=f"**{song['title'][:45]}** | `{duration}`", inline=False)
-
-            if db_history:
-                lines = []
-                for i, t in enumerate(db_history, 1):
-                    duration = format_duration(t.get('duration'))
-                    played_at = t.get('played_at', '')[:16] if t.get('played_at') else ''
-                    time_str = f" • {played_at}" if played_at else ''
-                    lines.append(f"`{i}.` **{t.get('title', '?')[:30]}** | `{duration}`{time_str}")
-                # Розбиваємо на чанки по 1024 символи (ліміт Discord)
-                chunks = []
-                current_chunk = []
-                current_length = 0
-                for line in lines:
-                    if current_length + len(line) + 1 > 1000:
-                        if current_chunk:
-                            chunks.append("\n".join(current_chunk))
-                        current_chunk = [line]
-                        current_length = len(line)
-                    else:
-                        current_chunk.append(line)
-                        current_length += len(line) + 1
-                if current_chunk:
-                    chunks.append("\n".join(current_chunk))
-                for idx, chunk in enumerate(chunks):
-                    name = "⏪ Раніше грало" if idx == 0 else "\u200b"
-                    embed.add_field(name=name, value=chunk, inline=False)
-                embed.set_footer(text=f"Показано останні {len(db_history)} трек(ів)")
-            else:
-                embed.add_field(name="⏪ Раніше грало", value="Поки порожньо", inline=False)
-
-            await interaction.followup.send(embed=embed, view=DismissView(), ephemeral=True)
-        except Exception as e:
-            self.cog.logger.error(f"History button error: {e}", exc_info=True)
-            await interaction.followup.send("❌ Помилка отримання історії.", ephemeral=True)
-
-    @discord.ui.button(label="Статистика", style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_STATS, custom_id="stats_btn", row=1)
-    async def stats_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        guild_id = interaction.guild.id
-        try:
-            # Статистика за поточну сесію (з моменту запуску бота)
-            session_tracks = self.cog._session_tracks.get(guild_id, [])
-            embed = discord.Embed(title="📊 Статистика сесії", color=consts.COLOR_EMBED_NORMAL)
-
-            total_seconds = sum(t.get('duration') or 0 for t in session_tracks)
-            hours = total_seconds // 3600
-            minutes = (total_seconds % 3600) // 60
-            time_str = f"{hours}г {minutes}хв" if hours > 0 else f"{minutes}хв"
-
-            embed.add_field(
-                name="📈 За цю сесію",
-                value=f"🎵 Треків програно: **{len(session_tracks)}**\n⏱️ Час: **{time_str}**",
-                inline=False
-            )
-
-            if session_tracks:
-                # Топ треки за сесію (по кількості відтворень)
-                from collections import Counter
-                title_counts = Counter(t.get('title', '?') for t in session_tracks)
-                top = title_counts.most_common(5)
-                top_text = "\n".join([
-                    f"`{i+1}.` **{title[:35]}** — {count}x"
-                    for i, (title, count) in enumerate(top)
-                ])
-                embed.add_field(name="🏆 Топ-5 за сесію", value=top_text, inline=False)
-
-            await interaction.response.send_message(embed=embed, view=DismissView(), ephemeral=True)
-        except Exception as e:
-            self.cog.logger.error(f"Stats button error: {e}", exc_info=True)
-            await interaction.response.send_message("❌ Помилка отримання статистики.", ephemeral=True)
-
-class QueueView(discord.ui.View):
-    def __init__(self, cog, guild, timeout=consts.TIMEOUT_VIEW):
-        super().__init__(timeout=timeout)
-        self.cog = cog
-        self.guild = guild
-        self.current_page = 0
-        self.items_per_page = consts.ITEMS_PER_PAGE
-        self.queue = self.cog.queue_service.get_queue(guild.id)
-        self.total_pages = max((len(self.queue) - 1) // self.items_per_page + 1, 1)
-        self.update_buttons()
-
-    def create_embed(self):
-        guild_id = self.guild.id
-        embed = discord.Embed(title="📄 Черга відтворення", color=consts.COLOR_EMBED_NORMAL)
-
-        if guild_id in self.cog.current_song:
-            song_info = self.cog.current_song[guild_id]
-            duration_str = format_duration(song_info.get('duration'))
-            current_track = f"[{song_info.get('title', 'Невідомий трек')}]({song_info.get('url', '#')}) | `{duration_str}`"
-            requester_line = f"\nЗамовив користувач: {song_info['requester'].mention}" if song_info.get('requester') else ""
-            embed.add_field(
-                name="🎶 Зараз грає",
-                value=f"{current_track}{requester_line}",
-                inline=False
-            )
-
-        if self.queue:
-            start_idx = self.current_page * self.items_per_page
-            end_idx = min(start_idx + self.items_per_page, len(self.queue))
-            queue_text = []
-            
-            for i, item in enumerate(self.queue[start_idx:end_idx], start=start_idx + 1):
-                title = item.get('title', 'Завантаження...')
-                url = item.get('webpage_url', '#')
-                duration_str = format_duration(item.get('duration', 0))
-                track_text = f"`{i}.` [{title}]({url}) | `{duration_str}`"
-                queue_text.append(track_text)
-
-            if queue_text:
-                chunks = []
-                current_chunk = []
-                current_length = 0
-                for track in queue_text:
-                    if current_length + len(track) > consts.MAX_QUEUE_FIELD_LENGTH:
-                        if current_chunk: chunks.append("\n".join(current_chunk))
-                        current_chunk = [track]
-                        current_length = len(track)
-                    else:
-                        current_chunk.append(track)
-                        current_length += len(track) + 1
-                if current_chunk: chunks.append("\n".join(current_chunk))
-                
-                for i, chunk in enumerate(chunks):
-                    field_name = "📑 Треки в черзі" if i == 0 else "\u200b"
-                    embed.add_field(name=field_name, value=chunk, inline=False)
-
-            total_duration = sum(item.get('duration') or 0 for item in self.queue)
-            embed.set_footer(text=f"Всього треків: {len(self.queue)} | Загальна тривалість: {format_duration(total_duration)} | Сторінка {self.current_page + 1}/{self.total_pages}")
-        else:
-            embed.add_field(name="📑 Треки в черзі", value="Черга порожня", inline=False)
-
-        return embed
-
-    def update_buttons(self):
-        self.clear_items()
-        first_button = discord.ui.Button(style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_FIRST_PAGE, custom_id="first", disabled=self.current_page == 0)
-        first_button.callback = self.first_page
-        self.add_item(first_button)
-
-        prev_button = discord.ui.Button(style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_PREV_PAGE, custom_id="prev", disabled=self.current_page == 0)
-        prev_button.callback = self.prev_page
-        self.add_item(prev_button)
-
-        next_button = discord.ui.Button(style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_NEXT_PAGE, custom_id="next", disabled=self.current_page >= self.total_pages - 1)
-        next_button.callback = self.next_page
-        self.add_item(next_button)
-
-        last_button = discord.ui.Button(style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_LAST_PAGE, custom_id="last", disabled=self.current_page >= self.total_pages - 1)
-        last_button.callback = self.last_page
-        self.add_item(last_button)
-        
-        refresh_button = discord.ui.Button(style=discord.ButtonStyle.secondary, emoji=consts.EMOJI_REFRESH, custom_id="refresh")
-        refresh_button.callback = self.refresh_page
-        self.add_item(refresh_button)
-
-        # Row 2: Shuffle + Move + Close
-        shuffle_button = discord.ui.Button(style=discord.ButtonStyle.success, emoji=consts.EMOJI_SHUFFLE, label="Перемішати", custom_id="shuffle_queue", row=1, disabled=len(self.queue) < 2)
-        shuffle_button.callback = self.shuffle_queue
-        self.add_item(shuffle_button)
-
-        move_button = discord.ui.Button(style=discord.ButtonStyle.primary, emoji=consts.EMOJI_MOVE, label="Перемістити", custom_id="move_track", row=1, disabled=len(self.queue) < 2)
-        move_button.callback = self.move_track
-        self.add_item(move_button)
-
-        close_button = discord.ui.Button(style=discord.ButtonStyle.danger, emoji="❌", label="Закрити", custom_id="close_queue", row=1)
-        close_button.callback = self.close_view
-        self.add_item(close_button)
-
-    async def _handle_page_change(self, interaction: discord.Interaction, new_page):
-        self.queue = self.cog.queue_service.get_queue(self.guild.id)  # Update local queue ref
-        self.total_pages = max((len(self.queue) - 1) // self.items_per_page + 1, 1)
-        self.current_page = min(new_page, self.total_pages - 1)
-        self.update_buttons()
-        await interaction.response.edit_message(embed=self.create_embed(), view=self)
-
-    async def first_page(self, interaction): await self._handle_page_change(interaction, 0)
-    async def prev_page(self, interaction): await self._handle_page_change(interaction, max(0, self.current_page - 1))
-    async def next_page(self, interaction): await self._handle_page_change(interaction, min(self.total_pages - 1, self.current_page + 1))
-    async def last_page(self, interaction): await self._handle_page_change(interaction, self.total_pages - 1)
-    async def refresh_page(self, interaction): await self._handle_page_change(interaction, self.current_page)
-    async def shuffle_queue(self, interaction):
-        guild_id = self.guild.id
-        queue = self.cog.queue_service.get_queue(guild_id)
-        if len(queue) < 2:
-            await interaction.response.send_message("Недостатньо треків для перемішування.", ephemeral=True)
-            return
-        self.cog.queue_service.shuffle(guild_id)
-        self.queue = self.cog.queue_service.get_queue(guild_id)
-        self.current_page = 0
-        self.total_pages = max((len(self.queue) - 1) // self.items_per_page + 1, 1)
-        self.update_buttons()
-        embed = self.create_embed()
-        embed.set_author(name=f"{consts.EMOJI_SHUFFLE} Чергу перемішано! ({len(self.queue)} треків)")
-        await interaction.response.edit_message(embed=embed, view=self)
-
-    async def move_track(self, interaction):
-        modal = MoveTrackModal(self)
-        await interaction.response.send_modal(modal)
-
-    async def close_view(self, interaction):
-        try:
-            await interaction.response.edit_message(content="✅ Закрито", embed=None, view=None, delete_after=0)
-        except Exception:
-            try:
-                await interaction.message.delete()
-            except Exception:
-                pass
-
-
-class SearchResultsView(discord.ui.View):
-    def __init__(self, cog, user, results, timeout=consts.TIMEOUT_SEARCH_MENU):
-        super().__init__(timeout=timeout)
-        self.cog = cog
-        self.user = user
-        self.results = results
-        self.current_page = 0
-        self.items_per_page = consts.SEARCH_ITEMS_PER_PAGE
-        self.total_pages = (len(results) - 1) // self.items_per_page + 1
-        self.selected_track = None
-        self.update_buttons()
-
-    def update_buttons(self):
-        self.clear_items()
-        start_idx = self.current_page * self.items_per_page
-        end_idx = min(start_idx + self.items_per_page, len(self.results))
-        
-        for i in range(start_idx, end_idx):
-            button = discord.ui.Button(style=discord.ButtonStyle.secondary, label=str(i - start_idx + 1), custom_id=f"select_{i}")
-            button.callback = self.create_select_callback(i)
-            self.add_item(button)
-        
-        if self.total_pages > 1:
-            if self.current_page > 0:
-                prev = discord.ui.Button(style=discord.ButtonStyle.primary, emoji=consts.EMOJI_LEFT_ARROW, custom_id="prev_page")
-                prev.callback = self.prev_page
-                self.add_item(prev)
-            if self.current_page < self.total_pages - 1:
-                next_btn = discord.ui.Button(style=discord.ButtonStyle.primary, emoji=consts.EMOJI_RIGHT_ARROW, custom_id="next_page")
-                next_btn.callback = self.next_page
-                self.add_item(next_btn)
-                
-        cancel = discord.ui.Button(style=discord.ButtonStyle.danger, emoji=consts.EMOJI_CANCEL, custom_id="cancel")
-        cancel.callback = self.cancel
-        self.add_item(cancel)
-
-    def create_select_callback(self, index):
-        async def callback(interaction: discord.Interaction):
-            if interaction.user != self.user:
-                await interaction.response.send_message("Ви не можете використовувати це меню.", ephemeral=True)
-                return
-            self.selected_track = self.results[index]
-            self.stop()
-            await interaction.message.delete()
-        return callback
-
-    async def prev_page(self, interaction: discord.Interaction):
-        if interaction.user != self.user: return
-        self.current_page = max(0, self.current_page - 1)
-        await self.update_message(interaction)
-
-    async def next_page(self, interaction: discord.Interaction):
-        if interaction.user != self.user: return
-        self.current_page = min(self.total_pages - 1, self.current_page + 1)
-        await self.update_message(interaction)
-
-    async def cancel(self, interaction: discord.Interaction):
-        if interaction.user != self.user: return
-        self.selected_track = None
-        self.stop()
-        await interaction.message.delete()
-
-    async def update_message(self, interaction):
-        self.update_buttons()
-        await interaction.response.edit_message(embed=self.create_embed(), view=self)
-
-    def create_embed(self):
-        embed = discord.Embed(title="🔍 Результати пошуку", color=consts.COLOR_EMBED_PLAYING)
-        start_idx = self.current_page * self.items_per_page
-        end_idx = min(start_idx + self.items_per_page, len(self.results))
-        
-        for i, track in enumerate(self.results[start_idx:end_idx], start=1):
-            duration = format_duration(track.get('duration', 0))
-            embed.add_field(name=f"{i}. {track.get('title', '...')}", value=f"⏱️ {duration}\n🔗 [Link]({track.get('webpage_url')})", inline=False)
-        
-        if self.total_pages > 1: embed.set_footer(text=f"Сторінка {self.current_page + 1}/{self.total_pages}")
-        return embed
 
 class MusicCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.repository = MusicRepository()
         self.queue_service = QueueService(self.repository)
+        self.history_service = HistoryService(self.repository)
         self.player_service = PlayerService()
         self.current_song = {}
         self.control_messages = {}
@@ -580,6 +33,7 @@ class MusicCog(commands.Cog):
         self.processing_buttons = set()
         self._skip_after_play = set()  # guild_ids де after-callback має бути пропущений
         self._session_tracks = {}  # {guild_id: [track_dicts]} — треки за поточну сесію
+        self._guild_volumes = {}  # {guild_id: float} — збережена гучність (0.0-2.0)
         self.logger = logging.getLogger('MusicBot')
         self.logger.setLevel(logging.INFO)
         
@@ -720,7 +174,7 @@ class MusicCog(commands.Cog):
         try:
             guild_id = guild.id
             if guild_id in self.current_song:
-                # Додаємо в історію через QueueService (зберігає і в пам'ять, і в БД)
+                # Додаємо в історію через HistoryService (зберігає і в пам'ять, і в БД)
                 song = self.current_song[guild_id]
                 # Нормалізуємо дані трека — гарантуємо url і webpage_url
                 history_track = {
@@ -731,7 +185,7 @@ class MusicCog(commands.Cog):
                     'thumbnail': song.get('thumbnail'),
                     'requester': song.get('requester'),
                 }
-                self.queue_service.add_to_history(guild_id, history_track)
+                self.history_service.add_to_history(guild_id, history_track)
             
             queue = self.queue_service.get_queue(guild_id)
             if queue:
@@ -743,6 +197,10 @@ class MusicCog(commands.Cog):
                         self.bot.loop, 
                         lambda e: self.bot.loop.create_task(self.check_after_play(guild, voice_client, e))
                     )
+                    
+                    # Застосовуємо збережену гучність
+                    if guild_id in self._guild_volumes:
+                        player.volume = self._guild_volumes[guild_id]
                     
                     self.current_song[guild_id] = {
                         'title': player.title, 'url': player.url, 'thumbnail': player.thumbnail,
@@ -945,137 +403,98 @@ class MusicCog(commands.Cog):
     @app_commands.command(name="skip", description="Пропустити трек")
     async def skip(self, interaction: discord.Interaction):
         voice_client = interaction.guild.voice_client
-        if voice_client and (self.player_service.is_playing(voice_client) or self.player_service.is_paused(voice_client)):
-            self.player_service.stop(voice_client)
-            await interaction.response.send_message("⏭️ Пропущено.")
+        if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
+            voice_client.stop()
+            await interaction.response.send_message(f"⏭️ Пропущено {interaction.user.mention}.")
         else:
-            await interaction.response.send_message("Нічого не грає.", ephemeral=True)
+            await interaction.response.send_message("Нічого пропускати.", ephemeral=True)
 
-    @app_commands.command(name="pause", description="Пауза")
+    @app_commands.command(name="pause", description="Поставити на паузу")
     async def pause(self, interaction: discord.Interaction):
         voice_client = interaction.guild.voice_client
-        if self.player_service.is_playing(voice_client):
-            self.player_service.pause(voice_client)
+        if voice_client and voice_client.is_playing():
+            voice_client.pause()
             await interaction.response.send_message("⏸️ Пауза.")
         else:
-            await interaction.response.send_message("Неможливо поставити на паузу.", ephemeral=True)
+            await interaction.response.send_message("Нічого ставити на паузу.", ephemeral=True)
 
-    @app_commands.command(name="resume", description="Продовжити")
+    @app_commands.command(name="resume", description="Продовжити відтворення")
     async def resume(self, interaction: discord.Interaction):
         voice_client = interaction.guild.voice_client
-        if self.player_service.is_paused(voice_client):
-            self.player_service.resume(voice_client)
+        if voice_client and voice_client.is_paused():
+            voice_client.resume()
             await interaction.response.send_message("▶️ Продовжуємо.")
         else:
-            await interaction.response.send_message("Немає чого продовжувати.", ephemeral=True)
+            await interaction.response.send_message("Нічого відновлювати.", ephemeral=True)
 
-    @app_commands.command(name="reset", description="Скинути стан бота (якщо завис або не грає)")
+    @app_commands.command(name="reset", description="Скинути бота (якщо зависне)")
     async def reset(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-        
-        guild_id = interaction.guild_id
-        
-        # 1. Очистка черги і стану
-        self.queue_service.clear(guild_id)
-        if guild_id in self.current_song: del self.current_song[guild_id]
-
-        
-        # 2. Примусовий дисконект
-        voice_client = interaction.guild.voice_client
+        guild = interaction.guild
+        voice_client = guild.voice_client
+        self.queue_service.clear(guild.id)
+        if guild.id in self.current_song: del self.current_song[guild.id]
+        await self.repository.clear_guild_state(guild.id)
         if voice_client:
-            await voice_client.disconnect(force=True)
-            await interaction.followup.send("♻️ Бот перезавантажив з'єднання! Спробуйте `/join` або `/play` знову.")
-        else:
-            await interaction.followup.send("♻️ Чергу очищено (бот не був у голосовому каналі).")
+            try:
+                voice_client.stop()
+                await voice_client.disconnect(force=True)
+            except: pass
+        await interaction.response.send_message("🔄 Бот скинуто. Можна використовувати /play знову.")
 
-    @app_commands.command(name="stop", description="Зупинити та очистити")
+    @app_commands.command(name="stop", description="Зупинити відтворення")
     async def stop(self, interaction: discord.Interaction):
         voice_client = interaction.guild.voice_client
         if voice_client:
-            self.queue_service.clear(interaction.guild_id)
-
-            self.player_service.stop(voice_client)
-            await self.update_player(interaction.guild, interaction.channel)
-            await voice_client.disconnect() # Force disconnect on stop to be sure
-            await interaction.response.send_message("⏹️ Зупинено та відключено.")
+            voice_client.stop()
+            self.queue_service.clear(interaction.guild.id)
+            if interaction.guild.id in self.current_song: del self.current_song[interaction.guild.id]
+            await self.repository.clear_guild_state(interaction.guild.id)
+            await interaction.response.send_message("⏹️ Зупинено.")
         else:
-            await interaction.response.send_message("Я не граю.", ephemeral=True)
+            await interaction.response.send_message("Бот не грає.", ephemeral=True)
 
     @app_commands.command(name="queue", description="Показати чергу")
     async def queue(self, interaction: discord.Interaction):
         view = QueueView(self, interaction.guild)
-        await interaction.response.send_message(embed=view.create_embed(), view=view)
+        await interaction.response.send_message(embed=view.create_embed(), view=view, ephemeral=True)
 
-    @app_commands.command(name="shuffle", description="Перемішати чергу рандомно")
+    @app_commands.command(name="shuffle", description="Перемішати чергу")
     async def shuffle(self, interaction: discord.Interaction):
-        guild_id = interaction.guild_id
+        guild_id = interaction.guild.id
         queue = self.queue_service.get_queue(guild_id)
         if len(queue) < 2:
-            await interaction.response.send_message("Недостатньо треків для перемішування.", ephemeral=True)
+            await interaction.response.send_message("Недостатньо треків.", ephemeral=True)
             return
         self.queue_service.shuffle(guild_id)
-        queue = self.queue_service.get_queue(guild_id)
+        await interaction.response.send_message(f"🔀 Чергу перемішано ({len(queue)} треків).")
+        await self.update_player(interaction.guild, interaction.channel)
 
-        embed = discord.Embed(
-            title=f"{consts.EMOJI_SHUFFLE} Чергу перемішано!",
-            color=consts.COLOR_EMBED_NORMAL
-        )
-        # Показуємо перші 5 треків нового порядку
-        preview = "\n".join([
-            f"`{i+1}.` **{t.get('title', '?')[:45]}**"
-            for i, t in enumerate(queue[:5])
-        ])
-        if len(queue) > 5:
-            preview += f"\n... та ще {len(queue) - 5} треків"
-        embed.add_field(name="📑 Нова черга", value=preview, inline=False)
-        embed.set_footer(text=f"Всього: {len(queue)} треків")
-        await interaction.response.send_message(embed=embed)
-
-    @app_commands.command(name="move", description="Перемістити трек на іншу позицію")
-    @app_commands.describe(from_pos="Поточна позиція треку", to_pos="Нова позиція треку")
+    @app_commands.command(name="move", description="Перемістити трек у черзі")
+    @app_commands.describe(from_pos="З якої позиції", to_pos="На яку позицію")
     async def move(self, interaction: discord.Interaction, from_pos: int, to_pos: int):
-        guild_id = interaction.guild_id
+        guild_id = interaction.guild.id
         queue = self.queue_service.get_queue(guild_id)
-
         if not queue:
             await interaction.response.send_message("Черга порожня.", ephemeral=True)
             return
-
         if from_pos < 1 or from_pos > len(queue) or to_pos < 1 or to_pos > len(queue):
             await interaction.response.send_message(
-                f"Некоректні позиції. Допустимий діапазон: **1–{len(queue)}**.", ephemeral=True
+                f"❗ Некоректні позиції. Допустимий діапазон: **1–{len(queue)}**.", ephemeral=True
             )
             return
-
         if from_pos == to_pos:
             await interaction.response.send_message("Трек вже на цій позиції.", ephemeral=True)
             return
 
         track = self.queue_service.move_track(guild_id, from_pos, to_pos)
-        if not track:
-            await interaction.response.send_message("Помилка переміщення.", ephemeral=True)
-            return
-
-        direction = "⬆️" if to_pos < from_pos else "⬇️"
-        embed = discord.Embed(
-            title=f"{consts.EMOJI_MOVE} Трек переміщено",
-            color=consts.COLOR_EMBED_NORMAL
-        )
-        embed.add_field(
-            name=track.get('title', 'Unknown')[:50],
-            value=f"{direction} `#{from_pos}` → `#{to_pos}`",
-            inline=False
-        )
-        # Показуємо оновлені сусідні позиції
-        queue = self.queue_service.get_queue(guild_id)
-        start = max(0, to_pos - 3)
-        end = min(len(queue), to_pos + 2)
-        context_lines = []
-        for i in range(start, end):
-            prefix = "▸ " if i == to_pos - 1 else "  "
-            context_lines.append(f"{prefix}`{i+1}.` {queue[i].get('title', '?')[:40]}")
-        embed.add_field(name="📑 Контекст", value="\n".join(context_lines), inline=False)
-        await interaction.response.send_message(embed=embed)
+        if track:
+            direction = "⬆️" if to_pos < from_pos else "⬇️"
+            await interaction.response.send_message(
+                f"{direction} Переміщено **{track.get('title', '?')[:40]}**: #{from_pos} → #{to_pos}"
+            )
+            await self.update_player(interaction.guild, interaction.channel)
+        else:
+            await interaction.response.send_message("❗ Помилка переміщення.", ephemeral=True)
 
     @app_commands.command(name="leave", description="Вигнати бота")
     async def leave(self, interaction: discord.Interaction):
@@ -1095,6 +514,7 @@ class MusicCog(commands.Cog):
         
         clamped = max(0, min(200, level))
         voice_client.source.volume = clamped / 100.0
+        self._guild_volumes[interaction.guild.id] = clamped / 100.0
         emoji = "🔇" if clamped == 0 else "🔉" if clamped < 50 else "🔊"
         await interaction.response.send_message(f"{emoji} Гучність встановлена: **{clamped}%**")
 

@@ -50,6 +50,7 @@ EMOJI_HISTORY = "📜"
 EMOJI_STATS = "📊"
 EMOJI_SHUFFLE = "🔀"
 EMOJI_MOVE = "↕️"
+EMOJI_CLEAR = "🗑️"
 
 # --- Volume ---
 DEFAULT_VOLUME = 0.5

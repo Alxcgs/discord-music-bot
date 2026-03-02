@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS queue_tracks (
     duration    INTEGER,
     thumbnail   TEXT,
     added_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (guild_id) REFERENCES guild_state(guild_id) ON DELETE CASCADE
+    FOREIGN KEY (guild_id) REFERENCES guild_state(guild_id)
 );
 
 -- Індекс для швидкого отримання черги по guild_id
@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS history_tracks (
     duration    INTEGER,
     thumbnail   TEXT,
     played_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (guild_id) REFERENCES guild_state(guild_id) ON DELETE CASCADE
+    FOREIGN KEY (guild_id) REFERENCES guild_state(guild_id)
 );
 
 -- Індекс для швидкого отримання історії по guild_id
