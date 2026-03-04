@@ -13,6 +13,8 @@ EMOJI_PLAYLIST = "📋"
 TIMEOUT_VOICE_DISCONNECT = 60
 TIMEOUT_EMPTY_CHANNEL = 10
 TIMEOUT_VOICE_CONNECT = 60.0 # Connection timeout (increased for stability)
+MAX_VOICE_RECONNECT_ATTEMPTS = 3  # How many times to retry voice connection before giving up
+VOICE_RECONNECT_DELAY = 2.0  # Seconds to wait between reconnect attempts
 TIMEOUT_SEARCH_MENU = 60
 TIMEOUT_VIEW = 60
 TIMEOUT_BUTTON_INTERACTION = None # Persistent view usually, but View(timeout=X) uses this

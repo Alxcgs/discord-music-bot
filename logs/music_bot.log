@@ -3098,3 +3098,856 @@ discord.app_commands.errors.CommandNotFound: Application command 'join' not foun
 2026-03-02 22:40:36 [INFO] root: Creating audio pipeline for: grouping
 2026-03-02 22:40:36 [INFO] root: Audio pipeline started for: grouping
 2026-03-02 22:42:10 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-02 22:56:07 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-03-02 22:56:07 [INFO] root: Бот вимикається...
+2026-03-02 22:56:15 [INFO] root: Opus завантажено (default)
+2026-03-02 22:56:15 [INFO] discord.client: logging in using static token
+2026-03-02 22:56:16 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 8a759ccb92c3eebd6f3390bdcac310db).
+2026-03-02 22:56:18 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-03-02 22:56:18 [INFO] root: ID бота: 1368988347619479635
+2026-03-02 22:56:18 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot2\data\music_bot.db
+2026-03-02 22:56:18 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-03-02 22:56:18 [INFO] root: Завантажено ког: slash_music_cog
+2026-03-02 22:56:18 [INFO] root: Синхронізовано 14 Slash-команд.
+2026-03-02 22:56:18 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-03-02 22:56:34 [INFO] discord.voice_state: Connecting to voice...
+2026-03-02 22:56:34 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-03-02 22:56:34 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw05-73cc94b8.discord.media:2083
+2026-03-02 22:56:34 [INFO] discord.voice_state: Voice connection complete.
+2026-03-02 22:56:39 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=OMyrlADILYo
+2026-03-02 22:56:41 [INFO] root: Creating audio pipeline for: Inna - Hot (lyrics)
+2026-03-02 22:56:41 [INFO] root: Audio pipeline started for: Inna - Hot (lyrics)
+2026-03-02 22:57:22 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:20:11 [INFO] root: Opus завантажено (default)
+2026-03-03 21:20:11 [INFO] discord.client: logging in using static token
+2026-03-03 21:20:12 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 03ec0d74d50664105ad8a80dd36e384f).
+2026-03-03 21:20:14 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-03-03 21:20:14 [INFO] root: ID бота: 1368988347619479635
+2026-03-03 21:20:15 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot2\data\music_bot.db
+2026-03-03 21:20:15 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-03-03 21:20:15 [INFO] root: Завантажено ког: slash_music_cog
+2026-03-03 21:20:15 [INFO] root: Синхронізовано 14 Slash-команд.
+2026-03-03 21:20:15 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-03-03 21:20:27 [INFO] discord.voice_state: Connecting to voice...
+2026-03-03 21:20:27 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-03-03 21:20:27 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:20:28 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 1.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:20:28 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:20:29 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 2)
+2026-03-03 21:20:29 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:20:29 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 3.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:20:29 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:20:32 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 3)
+2026-03-03 21:20:32 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:20:32 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 5.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:20:33 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:20:38 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 4)
+2026-03-03 21:20:38 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:20:38 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 7.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:20:38 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:20:45 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 5)
+2026-03-03 21:20:45 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:20:46 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 9.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:20:46 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:20:55 [INFO] discord.voice_state: Voice connection complete.
+2026-03-03 21:20:55 [INFO] discord.voice_state: Disconnecting from voice normally, close code 1000.
+2026-03-03 21:20:55 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:20:59 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=jSwq2fRaZiA
+2026-03-03 21:21:00 [INFO] root: Creating audio pipeline for: КРУТАЯ МУЗЫКА В МАШИНУ 2022 🔊 КЛАССНАЯ МУЗЫКА 2022 🔊 НОВАЯ БАСС МУЗЫКА И ПЕСНИ В МАШИНУ 2022
+2026-03-03 21:21:01 [INFO] root: Audio pipeline started for: КРУТАЯ МУЗЫКА В МАШИНУ 2022 🔊 КЛАССНАЯ МУЗЫКА 2022 🔊 НОВАЯ БАСС МУЗЫКА И ПЕСНИ В МАШИНУ 2022
+2026-03-03 21:21:01 [ERROR] MusicBot.PlayerService: Error creating stream: Not connected to voice.
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot2\discord_music_bot\services\player_service.py", line 16, in play_stream
+    voice_client.play(player, after=after_callback)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_client.py", line 497, in play
+    raise ClientException('Not connected to voice.')
+discord.errors.ClientException: Not connected to voice.
+2026-03-03 21:21:01 [ERROR] MusicBot: Failed to play track 'КРУТАЯ МУЗЫКА В МАШИНУ 2022 🔊 КЛАССНАЯ МУЗЫКА 2022 🔊 НОВАЯ БАСС МУЗЫКА И ПЕСНИ В МАШИНУ 2022': Not connected to voice.
+2026-03-03 21:28:15 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-03-03 21:28:15 [INFO] root: Бот вимикається...
+2026-03-03 21:28:19 [INFO] root: Opus завантажено (default)
+2026-03-03 21:28:19 [INFO] discord.client: logging in using static token
+2026-03-03 21:28:20 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: f8140121207e4c459106885c15240423).
+2026-03-03 21:28:22 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-03-03 21:28:22 [INFO] root: ID бота: 1368988347619479635
+2026-03-03 21:28:23 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot2\data\music_bot.db
+2026-03-03 21:28:23 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-03-03 21:28:23 [INFO] root: Завантажено ког: slash_music_cog
+2026-03-03 21:28:23 [INFO] root: Синхронізовано 14 Slash-команд.
+2026-03-03 21:28:23 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-03-03 21:28:33 [INFO] discord.voice_state: Connecting to voice...
+2026-03-03 21:28:33 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-03-03 21:28:33 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:28:33 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 1.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:28:33 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:28:34 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 2)
+2026-03-03 21:28:34 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:28:34 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 3.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:28:34 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:28:37 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 3)
+2026-03-03 21:28:38 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:28:38 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 5.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:28:38 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:28:43 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 4)
+2026-03-03 21:28:43 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:28:43 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 7.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:28:43 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:28:50 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 5)
+2026-03-03 21:28:51 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:28:51 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 9.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:28:51 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:29:00 [INFO] discord.voice_state: Voice connection complete.
+2026-03-03 21:29:00 [INFO] discord.voice_state: Disconnecting from voice normally, close code 1000.
+2026-03-03 21:29:00 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:29:00 [WARNING] MusicBot: Voice not connected for guild Сервер користувача Alxcgs, attempting reconnect...
+2026-03-03 21:29:00 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:30:00 [INFO] MusicBot: Reconnect attempt 1/3 for Сервер користувача Alxcgs
+2026-03-03 21:30:00 [INFO] discord.voice_state: Connecting to voice...
+2026-03-03 21:30:00 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-03-03 21:30:00 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:30:00 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 1.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:30:00 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:30:01 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 2)
+2026-03-03 21:30:01 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:30:02 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 3.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:30:02 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:30:05 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 3)
+2026-03-03 21:30:05 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:30:05 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 5.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:30:05 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:30:10 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 4)
+2026-03-03 21:30:11 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:30:11 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 7.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:30:11 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:30:18 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 5)
+2026-03-03 21:30:18 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:30:18 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 9.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:30:18 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:30:27 [INFO] discord.voice_state: Voice connection complete.
+2026-03-03 21:30:27 [INFO] discord.voice_state: Disconnecting from voice normally, close code 1000.
+2026-03-03 21:30:27 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:30:29 [INFO] MusicBot: Reconnect attempt 2/3 for Сервер користувача Alxcgs
+2026-03-03 21:30:29 [INFO] discord.voice_state: Connecting to voice...
+2026-03-03 21:30:29 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-03-03 21:30:29 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:30:30 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 1.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:30:30 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:30:31 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 2)
+2026-03-03 21:30:31 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:30:31 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 3.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:30:31 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:30:34 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 3)
+2026-03-03 21:30:34 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:30:34 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 5.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:30:34 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:30:39 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 4)
+2026-03-03 21:30:40 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:30:40 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 7.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:30:40 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:30:47 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 5)
+2026-03-03 21:30:47 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:30:47 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 9.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:30:47 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:30:56 [INFO] discord.voice_state: Voice connection complete.
+2026-03-03 21:30:56 [INFO] discord.voice_state: Disconnecting from voice normally, close code 1000.
+2026-03-03 21:30:56 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:31:00 [INFO] MusicBot: Reconnect attempt 3/3 for Сервер користувача Alxcgs
+2026-03-03 21:31:00 [INFO] discord.voice_state: Connecting to voice...
+2026-03-03 21:31:00 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-03-03 21:31:01 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:31:01 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 1.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:31:01 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:31:02 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 2)
+2026-03-03 21:31:02 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:31:02 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 3.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:31:02 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:31:05 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 3)
+2026-03-03 21:31:06 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:31:06 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 5.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:31:06 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:31:11 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 4)
+2026-03-03 21:31:11 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:31:11 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 7.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:31:11 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:31:19 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 5)
+2026-03-03 21:31:19 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:31:19 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 9.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:31:19 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:31:28 [INFO] discord.voice_state: Voice connection complete.
+2026-03-03 21:31:28 [INFO] discord.voice_state: Disconnecting from voice normally, close code 1000.
+2026-03-03 21:31:28 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:31:28 [ERROR] MusicBot: Failed to reconnect after 3 attempts for Сервер користувача Alxcgs
+2026-03-03 21:39:27 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-03-03 21:39:27 [INFO] root: Бот вимикається...
+2026-03-03 21:39:31 [INFO] root: Opus завантажено (default)
+2026-03-03 21:39:31 [INFO] discord.client: logging in using static token
+2026-03-03 21:39:33 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 4c22529d3bdc25742f422727d2ec2899).
+2026-03-03 21:39:35 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-03-03 21:39:35 [INFO] root: ID бота: 1368988347619479635
+2026-03-03 21:39:36 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot2\data\music_bot.db
+2026-03-03 21:39:36 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-03-03 21:39:36 [INFO] root: Завантажено ког: slash_music_cog
+2026-03-03 21:39:36 [INFO] root: Синхронізовано 14 Slash-команд.
+2026-03-03 21:39:36 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-03-03 21:39:45 [INFO] discord.voice_state: Connecting to voice...
+2026-03-03 21:39:45 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-03-03 21:39:45 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:39:46 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 1.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:39:46 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:39:47 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 2)
+2026-03-03 21:39:47 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:39:47 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 3.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:39:47 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:39:50 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 3)
+2026-03-03 21:39:50 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:39:50 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 5.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:39:50 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:39:55 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 4)
+2026-03-03 21:39:56 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:39:56 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 7.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:39:56 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:40:03 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 5)
+2026-03-03 21:40:03 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:40:03 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 9.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:40:03 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:40:12 [INFO] discord.voice_state: Voice connection complete.
+2026-03-03 21:40:12 [INFO] discord.voice_state: Disconnecting from voice normally, close code 1000.
+2026-03-03 21:40:12 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:40:12 [WARNING] MusicBot: Voice not connected for guild Сервер користувача Alxcgs, attempting reconnect...
+2026-03-03 21:40:12 [INFO] MusicBot: Reconnect attempt 1/3 for Сервер користувача Alxcgs
+2026-03-03 21:40:12 [INFO] discord.voice_state: Connecting to voice...
+2026-03-03 21:40:12 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-03-03 21:40:12 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:40:12 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 1.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:40:12 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:40:13 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 2)
+2026-03-03 21:40:14 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:40:14 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 3.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:40:14 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:40:17 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 3)
+2026-03-03 21:40:17 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:40:17 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 5.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:40:17 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:40:22 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 4)
+2026-03-03 21:40:23 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:40:23 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 7.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:40:23 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:40:30 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 5)
+2026-03-03 21:40:30 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:40:30 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 9.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:40:30 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:40:39 [INFO] discord.voice_state: Voice connection complete.
+2026-03-03 21:40:39 [INFO] discord.voice_state: Disconnecting from voice normally, close code 1000.
+2026-03-03 21:40:39 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:40:41 [INFO] MusicBot: Reconnect attempt 2/3 for Сервер користувача Alxcgs
+2026-03-03 21:40:41 [INFO] discord.voice_state: Connecting to voice...
+2026-03-03 21:40:41 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-03-03 21:40:42 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:40:42 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 1.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:40:42 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:40:43 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 2)
+2026-03-03 21:40:43 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:40:43 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 3.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:40:43 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:40:46 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 3)
+2026-03-03 21:40:47 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:40:47 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 5.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:40:47 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:40:52 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 4)
+2026-03-03 21:40:52 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:40:52 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 7.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:40:52 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:40:59 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 5)
+2026-03-03 21:40:59 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:41:00 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 9.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:41:00 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:41:09 [INFO] discord.voice_state: Voice connection complete.
+2026-03-03 21:41:09 [INFO] discord.voice_state: Disconnecting from voice normally, close code 1000.
+2026-03-03 21:41:09 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:41:13 [INFO] MusicBot: Reconnect attempt 3/3 for Сервер користувача Alxcgs
+2026-03-03 21:41:13 [INFO] discord.voice_state: Connecting to voice...
+2026-03-03 21:41:13 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-03-03 21:41:13 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:41:13 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 1.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:41:13 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:41:14 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 2)
+2026-03-03 21:41:14 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:41:14 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 3.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:41:14 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:41:17 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 3)
+2026-03-03 21:41:18 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:41:18 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 5.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:41:18 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:41:21 [INFO] discord.gateway: Shard ID None session has been invalidated.
+2026-03-03 21:41:23 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 4)
+2026-03-03 21:41:23 [ERROR] discord.voice_state: Error connecting to voice... disconnecting
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 384, in _wrap_connect
+    await self._connect(*args)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 429, in _connect
+    await asyncio.wait_for(
+    ...<2 lines>...
+    )
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\asyncio\tasks.py", line 488, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 402, in _inner_connect
+    await self._voice_connect(self_deaf=self_deaf, self_mute=self_mute)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 563, in _voice_connect
+    await channel.guild.change_voice_state(channel=channel, self_deaf=self_deaf, self_mute=self_mute)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\guild.py", line 4531, in change_voice_state
+    await ws.voice_state(self.id, channel_id, self_mute, self_deaf)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 763, in voice_state
+    await self.send_as_json(payload)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 671, in send_as_json
+    await self.send(utils._to_json(data))
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 667, in send
+    await self.socket.send_str(data)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\client_ws.py", line 245, in send_str
+    await self._writer.send_frame(
+        data.encode("utf-8"), WSMsgType.TEXT, compress=compress
+    )
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\_websocket\writer.py", line 79, in send_frame
+    raise ClientConnectionResetError("Cannot write to closing transport")
+aiohttp.client_exceptions.ClientConnectionResetError: Cannot write to closing transport
+2026-03-03 21:41:23 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:41:23 [WARNING] MusicBot: Reconnect attempt 3 failed: Cannot write to closing transport
+2026-03-03 21:41:23 [ERROR] MusicBot: Failed to reconnect after 3 attempts for Сервер користувача Alxcgs
+2026-03-03 21:41:26 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-03-03 21:41:26 [CRITICAL] root: Критична помилка під час запуску бота: Shard ID None WebSocket closed with 4004
+2026-03-03 21:43:18 [INFO] root: Opus завантажено (default)
+2026-03-03 21:43:18 [INFO] discord.client: logging in using static token
+2026-03-03 21:43:19 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: c845b7d458f0ec5dc47ffd26ea3ed2e4).
+2026-03-03 21:43:21 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-03-03 21:43:21 [INFO] root: ID бота: 1368988347619479635
+2026-03-03 21:43:21 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot2\data\music_bot.db
+2026-03-03 21:43:21 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-03-03 21:43:21 [INFO] root: Завантажено ког: slash_music_cog
+2026-03-03 21:43:22 [INFO] root: Синхронізовано 14 Slash-команд.
+2026-03-03 21:43:22 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-03-03 21:43:35 [INFO] discord.voice_state: Connecting to voice...
+2026-03-03 21:43:35 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-03-03 21:43:35 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:43:35 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 1.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:43:35 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:43:36 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 2)
+2026-03-03 21:43:36 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:43:37 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 3.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:43:37 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:43:40 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 3)
+2026-03-03 21:43:40 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:43:40 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 5.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:43:40 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:43:45 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 4)
+2026-03-03 21:43:45 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:43:45 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 7.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:43:45 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:43:52 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 5)
+2026-03-03 21:43:53 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:43:53 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 9.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:43:53 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:44:02 [INFO] discord.voice_state: Voice connection complete.
+2026-03-03 21:44:02 [INFO] discord.voice_state: Disconnecting from voice normally, close code 1000.
+2026-03-03 21:44:02 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:44:02 [WARNING] MusicBot: Voice not connected for guild Сервер користувача Alxcgs, attempting reconnect...
+2026-03-03 21:44:02 [INFO] MusicBot: Reconnect attempt 1/3 for Сервер користувача Alxcgs
+2026-03-03 21:44:02 [INFO] discord.voice_state: Connecting to voice...
+2026-03-03 21:44:02 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-03-03 21:44:02 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:44:02 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 1.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:44:02 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:44:03 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 2)
+2026-03-03 21:44:04 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e86c15cb.discord.media:8443
+2026-03-03 21:44:04 [ERROR] discord.voice_state: Failed to connect to voice... Retrying in 3.0s...
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 413, in _inner_connect
+    await self._handshake_websocket()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_state.py", line 586, in _handshake_websocket
+    await self.ws.poll_event()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 1053, in poll_event
+    raise ConnectionClosed(self.ws, shard_id=None, code=self._close_code)
+discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4017
+2026-03-03 21:44:04 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:44:05 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 21:44:07 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 3)
+2026-03-03 21:44:07 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-03-03 21:44:07 [INFO] root: Бот вимикається...
+2026-03-03 21:46:40 [WARNING] discord.client: davey is not installed, voice will NOT be supported
+2026-03-03 21:46:41 [INFO] root: Opus завантажено (default)
+2026-03-03 21:46:41 [INFO] discord.client: logging in using static token
+2026-03-03 21:46:42 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 91438ad0d1cc24c567a064d00c1ce0ba).
+2026-03-03 21:46:44 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-03-03 21:46:44 [INFO] root: ID бота: 1368988347619479635
+2026-03-03 21:46:44 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot2\data\music_bot.db
+2026-03-03 21:46:44 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-03-03 21:46:44 [INFO] root: Завантажено ког: slash_music_cog
+2026-03-03 21:46:44 [INFO] root: Синхронізовано 14 Slash-команд.
+2026-03-03 21:46:44 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-03-03 21:46:55 [ERROR] discord.app_commands.tree: Ignoring exception in command 'join'
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\app_commands\commands.py", line 858, in _do_call
+    return await self._callback(self.binding, interaction, **params)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot2\discord_music_bot\cogs\slash_music_cog.py", line 376, in join
+    await channel.connect(timeout=consts.TIMEOUT_VOICE_CONNECT, reconnect=True)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\abc.py", line 2144, in connect
+    voice: T = cls(client, self)
+               ~~~^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\voice_client.py", line 222, in __init__
+    raise RuntimeError('davey library needed in order to use voice')
+RuntimeError: davey library needed in order to use voice
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\app_commands\tree.py", line 1302, in _call
+    await command._invoke_with_namespace(interaction, namespace)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\app_commands\commands.py", line 884, in _invoke_with_namespace
+    return await self._do_call(interaction, transformed_values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\app_commands\commands.py", line 877, in _do_call
+    raise CommandInvokeError(self, e) from e
+discord.app_commands.errors.CommandInvokeError: Command 'join' raised an exception: RuntimeError: davey library needed in order to use voice
+2026-03-03 21:47:42 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-03-03 21:47:42 [INFO] root: Бот вимикається...
+2026-03-03 21:51:50 [INFO] root: Opus завантажено (default)
+2026-03-03 21:51:50 [INFO] discord.client: logging in using static token
+2026-03-03 21:51:51 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 02e5f3934a5d64a4adf9b03094a7f179).
+2026-03-03 21:51:53 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-03-03 21:51:53 [INFO] root: ID бота: 1368988347619479635
+2026-03-03 21:51:54 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot2\data\music_bot.db
+2026-03-03 21:51:54 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-03-03 21:51:54 [INFO] root: Завантажено ког: slash_music_cog
+2026-03-03 21:51:54 [INFO] root: Синхронізовано 14 Slash-команд.
+2026-03-03 21:51:54 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-03-03 21:52:10 [INFO] discord.voice_state: Connecting to voice...
+2026-03-03 21:52:10 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-03-03 21:52:10 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw04-ab86fe5c.discord.media:8443
+2026-03-03 21:52:10 [INFO] discord.voice_state: Voice connection complete.
+2026-03-03 21:52:29 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=kcuMzuYYnYk
+2026-03-03 21:52:31 [INFO] root: Creating audio pipeline for: Hot
+2026-03-03 21:52:32 [INFO] root: Audio pipeline started for: Hot
+2026-03-03 21:56:10 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=jSwq2fRaZiA
+2026-03-03 21:56:12 [INFO] root: Creating audio pipeline for: КРУТАЯ МУЗЫКА В МАШИНУ 2022 🔊 КЛАССНАЯ МУЗЫКА 2022 🔊 НОВАЯ БАСС МУЗЫКА И ПЕСНИ В МАШИНУ 2022
+2026-03-03 21:56:12 [INFO] root: Audio pipeline started for: КРУТАЯ МУЗЫКА В МАШИНУ 2022 🔊 КЛАССНАЯ МУЗЫКА 2022 🔊 НОВАЯ БАСС МУЗЫКА И ПЕСНИ В МАШИНУ 2022
+2026-03-03 21:56:54 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-03-03 21:56:55 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=wZXFBSUqO_k
+2026-03-03 21:56:57 [INFO] root: Creating audio pipeline for: КРУТАЯ МУЗЫКА В МАШИНУ 2022 🔊 КЛАССНАЯ МУЗЫКА 2022 🔊 НОВАЯ БАСС МУЗЫКА И ПЕСНИ В МАШИНУ 2022
+2026-03-03 21:56:57 [INFO] root: Audio pipeline started for: КРУТАЯ МУЗЫКА В МАШИНУ 2022 🔊 КЛАССНАЯ МУЗЫКА 2022 🔊 НОВАЯ БАСС МУЗЫКА И ПЕСНИ В МАШИНУ 2022
+2026-03-03 22:01:55 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-03-03 22:01:56 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=Cb3h334f9pg
+2026-03-03 22:01:57 [INFO] root: Creating audio pipeline for: КРУТАЯ МУЗЫКА В МАШИНУ 2022 🔊 КЛАССНАЯ МУЗЫКА 2022 🔊 НОВАЯ БАСС МУЗЫКА И ПЕСНИ В МАШИНУ 2022
+2026-03-03 22:01:57 [INFO] root: Audio pipeline started for: КРУТАЯ МУЗЫКА В МАШИНУ 2022 🔊 КЛАССНАЯ МУЗЫКА 2022 🔊 НОВАЯ БАСС МУЗЫКА И ПЕСНИ В МАШИНУ 2022
+2026-03-03 22:03:10 [INFO] MusicBot: check_after_play: skipped for guild 1369110517070823464 (previous button)
+2026-03-03 22:03:11 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=wZXFBSUqO_k
+2026-03-03 22:03:12 [INFO] root: Creating audio pipeline for: КРУТАЯ МУЗЫКА В МАШИНУ 2022 🔊 КЛАССНАЯ МУЗЫКА 2022 🔊 НОВАЯ БАСС МУЗЫКА И ПЕСНИ В МАШИНУ 2022
+2026-03-03 22:03:12 [INFO] root: Audio pipeline started for: КРУТАЯ МУЗЫКА В МАШИНУ 2022 🔊 КЛАССНАЯ МУЗЫКА 2022 🔊 НОВАЯ БАСС МУЗЫКА И ПЕСНИ В МАШИНУ 2022
+2026-03-03 22:03:19 [INFO] MusicBot: check_after_play: skipped for guild 1369110517070823464 (previous button)
+2026-03-03 22:03:19 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=jSwq2fRaZiA
+2026-03-03 22:03:21 [INFO] root: Creating audio pipeline for: КРУТАЯ МУЗЫКА В МАШИНУ 2022 🔊 КЛАССНАЯ МУЗЫКА 2022 🔊 НОВАЯ БАСС МУЗЫКА И ПЕСНИ В МАШИНУ 2022
+2026-03-03 22:03:21 [INFO] root: Audio pipeline started for: КРУТАЯ МУЗЫКА В МАШИНУ 2022 🔊 КЛАССНАЯ МУЗЫКА 2022 🔊 НОВАЯ БАСС МУЗЫКА И ПЕСНИ В МАШИНУ 2022
+2026-03-03 22:03:26 [INFO] MusicBot: check_after_play: skipped for guild 1369110517070823464 (previous button)
+2026-03-03 22:03:26 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=kcuMzuYYnYk
+2026-03-03 22:03:28 [INFO] root: Creating audio pipeline for: Hot
+2026-03-03 22:03:28 [INFO] root: Audio pipeline started for: Hot
+2026-03-03 22:05:49 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=cSnkWzZ7ZAA
+2026-03-03 22:05:50 [INFO] root: Creating audio pipeline for: Flo Rida - Whistle [Official Video]
+2026-03-03 22:05:50 [INFO] root: Audio pipeline started for: Flo Rida - Whistle [Official Video]
+2026-03-03 22:06:55 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-03-03 22:07:58 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-03 22:46:37 [INFO] discord.gateway: Shard ID None has successfully RESUMED session 02e5f3934a5d64a4adf9b03094a7f179.
+2026-03-03 22:48:19 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-03-03 22:48:19 [INFO] root: Бот вимикається...

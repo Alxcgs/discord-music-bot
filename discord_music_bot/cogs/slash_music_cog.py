@@ -170,6 +170,46 @@ class MusicCog(commands.Cog):
         except Exception as e:
             self.logger.error(f"Update player error: {e}")
 
+    async def _force_voice_cleanup(self, guild):
+        """Примусово очищає будь-яке існуюче voice з'єднання для гільдії."""
+        voice_client = guild.voice_client
+        if voice_client:
+            self.logger.info(f"Force cleanup: disconnecting stale voice client for {guild.name}")
+            try:
+                if voice_client.is_playing():
+                    voice_client.stop()
+                await voice_client.disconnect(force=True)
+            except Exception as e:
+                self.logger.warning(f"Force cleanup error (ignorable): {e}")
+            # Даємо Discord час очистити стару сесію
+            await asyncio.sleep(5)
+
+    async def _ensure_voice_connected(self, voice_client, guild):
+        """Перевіряє voice з'єднання та намагається одноразовий reconnect якщо не підключений."""
+        if voice_client and voice_client.is_connected():
+            return voice_client
+        
+        # Спробувати reconnect
+        channel = voice_client.channel if voice_client else None
+        if not channel:
+            self.logger.error(f"Cannot reconnect: no voice channel reference for guild {guild.id}")
+            return None
+        
+        self.logger.warning(f"Voice not connected for guild {guild.name}, attempting single reconnect...")
+        
+        # Force cleanup stale connection first
+        await self._force_voice_cleanup(guild)
+        
+        try:
+            new_vc = await channel.connect(timeout=consts.TIMEOUT_VOICE_CONNECT, reconnect=True)
+            if new_vc and new_vc.is_connected():
+                self.logger.info(f"Reconnected to {channel.name} ({guild.name})")
+                return new_vc
+        except Exception as e:
+            self.logger.error(f"Reconnect failed for {guild.name}: {e}")
+        
+        return None
+
     async def play_next_song(self, guild, voice_client):
         try:
             guild_id = guild.id
@@ -189,6 +229,16 @@ class MusicCog(commands.Cog):
             
             queue = self.queue_service.get_queue(guild_id)
             if queue:
+                # Ensure voice is connected before trying to play
+                voice_client = await self._ensure_voice_connected(voice_client, guild)
+                if not voice_client:
+                    self.logger.error(f"Cannot play: voice not connected for guild {guild.name}")
+                    if guild_id in self.player_channels:
+                        channel = self.bot.get_channel(self.player_channels[guild_id])
+                        if channel:
+                            await channel.send("❌ Не вдалося підключитися до голосового каналу. Скористайтеся `/play` знову.")
+                    return
+                
                 item = self.queue_service.get_next_track(guild_id)
                 try:
                     player = await self.player_service.play_stream(
@@ -322,6 +372,7 @@ class MusicCog(commands.Cog):
             else:
                 await interaction.followup.send("Я вже тут!", ephemeral=True)
         else:
+            await self._force_voice_cleanup(interaction.guild)
             await channel.connect(timeout=consts.TIMEOUT_VOICE_CONNECT, reconnect=True)
             self.player_channels[interaction.guild.id] = interaction.channel.id # Save channel for notifications
             await interaction.followup.send(f"Приєднався до {channel.mention}")
@@ -337,7 +388,16 @@ class MusicCog(commands.Cog):
         
         voice_client = interaction.guild.voice_client
         if not voice_client:
+            # Force cleanup any stale session before connecting (prevents 4017)
+            await self._force_voice_cleanup(interaction.guild)
             voice_client = await interaction.user.voice.channel.connect(timeout=consts.TIMEOUT_VOICE_CONNECT, reconnect=True)
+        
+        # Verify connection is actually established
+        if not voice_client or not voice_client.is_connected():
+            voice_client = await self._ensure_voice_connected(voice_client, interaction.guild)
+            if not voice_client:
+                await interaction.followup.send("❌ Не вдалося підключитися до голосового каналу. Спробуйте ще раз.")
+                return
         
         self.player_channels[interaction.guild.id] = interaction.channel.id # Save channel for notifications
         # Check for playlist

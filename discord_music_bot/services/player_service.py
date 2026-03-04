@@ -10,9 +10,18 @@ class PlayerService:
     async def play_stream(self, voice_client: discord.VoiceClient, url: str, loop: asyncio.AbstractEventLoop, after_callback) -> YTDLSource:
         """Creates a player and starts playing on the voice client."""
         try:
+            # Check voice connection before attempting playback
+            if not voice_client or not voice_client.is_connected():
+                raise discord.errors.ClientException("Voice client is not connected — cannot start playback.")
+            
             player = await YTDLSource.from_url(url, loop=loop, stream=True)
             if player is None:
                 raise ValueError(f"Failed to create audio source for URL: {url}")
+            
+            # Double-check connection (could have dropped during URL extraction)
+            if not voice_client.is_connected():
+                raise discord.errors.ClientException("Voice connection lost while preparing audio source.")
+            
             voice_client.play(player, after=after_callback)
             return player
         except Exception as e:
