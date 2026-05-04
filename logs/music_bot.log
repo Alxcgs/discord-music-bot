@@ -3951,3 +3951,760 @@ discord.app_commands.errors.CommandInvokeError: Command 'join' raised an excepti
 2026-03-03 22:46:37 [INFO] discord.gateway: Shard ID None has successfully RESUMED session 02e5f3934a5d64a4adf9b03094a7f179.
 2026-03-03 22:48:19 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
 2026-03-03 22:48:19 [INFO] root: Бот вимикається...
+2026-03-04 22:08:50 [INFO] root: Opus завантажено (default)
+2026-03-04 22:08:50 [INFO] discord.client: logging in using static token
+2026-03-04 22:08:51 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: d93ba78085f9208c9a1444442fa0c2f8).
+2026-03-04 22:08:53 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-03-04 22:08:53 [INFO] root: ID бота: 1368988347619479635
+2026-03-04 22:08:55 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot2\data\music_bot.db
+2026-03-04 22:08:55 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-03-04 22:08:55 [INFO] root: Завантажено ког: slash_music_cog
+2026-03-04 22:08:55 [INFO] root: Синхронізовано 14 Slash-команд.
+2026-03-04 22:08:55 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-03-04 22:09:24 [INFO] discord.voice_state: Connecting to voice...
+2026-03-04 22:09:24 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-03-04 22:09:24 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw02-181fc86c.discord.media:2096
+2026-03-04 22:09:25 [INFO] discord.voice_state: Voice connection complete.
+2026-03-04 22:10:41 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=cSnkWzZ7ZAA
+2026-03-04 22:10:43 [INFO] root: Creating audio pipeline for: Flo Rida - Whistle [Official Video]
+2026-03-04 22:10:43 [INFO] root: Audio pipeline started for: Flo Rida - Whistle [Official Video]
+2026-03-04 22:13:55 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-03-04 22:15:01 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-04 22:31:16 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-03-04 22:31:16 [INFO] root: Бот вимикається...
+2026-03-05 14:53:41 [INFO] root: Opus завантажено (default)
+2026-03-05 14:53:41 [INFO] discord.client: logging in using static token
+2026-03-05 14:53:43 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 06db4c89cf9640c344985b77f48263c2).
+2026-03-05 14:53:45 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-03-05 14:53:45 [INFO] root: ID бота: 1368988347619479635
+2026-03-05 14:53:45 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot2\data\music_bot.db
+2026-03-05 14:53:45 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-03-05 14:53:45 [INFO] root: Завантажено ког: slash_music_cog
+2026-03-05 14:53:46 [INFO] root: Синхронізовано 14 Slash-команд.
+2026-03-05 14:53:46 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-03-05 14:53:58 [INFO] discord.voice_state: Connecting to voice...
+2026-03-05 14:53:58 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-03-05 14:53:58 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw02-5f2ee95d.discord.media:8443
+2026-03-05 14:53:59 [INFO] discord.voice_state: Voice connection complete.
+2026-03-05 14:54:25 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=OMyrlADILYo
+2026-03-05 14:54:28 [INFO] root: Creating audio pipeline for: Inna - Hot (lyrics)
+2026-03-05 14:54:28 [INFO] root: Audio pipeline started for: Inna - Hot (lyrics)
+2026-03-05 14:55:20 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-03-05 14:55:29 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-03-05 14:55:29 [INFO] root: Бот вимикається...
+2026-04-06 21:41:02 [INFO] root: Opus завантажено (default)
+2026-04-06 21:41:02 [INFO] discord.client: logging in using static token
+2026-04-06 21:41:03 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: ea4c4cb3a4665f3c505101410be2dd13).
+2026-04-06 21:41:05 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-04-06 21:41:05 [INFO] root: ID бота: 1368988347619479635
+2026-04-06 21:41:05 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot2\data\music_bot.db
+2026-04-06 21:41:05 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-04-06 21:41:05 [INFO] root: Завантажено ког: slash_music_cog
+2026-04-06 21:41:06 [INFO] root: Синхронізовано 14 Slash-команд.
+2026-04-06 21:41:06 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-04-06 21:41:19 [INFO] discord.voice_state: Connecting to voice...
+2026-04-06 21:41:19 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-04-06 21:41:19 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: warsaw12077.discord.media:443
+2026-04-06 21:41:20 [INFO] discord.voice_state: Voice connection complete.
+2026-04-06 21:41:39 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=hPHGzIb0_8A
+2026-04-06 21:41:41 [INFO] root: Creating audio pipeline for: grouping
+2026-04-06 21:41:42 [INFO] root: Audio pipeline started for: grouping
+2026-04-06 21:44:15 [INFO] root: Attempting to extract info for URL: https://music.youtube.com/watch?v=bpZTTAm_j-M
+2026-04-06 21:44:16 [INFO] root: Creating audio pipeline for: Ти мій
+2026-04-06 21:44:16 [INFO] root: Audio pipeline started for: Ти мій
+2026-04-06 21:46:06 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-04-06 21:46:10 [INFO] root: Attempting to extract info for URL: https://music.youtube.com/watch?v=lXI_T_9uU6s
+2026-04-06 21:46:12 [INFO] root: Creating audio pipeline for: VERKA SERDUCHKA — ГОП-ГОП-ГОП  (Official Video)
+2026-04-06 21:46:12 [INFO] root: Audio pipeline started for: VERKA SERDUCHKA — ГОП-ГОП-ГОП  (Official Video)
+2026-04-06 21:49:59 [INFO] root: Attempting to extract info for URL: https://music.youtube.com/watch?v=m1ueexDdg5k
+2026-04-06 21:50:02 [INFO] root: Creating audio pipeline for: Позич мені сонце
+2026-04-06 21:50:02 [INFO] root: Audio pipeline started for: Позич мені сонце
+2026-04-06 21:51:08 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-04-06 21:51:09 [INFO] root: Attempting to extract info for URL: https://music.youtube.com/watch?v=EaQEnpYoA2U
+2026-04-06 21:51:10 [INFO] root: Creating audio pipeline for: Вона
+2026-04-06 21:51:10 [INFO] root: Audio pipeline started for: Вона
+2026-04-06 21:51:18 [INFO] root: Attempting to extract info for URL: https://music.youtube.com/watch?v=eLD-EjVFpiw
+2026-04-06 21:51:20 [INFO] root: Creating audio pipeline for: Скрябiн – Годинник [Lyric Video]
+2026-04-06 21:51:20 [INFO] root: Audio pipeline started for: Скрябiн – Годинник [Lyric Video]
+2026-04-06 21:55:00 [INFO] root: Attempting to extract info for URL: https://music.youtube.com/watch?v=C9N4b-OohjU
+2026-04-06 21:55:01 [INFO] root: Creating audio pipeline for: Юний орел (Live)
+2026-04-06 21:55:01 [INFO] root: Audio pipeline started for: Юний орел (Live)
+2026-04-06 21:56:09 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-04-06 21:56:11 [INFO] root: Attempting to extract info for URL: https://music.youtube.com/watch?v=D9WmnYf1c9c
+2026-04-06 21:56:13 [INFO] root: Creating audio pipeline for: Green Grey - Подо**ем Под Дождем
+2026-04-06 21:56:13 [INFO] root: Audio pipeline started for: Green Grey - Подо**ем Под Дождем
+2026-04-06 22:00:49 [INFO] root: Attempting to extract info for URL: https://music.youtube.com/watch?v=n3V6N2v-VwE
+2026-04-06 22:00:51 [INFO] root: Creating audio pipeline for: Назарій Яремчук, пісня Стожари [1981]
+2026-04-06 22:00:51 [INFO] root: Audio pipeline started for: Назарій Яремчук, пісня Стожари [1981]
+2026-04-06 22:01:09 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-04-06 22:01:10 [INFO] root: Attempting to extract info for URL: https://music.youtube.com/watch?v=QIL0Ad1Ax_I
+2026-04-06 22:01:11 [INFO] root: Creating audio pipeline for: Конь (Купыла мама коника)
+2026-04-06 22:01:11 [INFO] root: Audio pipeline started for: Конь (Купыла мама коника)
+2026-04-06 22:05:20 [INFO] root: Attempting to extract info for URL: https://music.youtube.com/watch?v=3jVxTmX1POE
+2026-04-06 22:05:21 [INFO] root: Creating audio pipeline for: Марія Бурмака Розлюби мене
+2026-04-06 22:05:21 [INFO] root: Audio pipeline started for: Марія Бурмака Розлюби мене
+2026-04-06 22:06:10 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-04-06 22:06:10 [INFO] root: Attempting to extract info for URL: https://music.youtube.com/watch?v=RLQ6LVZkA9M
+2026-04-06 22:06:12 [INFO] root: Creating audio pipeline for: Тартак feat. Світязь — Ні, Я Не Ту Кохав
+2026-04-06 22:06:12 [INFO] root: Audio pipeline started for: Тартак feat. Світязь — Ні, Я Не Ту Кохав
+2026-04-06 22:10:06 [INFO] root: Attempting to extract info for URL: https://music.youtube.com/watch?v=fLLAXWBVSW4
+2026-04-06 22:10:07 [INFO] root: Creating audio pipeline for: А я пливу
+2026-04-06 22:10:07 [INFO] root: Audio pipeline started for: А я пливу
+2026-04-06 22:11:10 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-04-06 22:11:11 [INFO] root: Attempting to extract info for URL: https://music.youtube.com/watch?v=lhE5veFQ2Fo
+2026-04-06 22:11:12 [INFO] root: Creating audio pipeline for: Судний день
+2026-04-06 22:11:12 [INFO] root: Audio pipeline started for: Судний день
+2026-04-06 22:14:45 [INFO] root: Attempting to extract info for URL: https://music.youtube.com/watch?v=shWap9T13zU
+2026-04-06 22:14:47 [INFO] root: Creating audio pipeline for: Я рождена для любви
+2026-04-06 22:14:47 [INFO] root: Audio pipeline started for: Я рождена для любви
+2026-04-06 22:16:11 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-04-06 22:16:13 [INFO] root: Attempting to extract info for URL: https://music.youtube.com/watch?v=-6kYEWEJR7M
+2026-04-06 22:16:14 [INFO] root: Creating audio pipeline for: Весна
+2026-04-06 22:16:14 [INFO] root: Audio pipeline started for: Весна
+2026-04-06 22:21:11 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-04-06 22:21:13 [INFO] root: Attempting to extract info for URL: https://music.youtube.com/watch?v=oIOq7BdSMKU
+2026-04-06 22:21:15 [INFO] root: Creating audio pipeline for: Скрябін — Танець пінгвіна [Official Video]
+2026-04-06 22:21:15 [INFO] root: Audio pipeline started for: Скрябін — Танець пінгвіна [Official Video]
+2026-04-06 22:26:06 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-04-06 22:33:49 [INFO] discord.gateway: Shard ID None has successfully RESUMED session ea4c4cb3a4665f3c505101410be2dd13.
+2026-04-06 23:09:11 [INFO] discord.gateway: Shard ID None has successfully RESUMED session ea4c4cb3a4665f3c505101410be2dd13.
+2026-04-07 06:14:00 [ERROR] discord.client: Attempting a reconnect in 0.51s
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1562, in _create_direct_connection
+    hosts = await self._resolve_host(host, port, traces=traces)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1178, in _resolve_host
+    return await asyncio.shield(resolved_host_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1209, in _resolve_host_with_throttle
+    addrs = await self._resolver.resolve(host, port, family=self._family)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\resolver.py", line 40, in resolve
+    infos = await self._loop.getaddrinfo(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 936, in getaddrinfo
+    return await self.run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        None, getaddr_func, host, port, family, type, proto, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\socket.py", line 983, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\client.py", line 728, in connect
+    self.ws = await asyncio.wait_for(coro, timeout=60.0)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\asyncio\tasks.py", line 488, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 392, in from_client
+    socket = await client.http.ws_connect(str(url))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\http.py", line 571, in ws_connect
+    return await self.__session.ws_connect(url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\client.py", line 1076, in _ws_connect
+    resp = await self.request(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\client.py", line 779, in _request
+    resp = await handler(req)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\client.py", line 734, in _connect_and_send_request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        req, traces=traces, timeout=real_timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 672, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1239, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1568, in _create_direct_connection
+    raise ClientConnectorDNSError(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorDNSError: Cannot connect to host gateway-us-east1-b.discord.gg:443 ssl:default [getaddrinfo failed]
+2026-04-07 06:14:01 [ERROR] discord.client: Attempting a reconnect in 2.83s
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1562, in _create_direct_connection
+    hosts = await self._resolve_host(host, port, traces=traces)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1178, in _resolve_host
+    return await asyncio.shield(resolved_host_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1209, in _resolve_host_with_throttle
+    addrs = await self._resolver.resolve(host, port, family=self._family)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\resolver.py", line 40, in resolve
+    infos = await self._loop.getaddrinfo(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 936, in getaddrinfo
+    return await self.run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        None, getaddr_func, host, port, family, type, proto, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\socket.py", line 983, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno 11004] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\client.py", line 728, in connect
+    self.ws = await asyncio.wait_for(coro, timeout=60.0)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\asyncio\tasks.py", line 488, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 392, in from_client
+    socket = await client.http.ws_connect(str(url))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\http.py", line 571, in ws_connect
+    return await self.__session.ws_connect(url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\client.py", line 1076, in _ws_connect
+    resp = await self.request(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\client.py", line 779, in _request
+    resp = await handler(req)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\client.py", line 734, in _connect_and_send_request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        req, traces=traces, timeout=real_timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 672, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1239, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1568, in _create_direct_connection
+    raise ClientConnectorDNSError(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorDNSError: Cannot connect to host gateway-us-east1-b.discord.gg:443 ssl:default [getaddrinfo failed]
+2026-04-07 06:14:04 [ERROR] discord.client: Attempting a reconnect in 6.18s
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1562, in _create_direct_connection
+    hosts = await self._resolve_host(host, port, traces=traces)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1178, in _resolve_host
+    return await asyncio.shield(resolved_host_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1209, in _resolve_host_with_throttle
+    addrs = await self._resolver.resolve(host, port, family=self._family)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\resolver.py", line 40, in resolve
+    infos = await self._loop.getaddrinfo(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 936, in getaddrinfo
+    return await self.run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        None, getaddr_func, host, port, family, type, proto, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\socket.py", line 983, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno 11004] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\client.py", line 728, in connect
+    self.ws = await asyncio.wait_for(coro, timeout=60.0)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\asyncio\tasks.py", line 488, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 392, in from_client
+    socket = await client.http.ws_connect(str(url))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\http.py", line 571, in ws_connect
+    return await self.__session.ws_connect(url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\client.py", line 1076, in _ws_connect
+    resp = await self.request(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\client.py", line 779, in _request
+    resp = await handler(req)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\client.py", line 734, in _connect_and_send_request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        req, traces=traces, timeout=real_timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 672, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1239, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1568, in _create_direct_connection
+    raise ClientConnectorDNSError(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorDNSError: Cannot connect to host gateway-us-east1-b.discord.gg:443 ssl:default [getaddrinfo failed]
+2026-04-07 06:14:10 [INFO] discord.gateway: Shard ID None session has been invalidated.
+2026-04-07 06:14:16 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 8bbb826faac03737f3275fb42b7b41a7).
+2026-04-07 06:14:18 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-04-07 06:14:18 [INFO] root: ID бота: 1368988347619479635
+2026-04-07 06:14:18 [ERROR] root: Помилка завантаження кога slash_music_cog: Extension 'discord_music_bot.cogs.slash_music_cog' is already loaded.
+2026-04-07 06:14:19 [INFO] root: Синхронізовано 14 Slash-команд.
+2026-04-07 06:14:19 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-04-07 06:14:21 [INFO] MusicBot.AutoResume: Auto-Resume: немає активних серверів для відновлення.
+2026-04-07 21:26:00 [ERROR] discord.client: Attempting a reconnect in 1.10s
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1562, in _create_direct_connection
+    hosts = await self._resolve_host(host, port, traces=traces)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1178, in _resolve_host
+    return await asyncio.shield(resolved_host_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1209, in _resolve_host_with_throttle
+    addrs = await self._resolver.resolve(host, port, family=self._family)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\resolver.py", line 40, in resolve
+    infos = await self._loop.getaddrinfo(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 936, in getaddrinfo
+    return await self.run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        None, getaddr_func, host, port, family, type, proto, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\socket.py", line 983, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\client.py", line 728, in connect
+    self.ws = await asyncio.wait_for(coro, timeout=60.0)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\asyncio\tasks.py", line 488, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 392, in from_client
+    socket = await client.http.ws_connect(str(url))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\http.py", line 571, in ws_connect
+    return await self.__session.ws_connect(url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\client.py", line 1076, in _ws_connect
+    resp = await self.request(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\client.py", line 779, in _request
+    resp = await handler(req)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\client.py", line 734, in _connect_and_send_request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        req, traces=traces, timeout=real_timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 672, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1239, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1568, in _create_direct_connection
+    raise ClientConnectorDNSError(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorDNSError: Cannot connect to host gateway-us-east1-b.discord.gg:443 ssl:default [getaddrinfo failed]
+2026-04-07 21:26:02 [INFO] discord.gateway: Shard ID None session has been invalidated.
+2026-04-07 21:26:08 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 8ea5337422ba6a120e10bf27815cee90).
+2026-04-07 21:26:10 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-04-07 21:26:10 [INFO] root: ID бота: 1368988347619479635
+2026-04-07 21:26:10 [ERROR] root: Помилка завантаження кога slash_music_cog: Extension 'discord_music_bot.cogs.slash_music_cog' is already loaded.
+2026-04-07 21:26:11 [INFO] root: Синхронізовано 14 Slash-команд.
+2026-04-07 21:26:11 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-04-07 21:26:13 [INFO] MusicBot.AutoResume: Auto-Resume: немає активних серверів для відновлення.
+2026-04-08 06:19:22 [ERROR] discord.client: Attempting a reconnect in 1.85s
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1562, in _create_direct_connection
+    hosts = await self._resolve_host(host, port, traces=traces)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1178, in _resolve_host
+    return await asyncio.shield(resolved_host_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1209, in _resolve_host_with_throttle
+    addrs = await self._resolver.resolve(host, port, family=self._family)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\resolver.py", line 40, in resolve
+    infos = await self._loop.getaddrinfo(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 936, in getaddrinfo
+    return await self.run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        None, getaddr_func, host, port, family, type, proto, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\socket.py", line 983, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\client.py", line 728, in connect
+    self.ws = await asyncio.wait_for(coro, timeout=60.0)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\asyncio\tasks.py", line 488, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 392, in from_client
+    socket = await client.http.ws_connect(str(url))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\http.py", line 571, in ws_connect
+    return await self.__session.ws_connect(url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\client.py", line 1076, in _ws_connect
+    resp = await self.request(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\client.py", line 779, in _request
+    resp = await handler(req)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\client.py", line 734, in _connect_and_send_request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        req, traces=traces, timeout=real_timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 672, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1239, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1568, in _create_direct_connection
+    raise ClientConnectorDNSError(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorDNSError: Cannot connect to host gateway-us-east1-b.discord.gg:443 ssl:default [getaddrinfo failed]
+2026-04-08 06:19:25 [INFO] discord.gateway: Shard ID None session has been invalidated.
+2026-04-08 06:19:31 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: aaae8281c0e31dd84aeca9af7f06dc3c).
+2026-04-08 06:19:33 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-04-08 06:19:33 [INFO] root: ID бота: 1368988347619479635
+2026-04-08 06:19:34 [ERROR] root: Помилка завантаження кога slash_music_cog: Extension 'discord_music_bot.cogs.slash_music_cog' is already loaded.
+2026-04-08 06:19:34 [INFO] root: Синхронізовано 14 Slash-команд.
+2026-04-08 06:19:34 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-04-08 06:19:37 [INFO] MusicBot.AutoResume: Auto-Resume: немає активних серверів для відновлення.
+2026-04-08 21:28:21 [ERROR] discord.client: Attempting a reconnect in 1.80s
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1562, in _create_direct_connection
+    hosts = await self._resolve_host(host, port, traces=traces)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1178, in _resolve_host
+    return await asyncio.shield(resolved_host_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1209, in _resolve_host_with_throttle
+    addrs = await self._resolver.resolve(host, port, family=self._family)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\resolver.py", line 40, in resolve
+    infos = await self._loop.getaddrinfo(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 936, in getaddrinfo
+    return await self.run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        None, getaddr_func, host, port, family, type, proto, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\socket.py", line 983, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\client.py", line 728, in connect
+    self.ws = await asyncio.wait_for(coro, timeout=60.0)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\AppData\Local\Programs\Python\Python314\Lib\asyncio\tasks.py", line 488, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\gateway.py", line 392, in from_client
+    socket = await client.http.ws_connect(str(url))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\http.py", line 571, in ws_connect
+    return await self.__session.ws_connect(url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\client.py", line 1076, in _ws_connect
+    resp = await self.request(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\client.py", line 779, in _request
+    resp = await handler(req)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\client.py", line 734, in _connect_and_send_request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        req, traces=traces, timeout=real_timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 672, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1239, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\aiohttp\connector.py", line 1568, in _create_direct_connection
+    raise ClientConnectorDNSError(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorDNSError: Cannot connect to host gateway-us-east1-b.discord.gg:443 ssl:default [getaddrinfo failed]
+2026-04-08 21:28:24 [INFO] discord.gateway: Shard ID None session has been invalidated.
+2026-04-08 21:28:30 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 81bf6f95fac7e03515c40b1108699501).
+2026-04-08 21:28:32 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-04-08 21:28:32 [INFO] root: ID бота: 1368988347619479635
+2026-04-08 21:28:32 [ERROR] root: Помилка завантаження кога slash_music_cog: Extension 'discord_music_bot.cogs.slash_music_cog' is already loaded.
+2026-04-08 21:28:32 [INFO] root: Синхронізовано 14 Slash-команд.
+2026-04-08 21:28:32 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-04-08 21:28:35 [INFO] MusicBot.AutoResume: Auto-Resume: немає активних серверів для відновлення.
+2026-04-08 21:28:57 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-04-08 21:28:57 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-04-08 21:28:57 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-04-08 21:28:57 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-04-08 21:28:57 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-04-08 21:28:57 [INFO] root: Бот вимикається...
+2026-05-04 22:09:44 [INFO] root: Opus завантажено (default)
+2026-05-04 22:09:44 [INFO] discord.client: logging in using static token
+2026-05-04 22:09:46 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 03fe4b52ce07612160c5637404699292).
+2026-05-04 22:09:48 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-05-04 22:09:48 [INFO] root: ID бота: 1368988347619479635
+2026-05-04 22:09:49 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot2\data\music_bot.db
+2026-05-04 22:09:49 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-05-04 22:09:49 [INFO] root: Завантажено ког: slash_music_cog
+2026-05-04 22:09:49 [INFO] root: Синхронізовано 15 Slash-команд.
+2026-05-04 22:09:49 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-05-04 22:10:51 [INFO] discord.voice_state: Connecting to voice...
+2026-05-04 22:10:51 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-05-04 22:10:51 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-de63cabe.discord.media:2083
+2026-05-04 22:10:51 [INFO] discord.voice_state: Voice connection complete.
+2026-05-04 22:11:56 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=1GnxGrt1UL4
+2026-05-04 22:11:57 [INFO] root: Creating audio pipeline for: FIЇNKA - ВІВТАР( Степан Гіга cover «А я поклав своє кохання на вівтар» )
+2026-05-04 22:11:58 [INFO] root: Audio pipeline started for: FIЇNKA - ВІВТАР( Степан Гіга cover «А я поклав своє кохання на вівтар» )
+2026-05-04 22:13:15 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-05-04 22:14:01 [INFO] discord.voice_state: Connecting to voice...
+2026-05-04 22:14:01 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-05-04 22:14:01 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-de63cabe.discord.media:2083
+2026-05-04 22:14:01 [INFO] discord.voice_state: Voice connection complete.
+2026-05-04 22:14:11 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=kgDhCILEBao
+2026-05-04 22:14:14 [INFO] root: Creating audio pipeline for: Silver Night - Tender May, Bad Style, Calem OG [Urban Edition] (Music Video)
+2026-05-04 22:14:14 [INFO] root: Audio pipeline started for: Silver Night - Tender May, Bad Style, Calem OG [Urban Edition] (Music Video)
+2026-05-04 22:14:14 [ERROR] MusicBot: Update player error: 503 Service Unavailable (error code: 0): upstream connect error or disconnect/reset before headers. reset reason: overflow
+2026-05-04 22:14:25 [ERROR] discord.app_commands.tree: Ignoring exception in command 'play'
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\app_commands\commands.py", line 858, in _do_call
+    return await self._callback(self.binding, interaction, **params)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot2\discord_music_bot\cogs\slash_music_cog.py", line 426, in play
+    await interaction.response.defer()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\interactions.py", line 892, in defer
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\webhook\async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\app_commands\tree.py", line 1302, in _call
+    await command._invoke_with_namespace(interaction, namespace)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\app_commands\commands.py", line 884, in _invoke_with_namespace
+    return await self._do_call(interaction, transformed_values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\app_commands\commands.py", line 877, in _do_call
+    raise CommandInvokeError(self, e) from e
+discord.app_commands.errors.CommandInvokeError: Command 'play' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-05-04 22:14:50 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-04 22:14:50 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=3T_XfsREdhU
+2026-05-04 22:14:52 [INFO] root: Creating audio pipeline for: Tom Boxer ft Antonia - Morena (Official Video)
+2026-05-04 22:14:52 [INFO] root: Audio pipeline started for: Tom Boxer ft Antonia - Morena (Official Video)
+2026-05-04 22:18:33 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=55nLzvO8Sps
+2026-05-04 22:18:35 [INFO] root: Creating audio pipeline for: Lil Sleep - 2 Faced (ft. $LICK)
+2026-05-04 22:18:35 [INFO] root: Audio pipeline started for: Lil Sleep - 2 Faced (ft. $LICK)
+2026-05-04 22:19:51 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-04 22:19:54 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=QIL0Ad1Ax_I
+2026-05-04 22:19:55 [INFO] root: Creating audio pipeline for: Конь (Купыла мама коника)
+2026-05-04 22:19:55 [INFO] root: Audio pipeline started for: Конь (Купыла мама коника)
+2026-05-04 22:24:04 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=fLLAXWBVSW4
+2026-05-04 22:24:05 [INFO] root: Creating audio pipeline for: А я пливу
+2026-05-04 22:24:05 [INFO] root: Audio pipeline started for: А я пливу
+2026-05-04 22:24:51 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-04 22:24:54 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=3jVxTmX1POE
+2026-05-04 22:24:55 [INFO] root: Creating audio pipeline for: Марія Бурмака Розлюби мене
+2026-05-04 22:24:55 [INFO] root: Audio pipeline started for: Марія Бурмака Розлюби мене
+2026-05-04 22:28:28 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=EaQEnpYoA2U
+2026-05-04 22:28:30 [INFO] root: Creating audio pipeline for: Вона
+2026-05-04 22:28:31 [INFO] root: Audio pipeline started for: Вона
+2026-05-04 22:29:52 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-04 22:29:55 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=s4pSEhRwnlg
+2026-05-04 22:29:56 [INFO] root: Creating audio pipeline for: Star Monster - Crazy Brain
+2026-05-04 22:29:56 [INFO] root: Audio pipeline started for: Star Monster - Crazy Brain
+2026-05-04 22:32:35 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=pDbQPsENMoI
+2026-05-04 22:32:37 [INFO] root: Creating audio pipeline for: Харфанг feat. DJ Valiko - Золото (Official Video)
+2026-05-04 22:32:37 [INFO] root: Audio pipeline started for: Харфанг feat. DJ Valiko - Золото (Official Video)
+2026-05-04 22:34:52 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-04 22:34:56 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=-6kYEWEJR7M
+2026-05-04 22:34:57 [INFO] root: Creating audio pipeline for: Весна
+2026-05-04 22:34:57 [INFO] root: Audio pipeline started for: Весна
+2026-05-04 22:39:53 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-04 22:39:53 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=lhE5veFQ2Fo
+2026-05-04 22:39:55 [INFO] root: Creating audio pipeline for: Судний день
+2026-05-04 22:39:55 [INFO] root: Audio pipeline started for: Судний день
+2026-05-04 22:42:58 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-05-04 22:43:08 [INFO] root: Opus завантажено (default)
+2026-05-04 22:43:08 [INFO] discord.client: logging in using static token
+2026-05-04 22:43:09 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 591b66be995be8933e6a8cde82386b0f).
+2026-05-04 22:43:11 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-05-04 22:43:11 [INFO] root: ID бота: 1368988347619479635
+2026-05-04 22:43:12 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot2\data\music_bot.db
+2026-05-04 22:43:12 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-05-04 22:43:12 [INFO] root: Завантажено ког: slash_music_cog
+2026-05-04 22:43:12 [INFO] root: Синхронізовано 16 Slash-команд.
+2026-05-04 22:43:12 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-05-04 22:43:23 [INFO] discord.voice_state: Connecting to voice...
+2026-05-04 22:43:23 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-05-04 22:43:24 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-de63cabe.discord.media:2083
+2026-05-04 22:43:24 [INFO] discord.voice_state: Voice connection complete.
+2026-05-04 22:44:51 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=Y9jqh3ihgi8
+2026-05-04 22:44:52 [INFO] root: Creating audio pipeline for: Flo Rida - Whistle | Lyrics
+2026-05-04 22:44:52 [INFO] root: Audio pipeline started for: Flo Rida - Whistle | Lyrics
+2026-05-04 22:46:15 [ERROR] discord.ui.view: Ignoring exception in view <SearchResultsView timeout=60 children=7> for item <Button style=<ButtonStyle.primary: 1> url=None disabled=False label=None emoji=<PartialEmoji animated=False name='➡️' id=None> row=None sku_id=None id=None>
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\ui\view.py", line 598, in _scheduled_task
+    await item.callback(interaction)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot2\discord_music_bot\views\search_results_view.py", line 61, in next_page
+    await self.update_message(interaction)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot2\discord_music_bot\views\search_results_view.py", line 71, in update_message
+    await interaction.response.edit_message(embed=self.create_embed(), view=self)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\interactions.py", line 1234, in edit_message
+    data = await adapter.create_interaction_response(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\webhook\async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-05-04 22:46:16 [WARNING] discord.ui.view: View interaction referencing unknown view for item <Button style=<ButtonStyle.primary: 1> url=None disabled=False label=None emoji=<PartialEmoji animated=False name='➡️' id=None> row=None sku_id=None id=None>. Discarding
+2026-05-04 22:46:22 [WARNING] discord.ui.view: View interaction referencing unknown view for item <Button style=<ButtonStyle.secondary: 2> url=None disabled=False label='1' emoji=None row=None sku_id=None id=None>. Discarding
+2026-05-04 22:46:30 [WARNING] discord.ui.view: View interaction referencing unknown view for item <Button style=<ButtonStyle.secondary: 2> url=None disabled=False label='1' emoji=None row=None sku_id=None id=None>. Discarding
+2026-05-04 22:46:35 [WARNING] discord.ui.view: View interaction referencing unknown view for item <Button style=<ButtonStyle.secondary: 2> url=None disabled=False label='5' emoji=None row=None sku_id=None id=None>. Discarding
+2026-05-04 22:46:41 [WARNING] discord.ui.view: View interaction referencing unknown view for item <Button style=<ButtonStyle.danger: 4> url=None disabled=False label=None emoji=<PartialEmoji animated=False name='❌' id=None> row=None sku_id=None id=None>. Discarding
+2026-05-04 22:48:13 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-04 22:48:14 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=7zp1TbLFPp8
+2026-05-04 22:48:16 [INFO] root: Creating audio pipeline for: Don Omar - Danza Kuduro ft. Lucenzo
+2026-05-04 22:48:16 [INFO] root: Audio pipeline started for: Don Omar - Danza Kuduro ft. Lucenzo
+2026-05-04 22:49:10 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=wwPUhrYPq8I
+2026-05-04 22:49:11 [INFO] root: Creating audio pipeline for: Soul - Заплаканная|cover|Я готов за тобой по Долинам идти |поет девушка|Какая картина,мысли воедино
+2026-05-04 22:49:11 [INFO] root: Audio pipeline started for: Soul - Заплаканная|cover|Я готов за тобой по Долинам идти |поет девушка|Какая картина,мысли воедино
+2026-05-04 22:49:23 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=s4pSEhRwnlg
+2026-05-04 22:49:25 [INFO] root: Creating audio pipeline for: Star Monster - Crazy Brain
+2026-05-04 22:49:25 [INFO] root: Audio pipeline started for: Star Monster - Crazy Brain
+2026-05-04 22:52:06 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=RLQ6LVZkA9M
+2026-05-04 22:52:08 [INFO] root: Creating audio pipeline for: Тартак feat. Світязь — Ні, Я Не Ту Кохав
+2026-05-04 22:52:08 [INFO] root: Audio pipeline started for: Тартак feat. Світязь — Ні, Я Не Ту Кохав
+2026-05-04 22:53:13 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-04 22:53:17 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=kgDhCILEBao
+2026-05-04 22:53:18 [INFO] root: Creating audio pipeline for: Silver Night - Tender May, Bad Style, Calem OG [Urban Edition] (Music Video)
+2026-05-04 22:53:18 [INFO] root: Audio pipeline started for: Silver Night - Tender May, Bad Style, Calem OG [Urban Edition] (Music Video)
+2026-05-04 22:55:32 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=cSnkWzZ7ZAA
+2026-05-04 22:55:34 [INFO] root: Creating audio pipeline for: Flo Rida - Whistle [Official Video]
+2026-05-04 22:55:34 [INFO] root: Audio pipeline started for: Flo Rida - Whistle [Official Video]
+2026-05-04 22:58:14 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-04 22:58:18 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=kcuMzuYYnYk
+2026-05-04 22:58:19 [INFO] root: Creating audio pipeline for: Hot
+2026-05-04 22:58:19 [INFO] root: Audio pipeline started for: Hot
+2026-05-04 23:00:59 [INFO] discord.gateway: Shard ID None has successfully RESUMED session 591b66be995be8933e6a8cde82386b0f.
+2026-05-04 23:01:58 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=bpZTTAm_j-M
+2026-05-04 23:01:59 [INFO] root: Creating audio pipeline for: Ти мій
+2026-05-04 23:01:59 [INFO] root: Audio pipeline started for: Ти мій
+2026-05-04 23:03:14 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-04 23:03:18 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=eLD-EjVFpiw
+2026-05-04 23:03:20 [INFO] root: Creating audio pipeline for: Скрябiн – Годинник [Lyric Video]
+2026-05-04 23:03:20 [INFO] root: Audio pipeline started for: Скрябiн – Годинник [Lyric Video]
+2026-05-04 23:07:39 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=fLLAXWBVSW4
+2026-05-04 23:07:40 [INFO] root: Creating audio pipeline for: А я пливу
+2026-05-04 23:07:41 [INFO] root: Audio pipeline started for: А я пливу
+2026-05-04 23:08:15 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-04 23:08:19 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=D9WmnYf1c9c
+2026-05-04 23:08:21 [INFO] root: Creating audio pipeline for: Green Grey - Подо**ем Под Дождем
+2026-05-04 23:08:21 [INFO] root: Audio pipeline started for: Green Grey - Подо**ем Под Дождем
+2026-05-04 23:13:00 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=EaQEnpYoA2U
+2026-05-04 23:13:01 [INFO] root: Creating audio pipeline for: Вона
+2026-05-04 23:13:01 [INFO] root: Audio pipeline started for: Вона
+2026-05-04 23:13:16 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-04 23:13:20 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=-6kYEWEJR7M
+2026-05-04 23:13:22 [INFO] root: Creating audio pipeline for: Весна
+2026-05-04 23:13:22 [INFO] root: Audio pipeline started for: Весна

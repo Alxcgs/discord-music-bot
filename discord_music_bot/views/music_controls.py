@@ -159,6 +159,7 @@ class MusicControls(discord.ui.View):
     async def skip_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         voice_client = interaction.guild.voice_client
         if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
+            await self.cog.on_skip_automix_feedback(interaction.guild.id)
             voice_client.stop()
             await interaction.response.send_message(f"⏭️ Трек пропущено {interaction.user.mention}.", ephemeral=False)
         else:

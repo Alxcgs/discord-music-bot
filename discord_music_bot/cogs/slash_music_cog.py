@@ -3,6 +3,7 @@ from discord import app_commands
 from discord.ext import commands
 import asyncio
 import logging
+import random
 from discord_music_bot.services.queue_service import QueueService
 from discord_music_bot.services.history_service import HistoryService
 from discord_music_bot.services.player_service import PlayerService
@@ -41,6 +42,9 @@ class MusicCog(commands.Cog):
         self._guild_volumes = {}  # {guild_id: float} — збережена гучність (0.0-2.0)
         self._automix_enabled = {}  # {guild_id: bool}
         self._automix_skip_penalties = {}  # {guild_id: {url: skips}}
+        self._automix_settings_cache = {}  # {guild_id: {"enabled": bool, "strategy": str}}
+        self._automix_strategy_mode = {}  # {guild_id: str} — дзеркало cache після load
+        self._automix_recent_picks = {}  # {guild_id: [url, ...]} — diversity у сесії
         self.logger = logging.getLogger('MusicBot')
         self.logger.setLevel(logging.INFO)
         
@@ -52,6 +56,70 @@ class MusicCog(commands.Cog):
         self.logger.info("БД ініціалізована, ког MusicCog завантажений.")
         # Auto-resume запускається після готовності бота (чекаємо on_ready)
         self.bot.add_listener(self._on_ready_auto_resume, 'on_ready')
+
+    async def _ensure_automix_state_loaded(self, guild_id: int) -> None:
+        """Lazy-load Automix settings + penalties from DB once per guild."""
+        if guild_id not in self._automix_settings_cache:
+            try:
+                row = await self.repository.get_automix_settings(guild_id)
+                if row:
+                    strat = row.get("strategy") or consts.AUTOMIX_STRATEGY_DEFAULT
+                    if strat not in consts.AUTOMIX_VALID_STRATEGIES:
+                        strat = consts.AUTOMIX_STRATEGY_DEFAULT
+                    self._automix_settings_cache[guild_id] = {
+                        "enabled": bool(row["enabled"]),
+                        "strategy": strat,
+                    }
+                else:
+                    self._automix_settings_cache[guild_id] = {
+                        "enabled": consts.AUTOMIX_DEFAULT_ENABLED,
+                        "strategy": consts.AUTOMIX_STRATEGY_DEFAULT,
+                    }
+            except Exception as e:
+                self.logger.warning(f"Automix settings load failed for {guild_id}: {e}")
+                self._automix_settings_cache[guild_id] = {
+                    "enabled": consts.AUTOMIX_DEFAULT_ENABLED,
+                    "strategy": consts.AUTOMIX_STRATEGY_DEFAULT,
+                }
+
+        self._automix_enabled[guild_id] = self._automix_settings_cache[guild_id]["enabled"]
+        self._automix_strategy_mode[guild_id] = self._automix_settings_cache[guild_id]["strategy"]
+
+        if guild_id not in self._automix_skip_penalties:
+            try:
+                self._automix_skip_penalties[guild_id] = await self.repository.get_automix_skip_penalties(guild_id)
+            except Exception as e:
+                self.logger.warning(f"Automix penalties load failed for {guild_id}: {e}")
+                self._automix_skip_penalties[guild_id] = {}
+
+    def _automix_recent_pick_urls(self, guild_id: int) -> list:
+        return list(self._automix_recent_picks.get(guild_id, []))
+
+    def _note_automix_pick(self, guild_id: int, url: str) -> None:
+        if not url:
+            return
+        lst = self._automix_recent_picks.setdefault(guild_id, [])
+        lst.append(url)
+        cap = consts.AUTOMIX_DIVERSITY_RECENT_PICKS
+        while len(lst) > cap:
+            lst.pop(0)
+
+    async def on_skip_automix_feedback(self, guild_id: int) -> None:
+        """Викликати перед voice_client.stop() для /skip і кнопки пропуску."""
+        await self._ensure_automix_state_loaded(guild_id)
+        song = self.current_song.get(guild_id, {})
+        if not (song and song.get("source") == "automix"):
+            return
+        url = song.get("url") or song.get("webpage_url") or ""
+        if not url:
+            return
+        gpen = self._automix_skip_penalties.setdefault(guild_id, {})
+        gpen[url] = int(gpen.get(url, 0)) + 1
+        strat = song.get("automix_strategy")
+        asyncio.ensure_future(self.repository.increment_automix_skip(guild_id, url))
+        asyncio.ensure_future(
+            self.repository.add_automix_feedback_event(guild_id, "skipped", url, strategy=strat)
+        )
 
     async def _on_ready_auto_resume(self):
         """Запускає auto-resume після повної готовності бота."""
@@ -266,6 +334,8 @@ class MusicCog(commands.Cog):
                     # Mark recommendation source (user queue vs automix)
                     if item and isinstance(item, dict) and item.get("source"):
                         self.current_song[guild_id]["source"] = item.get("source")
+                    if item and isinstance(item, dict) and item.get("automix_strategy"):
+                        self.current_song[guild_id]["automix_strategy"] = item.get("automix_strategy")
                     
                     # Зберігаємо трек у сесійну статистику
                     if guild_id not in self._session_tracks:
@@ -306,28 +376,64 @@ class MusicCog(commands.Cog):
 
                 automix_on = self._automix_enabled.get(guild_id, consts.AUTOMIX_DEFAULT_ENABLED)
                 if automix_on and voice_client and voice_client.is_connected():
+                    await self._ensure_automix_state_loaded(guild_id)
                     # Only keep playing if there are humans in the channel.
                     vc_channel = voice_client.channel
                     humans = [m for m in (vc_channel.members if vc_channel else []) if not m.bot]
                     if humans:
+                        asyncio.ensure_future(
+                            self.repository.add_automix_feedback_event(
+                                guild_id, "queue_empty_checked", None, strategy=None
+                            )
+                        )
                         recent = []
                         if guild_id in self._session_tracks:
                             recent = [t.get("url") for t in self._session_tracks[guild_id][-consts.AUTOMIX_RECENT_WINDOW:]]
                         penalties = self._automix_skip_penalties.get(guild_id, {})
-                        rec = await self.automix_service.recommend_next(
+                        mode = self._automix_strategy_mode.get(
+                            guild_id, consts.AUTOMIX_STRATEGY_DEFAULT
+                        )
+                        if mode == consts.AUTOMIX_STRATEGY_AB_SPLIT:
+                            effective = random.choice(
+                                [
+                                    consts.AUTOMIX_STRATEGY_TOP,
+                                    consts.AUTOMIX_STRATEGY_HISTORY,
+                                ]
+                            )
+                        else:
+                            effective = mode
+                        automix_recent = self._automix_recent_pick_urls(guild_id)
+                        rec = await self.automix_service.recommend_for_strategy(
                             guild_id,
+                            effective,
                             recent_urls=recent,
+                            automix_recent_urls=automix_recent,
                             skip_penalties=penalties,
                         )
                         if rec and rec.get("url"):
                             self.queue_service.add_track(guild_id, rec)
+                            strat = rec.get("automix_strategy")
+                            self._note_automix_pick(guild_id, rec.get("url", ""))
+                            asyncio.ensure_future(
+                                self.repository.add_automix_feedback_event(
+                                    guild_id, "recommended", rec.get("url"), strategy=strat
+                                )
+                            )
                             if guild_id in self.player_channels:
                                 channel = self.bot.get_channel(self.player_channels[guild_id])
                                 if channel:
-                                    await channel.send(f"🎛️ **Automix:** додаю наступний трек: **{rec.get('title', 'Unknown')}**")
+                                    tag = "топ" if strat == consts.AUTOMIX_STRATEGY_TOP else "explore"
+                                    await channel.send(
+                                        f"🎛️ **Automix** ({tag}): додаю **{rec.get('title', 'Unknown')}**"
+                                    )
                             # Try playing immediately.
                             await self.play_next_song(guild, voice_client)
                             return
+                        asyncio.ensure_future(
+                            self.repository.add_automix_feedback_event(
+                                guild_id, "no_recommendation", None, strategy=effective
+                            )
+                        )
 
                 # Automix is off or no recommendation — clear state & disconnect later.
                 asyncio.ensure_future(self.repository.clear_guild_state(guild_id))
@@ -503,14 +609,8 @@ class MusicCog(commands.Cog):
     async def skip(self, interaction: discord.Interaction):
         voice_client = interaction.guild.voice_client
         if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
-            # Feedback for Automix: if the current track was recommended, penalize it.
             guild_id = interaction.guild.id
-            song = self.current_song.get(guild_id, {})
-            if song and song.get("source") == "automix":
-                url = song.get("url") or song.get("webpage_url") or ""
-                if url:
-                    gpen = self._automix_skip_penalties.setdefault(guild_id, {})
-                    gpen[url] = int(gpen.get(url, 0)) + 1
+            await self.on_skip_automix_feedback(guild_id)
             voice_client.stop()
             await interaction.response.send_message(f"⏭️ Пропущено {interaction.user.mention}.")
         else:
@@ -527,9 +627,135 @@ class MusicCog(commands.Cog):
         guild_id = interaction.guild.id
         is_on = value == "on"
         self._automix_enabled[guild_id] = is_on
+        self._automix_settings_cache.setdefault(
+            guild_id,
+            {
+                "enabled": is_on,
+                "strategy": consts.AUTOMIX_STRATEGY_DEFAULT,
+            },
+        )
+        self._automix_settings_cache[guild_id]["enabled"] = is_on
+        self._automix_strategy_mode[guild_id] = self._automix_settings_cache[guild_id]["strategy"]
+        asyncio.ensure_future(self.repository.set_automix_enabled(guild_id, is_on))
         msg = "🎛️ Automix **увімкнено**: коли черга закінчиться, я підбиратиму треки сам." if is_on else \
               "🎛️ Automix **вимкнено**: коли черга порожня — я зупинюся й відключусь."
         await interaction.response.send_message(msg, ephemeral=True)
+
+    @app_commands.command(name="automix_stats", description="Статистика Automix (A/B, coverage, diversity)")
+    async def automix_stats(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        guild_id = interaction.guild.id
+        try:
+            days = 30
+            counts = await self.repository.get_automix_feedback_counts(guild_id, days=days)
+            recommended = counts.get("recommended", 0)
+            skipped = counts.get("skipped", 0)
+            checked = counts.get("queue_empty_checked", 0)
+            no_rec = counts.get("no_recommendation", 0)
+            rate = (skipped / recommended * 100.0) if recommended else 0.0
+            coverage = (recommended / checked * 100.0) if checked else 0.0
+
+            div = await self.repository.get_automix_diversity_stats(guild_id, days=days)
+            rec_total = div.get("rec_total", 0)
+            rec_distinct = div.get("rec_distinct", 0)
+            div_ratio = (rec_distinct / rec_total * 100.0) if rec_total else 0.0
+
+            ab_rows = await self.repository.get_automix_ab_comparison(guild_id, days=days)
+            by_strat: dict = {}
+            for r in ab_rows:
+                st = r.get("strat") or "?"
+                if st not in by_strat:
+                    by_strat[st] = {"recommended": 0, "skipped": 0}
+                by_strat[st][r["action"]] = int(r["cnt"] or 0)
+
+            lines = []
+            for label_key, title in (
+                (consts.AUTOMIX_STRATEGY_TOP, "top_weighted"),
+                (consts.AUTOMIX_STRATEGY_HISTORY, "history_explore"),
+            ):
+                if label_key not in by_strat:
+                    continue
+                d = by_strat[label_key]
+                rc = d.get("recommended", 0)
+                sk = d.get("skipped", 0)
+                sr = (sk / rc * 100.0) if rc else 0.0
+                lines.append(f"**{title}**: rec {rc}, skip {sk}, skip-rate {sr:.1f}%")
+            ab_text = "\n".join(lines) if lines else "Ще немає подій з міткою strategy (нові записи зʼявляться після оновлення)."
+
+            embed = discord.Embed(
+                title=f"🎛️ Automix ({days} днів)",
+                color=consts.COLOR_EMBED_NORMAL,
+            )
+            embed.add_field(name="Рекомендацій", value=str(recommended), inline=True)
+            embed.add_field(name="Скіпів", value=str(skipped), inline=True)
+            embed.add_field(name="Skip rate", value=f"{rate:.1f}%", inline=True)
+            embed.add_field(
+                name="Coverage",
+                value=(
+                    f"Перевірок порожньої черги: **{checked}**\n"
+                    f"Успішних підборів: **{recommended}**\n"
+                    f"Без кандидата: **{no_rec}**\n"
+                    f"Частка «врятували тишу»: **{coverage:.1f}%**"
+                ),
+                inline=False,
+            )
+            embed.add_field(
+                name="Diversity",
+                value=(
+                    f"Унікальних URL серед рекомендацій: **{rec_distinct}** / **{rec_total}**\n"
+                    f"Індекс різноманітності: **{div_ratio:.1f}%**"
+                ),
+                inline=False,
+            )
+            embed.add_field(name="A/B (по алгоритму)", value=ab_text, inline=False)
+            await interaction.followup.send(embed=embed, view=DismissView(), ephemeral=True)
+        except Exception as e:
+            self.logger.error(f"Automix stats error: {e}", exc_info=True)
+            await interaction.followup.send("❌ Помилка отримання статистики Automix.", ephemeral=True)
+
+    @app_commands.command(
+        name="automix_mode",
+        description="Режим Automix: A/B, лише топ, або explore з історії",
+    )
+    @app_commands.describe(
+        strategy="ab_split — 50/50; top_weighted — популярні; history_explore — рідше програні",
+    )
+    @app_commands.choices(
+        strategy=[
+            app_commands.Choice(name="A/B: 50% топ / 50% explore", value="ab_split"),
+            app_commands.Choice(name="Лише зважені топ-треки", value="top_weighted"),
+            app_commands.Choice(name="Explore: менш програні з історії", value="history_explore"),
+        ]
+    )
+    async def automix_mode(
+        self,
+        interaction: discord.Interaction,
+        strategy: app_commands.Choice[str],
+    ):
+        guild_id = interaction.guild.id
+        val = strategy.value
+        if val not in consts.AUTOMIX_VALID_STRATEGIES:
+            await interaction.response.send_message("Невідомий режим.", ephemeral=True)
+            return
+        self._automix_settings_cache.setdefault(
+            guild_id,
+            {
+                "enabled": self._automix_enabled.get(guild_id, consts.AUTOMIX_DEFAULT_ENABLED),
+                "strategy": val,
+            },
+        )
+        self._automix_settings_cache[guild_id]["strategy"] = val
+        self._automix_strategy_mode[guild_id] = val
+        asyncio.ensure_future(self.repository.set_automix_strategy(guild_id, val))
+        labels = {
+            "ab_split": "A/B (50% топ / 50% explore)",
+            "top_weighted": "зважені топ-треки",
+            "history_explore": "explore з історії (рідше програні)",
+        }
+        await interaction.response.send_message(
+            f"🎛️ Режим Automix: **{labels.get(val, val)}**",
+            ephemeral=True,
+        )
 
     @app_commands.command(name="pause", description="Поставити на паузу")
     async def pause(self, interaction: discord.Interaction):

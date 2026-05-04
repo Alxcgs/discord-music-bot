@@ -58,7 +58,69 @@ CREATE TABLE IF NOT EXISTS history_tracks (
 
 -- Індекс для швидкого отримання історії по guild_id
 CREATE INDEX IF NOT EXISTS idx_history_guild_played ON history_tracks(guild_id, played_at DESC);
+
+-- Automix settings (per guild)
+CREATE TABLE IF NOT EXISTS automix_settings (
+    guild_id    INTEGER PRIMARY KEY,
+    enabled     INTEGER NOT NULL DEFAULT 0,
+    strategy    TEXT DEFAULT 'ab_split',
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (guild_id) REFERENCES guild_state(guild_id)
+);
+
+-- Automix penalties (simple feedback: skip counts for recommended tracks)
+CREATE TABLE IF NOT EXISTS automix_penalties (
+    guild_id        INTEGER NOT NULL,
+    track_url       TEXT NOT NULL,
+    skip_count      INTEGER NOT NULL DEFAULT 0,
+    last_skipped_at TIMESTAMP,
+    PRIMARY KEY (guild_id, track_url),
+    FOREIGN KEY (guild_id) REFERENCES guild_state(guild_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_automix_penalties_guild ON automix_penalties(guild_id, skip_count DESC);
+
+-- Automix feedback events (for analytics / дипломні метрики)
+CREATE TABLE IF NOT EXISTS automix_feedback_events (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    guild_id    INTEGER NOT NULL,
+    track_url   TEXT,
+    action      TEXT NOT NULL, -- recommended, skipped, queue_empty_checked, no_recommendation
+    strategy    TEXT,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (guild_id) REFERENCES guild_state(guild_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_automix_feedback_guild_time ON automix_feedback_events(guild_id, created_at DESC);
 """
+
+
+async def _migrate_automix_schema(conn: aiosqlite.Connection) -> None:
+    """Додає колонки strategy для існуючих БД (CREATE IF NOT EXISTS їх не оновлює)."""
+    async def column_names(table: str) -> set:
+        cur = await conn.execute(f"PRAGMA table_info({table})")
+        rows = await cur.fetchall()
+        return {r[1] for r in rows}
+
+    try:
+        names = await column_names("automix_settings")
+        if "strategy" not in names:
+            await conn.execute(
+                "ALTER TABLE automix_settings ADD COLUMN strategy TEXT DEFAULT 'ab_split'"
+            )
+    except Exception as e:
+        logger.warning(f"Міграція automix_settings.strategy: {e}")
+
+    try:
+        names = await column_names("automix_feedback_events")
+        if "strategy" not in names:
+            await conn.execute(
+                "ALTER TABLE automix_feedback_events ADD COLUMN strategy TEXT"
+            )
+    except Exception as e:
+        logger.warning(f"Міграція automix_feedback_events.strategy: {e}")
+
+    await conn.commit()
 
 
 async def get_connection() -> aiosqlite.Connection:
@@ -79,6 +141,7 @@ async def init_db() -> None:
     try:
         await conn.executescript(_CREATE_TABLES_SQL)
         await conn.commit()
+        await _migrate_automix_schema(conn)
         logger.info(f"База даних ініціалізована: {DB_PATH}")
     finally:
         await conn.close()

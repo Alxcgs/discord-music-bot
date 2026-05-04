@@ -12,6 +12,16 @@ EMOJI_PLAYLIST = "📋"
 # --- Automix ---
 AUTOMIX_DEFAULT_ENABLED = False
 AUTOMIX_RECENT_WINDOW = 15
+# Режим рекомендацій: ab_split (50/50 A/B), top_weighted, history_explore
+AUTOMIX_STRATEGY_DEFAULT = "ab_split"
+AUTOMIX_STRATEGY_AB_SPLIT = "ab_split"
+AUTOMIX_STRATEGY_TOP = "top_weighted"
+AUTOMIX_STRATEGY_HISTORY = "history_explore"
+AUTOMIX_VALID_STRATEGIES = frozenset(
+    {AUTOMIX_STRATEGY_AB_SPLIT, AUTOMIX_STRATEGY_TOP, AUTOMIX_STRATEGY_HISTORY}
+)
+# Скільки останніх Automix-підборів уникати (diversity у межах сесії)
+AUTOMIX_DIVERSITY_RECENT_PICKS = 10
 
 # --- Timeouts (Seconds) ---
 TIMEOUT_VOICE_DISCONNECT = 60
