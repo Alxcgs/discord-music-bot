@@ -6,6 +6,7 @@ import logging
 from discord_music_bot.services.queue_service import QueueService
 from discord_music_bot.services.history_service import HistoryService
 from discord_music_bot.services.player_service import PlayerService
+from discord_music_bot.services.automix_service import AutomixService, AutomixConfig
 from discord_music_bot.audio_source import YTDLSource
 from discord_music_bot.utils import format_duration
 from discord_music_bot.database import init_db
@@ -27,6 +28,10 @@ class MusicCog(commands.Cog):
         self.queue_service = QueueService(self.repository)
         self.history_service = HistoryService(self.repository)
         self.player_service = PlayerService()
+        self.automix_service = AutomixService(
+            self.repository,
+            config=AutomixConfig(recent_window=consts.AUTOMIX_RECENT_WINDOW),
+        )
         self.current_song = {}
         self.control_messages = {}
         self.player_channels = {}
@@ -34,6 +39,8 @@ class MusicCog(commands.Cog):
         self._skip_after_play = set()  # guild_ids де after-callback має бути пропущений
         self._session_tracks = {}  # {guild_id: [track_dicts]} — треки за поточну сесію
         self._guild_volumes = {}  # {guild_id: float} — збережена гучність (0.0-2.0)
+        self._automix_enabled = {}  # {guild_id: bool}
+        self._automix_skip_penalties = {}  # {guild_id: {url: skips}}
         self.logger = logging.getLogger('MusicBot')
         self.logger.setLevel(logging.INFO)
         
@@ -256,6 +263,9 @@ class MusicCog(commands.Cog):
                         'title': player.title, 'url': player.url, 'thumbnail': player.thumbnail,
                         'duration': player.duration, 'requester': item.get('requester'), 'player': player
                     }
+                    # Mark recommendation source (user queue vs automix)
+                    if item and isinstance(item, dict) and item.get("source"):
+                        self.current_song[guild_id]["source"] = item.get("source")
                     
                     # Зберігаємо трек у сесійну статистику
                     if guild_id not in self._session_tracks:
@@ -290,14 +300,43 @@ class MusicCog(commands.Cog):
                     if voice_client.is_connected():
                         await self.play_next_song(guild, voice_client)
             else:
-                if guild_id in self.current_song: del self.current_song[guild_id]
-                # Очищаємо стан у БД — нічого не грає
+                # Queue is empty — try Automix before disconnecting.
+                if guild_id in self.current_song:
+                    del self.current_song[guild_id]
+
+                automix_on = self._automix_enabled.get(guild_id, consts.AUTOMIX_DEFAULT_ENABLED)
+                if automix_on and voice_client and voice_client.is_connected():
+                    # Only keep playing if there are humans in the channel.
+                    vc_channel = voice_client.channel
+                    humans = [m for m in (vc_channel.members if vc_channel else []) if not m.bot]
+                    if humans:
+                        recent = []
+                        if guild_id in self._session_tracks:
+                            recent = [t.get("url") for t in self._session_tracks[guild_id][-consts.AUTOMIX_RECENT_WINDOW:]]
+                        penalties = self._automix_skip_penalties.get(guild_id, {})
+                        rec = await self.automix_service.recommend_next(
+                            guild_id,
+                            recent_urls=recent,
+                            skip_penalties=penalties,
+                        )
+                        if rec and rec.get("url"):
+                            self.queue_service.add_track(guild_id, rec)
+                            if guild_id in self.player_channels:
+                                channel = self.bot.get_channel(self.player_channels[guild_id])
+                                if channel:
+                                    await channel.send(f"🎛️ **Automix:** додаю наступний трек: **{rec.get('title', 'Unknown')}**")
+                            # Try playing immediately.
+                            await self.play_next_song(guild, voice_client)
+                            return
+
+                # Automix is off or no recommendation — clear state & disconnect later.
                 asyncio.ensure_future(self.repository.clear_guild_state(guild_id))
                 if guild_id in self.player_channels:
                     channel = self.bot.get_channel(self.player_channels[guild_id])
-                    if channel: await self.update_player(guild, channel)
+                    if channel:
+                        await self.update_player(guild, channel)
                 await asyncio.sleep(consts.TIMEOUT_VOICE_DISCONNECT)
-                if not self.player_service.is_playing(voice_client) and not self.queue_service.get_queue(guild_id):
+                if voice_client and not self.player_service.is_playing(voice_client) and not self.queue_service.get_queue(guild_id):
                     await voice_client.disconnect()
         except Exception as e:
             self.logger.error(f"Play next error: {e}")
@@ -464,10 +503,33 @@ class MusicCog(commands.Cog):
     async def skip(self, interaction: discord.Interaction):
         voice_client = interaction.guild.voice_client
         if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
+            # Feedback for Automix: if the current track was recommended, penalize it.
+            guild_id = interaction.guild.id
+            song = self.current_song.get(guild_id, {})
+            if song and song.get("source") == "automix":
+                url = song.get("url") or song.get("webpage_url") or ""
+                if url:
+                    gpen = self._automix_skip_penalties.setdefault(guild_id, {})
+                    gpen[url] = int(gpen.get(url, 0)) + 1
             voice_client.stop()
             await interaction.response.send_message(f"⏭️ Пропущено {interaction.user.mention}.")
         else:
             await interaction.response.send_message("Нічого пропускати.", ephemeral=True)
+
+    @app_commands.command(name="automix", description="Увімкнути/вимкнути Automix (коли черга закінчується)")
+    @app_commands.describe(enabled="on/off")
+    async def automix(self, interaction: discord.Interaction, enabled: str):
+        value = enabled.strip().lower()
+        if value not in ("on", "off"):
+            await interaction.response.send_message("Вкажіть `on` або `off`.", ephemeral=True)
+            return
+
+        guild_id = interaction.guild.id
+        is_on = value == "on"
+        self._automix_enabled[guild_id] = is_on
+        msg = "🎛️ Automix **увімкнено**: коли черга закінчиться, я підбиратиму треки сам." if is_on else \
+              "🎛️ Automix **вимкнено**: коли черга порожня — я зупинюся й відключусь."
+        await interaction.response.send_message(msg, ephemeral=True)
 
     @app_commands.command(name="pause", description="Поставити на паузу")
     async def pause(self, interaction: discord.Interaction):
