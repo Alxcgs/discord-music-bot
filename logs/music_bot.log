@@ -4940,3 +4940,82 @@ discord.errors.DiscordServerError: 503 Service Unavailable (error code: 0): upst
 2026-05-05 22:43:55 [INFO] root: Creating audio pipeline for: DZIDZIO - MARSIK
 2026-05-05 22:43:55 [INFO] root: Audio pipeline started for: DZIDZIO - MARSIK
 2026-05-05 22:48:26 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-05-05 22:50:47 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-05-05 22:50:47 [INFO] root: Бот вимикається...
+2026-05-05 23:04:37 [INFO] root: Opus завантажено (default)
+2026-05-05 23:04:37 [INFO] discord.client: logging in using static token
+2026-05-05 23:04:39 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: ade02956d7db05ad0176749f66c36525).
+2026-05-05 23:04:41 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-05-05 23:04:41 [INFO] root: ID бота: 1368988347619479635
+2026-05-05 23:04:41 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot2\data\music_bot.db
+2026-05-05 23:04:41 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-05-05 23:04:41 [INFO] root: Завантажено ког: slash_music_cog
+2026-05-05 23:04:42 [INFO] root: Синхронізовано 20 Slash-команд.
+2026-05-05 23:04:42 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-05-05 23:04:52 [INFO] discord.voice_state: Connecting to voice...
+2026-05-05 23:04:52 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-05-05 23:04:52 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e8105930.discord.media:443
+2026-05-05 23:04:52 [INFO] discord.voice_state: Voice connection complete.
+2026-05-05 23:05:27 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=PKGZXjnyHcE
+2026-05-05 23:05:29 [INFO] root: Creating audio pipeline for: CAPTOWN - Разная дрянь
+2026-05-05 23:05:29 [INFO] root: Audio pipeline started for: CAPTOWN - Разная дрянь
+2026-05-05 23:07:49 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=MNAyL8v0-DE
+2026-05-05 23:07:50 [INFO] root: Creating audio pipeline for: Freddie Dredd - Wrath (Official Video)
+2026-05-05 23:07:50 [INFO] root: Audio pipeline started for: Freddie Dredd - Wrath (Official Video)
+2026-05-05 23:09:42 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 1 зомбі-процес(ів).
+2026-05-05 23:09:43 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=oOaVy5hClc0
+2026-05-05 23:09:44 [INFO] root: Creating audio pipeline for: DZIDZIO - MARSIK
+2026-05-05 23:09:44 [INFO] root: Audio pipeline started for: DZIDZIO - MARSIK
+2026-05-05 23:14:13 [INFO] discord.gateway: Shard ID None has successfully RESUMED session ade02956d7db05ad0176749f66c36525.
+2026-05-05 23:14:15 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-05-05 23:25:27 [INFO] discord.voice_state: Connecting to voice...
+2026-05-05 23:25:27 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-05-05 23:25:27 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e8105930.discord.media:443
+2026-05-05 23:25:27 [INFO] discord.voice_state: Voice connection complete.
+2026-05-05 23:25:32 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=6eV9iW7ZCg4
+2026-05-05 23:25:35 [INFO] root: Creating audio pipeline for: MiyaGi & Эндшпиль – #ТАМАДА(премьера песни, 2016)
+2026-05-05 23:25:35 [INFO] root: Audio pipeline started for: MiyaGi & Эндшпиль – #ТАМАДА(премьера песни, 2016)
+2026-05-05 23:26:56 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=1GnxGrt1UL4
+2026-05-05 23:26:57 [INFO] root: Creating audio pipeline for: FIЇNKA - ВІВТАР( Степан Гіга cover «А я поклав своє кохання на вівтар» )
+2026-05-05 23:26:57 [INFO] root: Audio pipeline started for: FIЇNKA - ВІВТАР( Степан Гіга cover «А я поклав своє кохання на вівтар» )
+2026-05-05 23:29:44 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-05 23:29:49 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=1bXTyD7gRuE
+2026-05-05 23:29:50 [INFO] root: Creating audio pipeline for: Нікіта Кісельов - ВІВТАР
+2026-05-05 23:29:50 [INFO] root: Audio pipeline started for: Нікіта Кісельов - ВІВТАР
+2026-05-05 23:30:22 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=OMmTiDRuq1E
+2026-05-05 23:30:24 [INFO] root: Creating audio pipeline for: DREVO - ЕНКАРАПІСТА
+2026-05-05 23:30:24 [INFO] root: Audio pipeline started for: DREVO - ЕНКАРАПІСТА
+2026-05-05 23:30:32 [INFO] MusicBot: check_after_play: skipped for guild 1369110517070823464 (previous button)
+2026-05-05 23:30:33 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=1bXTyD7gRuE
+2026-05-05 23:30:34 [INFO] root: Creating audio pipeline for: Нікіта Кісельов - ВІВТАР
+2026-05-05 23:30:34 [INFO] root: Audio pipeline started for: Нікіта Кісельов - ВІВТАР
+2026-05-05 23:30:43 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=OMmTiDRuq1E
+2026-05-05 23:30:44 [INFO] root: Creating audio pipeline for: DREVO - ЕНКАРАПІСТА
+2026-05-05 23:30:44 [INFO] root: Audio pipeline started for: DREVO - ЕНКАРАПІСТА
+2026-05-05 23:33:45 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=C-NR51vxvjo
+2026-05-05 23:33:47 [INFO] root: Creating audio pipeline for: FIЇNKA - Афини
+2026-05-05 23:33:47 [INFO] root: Audio pipeline started for: FIЇNKA - Афини
+2026-05-05 23:34:19 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=t3Xlv_kDDu0
+2026-05-05 23:34:22 [INFO] root: Creating audio pipeline for: Alena Omargalieva - Фанат (Official Music Video)
+2026-05-05 23:34:22 [INFO] root: Audio pipeline started for: Alena Omargalieva - Фанат (Official Music Video)
+2026-05-05 23:34:45 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-05 23:34:46 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=Ck1IHXLsX-0
+2026-05-05 23:34:47 [INFO] root: Creating audio pipeline for: Alena Omargalieva - Не П'яна - Закохана (Official Music Video)
+2026-05-05 23:34:47 [INFO] root: Audio pipeline started for: Alena Omargalieva - Не П'яна - Закохана (Official Music Video)
+2026-05-05 23:38:37 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=5nbJrviR4hc
+2026-05-05 23:38:38 [INFO] root: Creating audio pipeline for: Uran Yopa - Пляшка Фраголіно (Прем’єра 2026) 🌟
+2026-05-05 23:38:38 [INFO] root: Audio pipeline started for: Uran Yopa - Пляшка Фраголіно (Прем’єра 2026) 🌟
+2026-05-05 23:39:45 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-05 23:39:47 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=y0HbYiVdKQA
+2026-05-05 23:39:48 [INFO] root: Creating audio pipeline for: Max Barskih - Не складається | Official video
+2026-05-05 23:39:48 [INFO] root: Audio pipeline started for: Max Barskih - Не складається | Official video
+2026-05-05 23:43:32 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=PvVsdj5hE_0
+2026-05-05 23:43:34 [INFO] root: Creating audio pipeline for: DREVO - СМАРАГДОВЕ НЕБО
+2026-05-05 23:43:34 [INFO] root: Audio pipeline started for: DREVO - СМАРАГДОВЕ НЕБО
+2026-05-05 23:44:46 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-05 23:44:47 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=h28H0Ho9Sk8
+2026-05-05 23:44:49 [INFO] root: Creating audio pipeline for: Jerry Heil -  Додай гучності (12 points) [Official Music Video]
+2026-05-05 23:44:49 [INFO] root: Audio pipeline started for: Jerry Heil -  Додай гучності (12 points) [Official Music Video]
+2026-05-05 23:47:56 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=N7FEo6t6w5w
+2026-05-05 23:47:58 [INFO] root: Creating audio pipeline for: Victoria Niro - Питань нема
+2026-05-05 23:47:58 [INFO] root: Audio pipeline started for: Victoria Niro - Питань нема

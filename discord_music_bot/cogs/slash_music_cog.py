@@ -8,6 +8,7 @@ from discord_music_bot.services.queue_service import QueueService
 from discord_music_bot.services.history_service import HistoryService
 from discord_music_bot.services.player_service import PlayerService
 from discord_music_bot.services.automix_service import AutomixService, AutomixConfig
+from discord_music_bot.services.dj_service import DJService
 from discord_music_bot.audio_source import YTDLSource
 from discord_music_bot.utils import format_duration
 from discord_music_bot.database import init_db
@@ -33,6 +34,7 @@ class MusicCog(commands.Cog):
             self.repository,
             config=AutomixConfig(recent_window=consts.AUTOMIX_RECENT_WINDOW),
         )
+        self.dj_service = DJService()
         self.current_song = {}
         self.control_messages = {}
         self.player_channels = {}
@@ -46,6 +48,8 @@ class MusicCog(commands.Cog):
         self._automix_strategy_mode = {}  # {guild_id: str} — дзеркало cache після load
         self._automix_recent_picks = {}  # {guild_id: [url, ...]} — diversity у сесії
         self._fade_seconds = {}  # {guild_id: float} — per-track fade in/out (MVP)
+        self._dj_settings_cache = {}  # {guild_id: {"enabled": bool, "persona": str}}
+        self._dj_tracks_since_comment = {}  # {guild_id: int}
         self.logger = logging.getLogger('MusicBot')
         self.logger.setLevel(logging.INFO)
         
@@ -128,6 +132,77 @@ class MusicCog(commands.Cog):
         count = await auto_resume(self.bot, self)
         if count > 0:
             self.logger.info(f"Auto-Resume: відновлено {count} сервер(ів).")
+
+    async def _ensure_dj_state_loaded(self, guild_id: int) -> None:
+        if guild_id in self._dj_settings_cache:
+            return
+        try:
+            row = await self.repository.get_dj_settings(guild_id)
+            if row:
+                persona = row.get("persona") or consts.DJ_DEFAULT_PERSONA
+                if persona not in consts.DJ_VALID_PERSONAS:
+                    persona = consts.DJ_DEFAULT_PERSONA
+                self._dj_settings_cache[guild_id] = {
+                    "enabled": bool(row.get("enabled", False)),
+                    "persona": persona,
+                }
+            else:
+                self._dj_settings_cache[guild_id] = {
+                    "enabled": consts.DJ_DEFAULT_ENABLED,
+                    "persona": consts.DJ_DEFAULT_PERSONA,
+                }
+        except Exception as e:
+            self.logger.warning(f"DJ settings load failed for {guild_id}: {e}")
+            self._dj_settings_cache[guild_id] = {
+                "enabled": consts.DJ_DEFAULT_ENABLED,
+                "persona": consts.DJ_DEFAULT_PERSONA,
+            }
+
+    async def _maybe_send_dj_comment(self, guild, played_item: dict) -> None:
+        guild_id = guild.id
+        await self._ensure_dj_state_loaded(guild_id)
+        dj = self._dj_settings_cache.get(guild_id, {})
+        if not dj.get("enabled", consts.DJ_DEFAULT_ENABLED):
+            return
+
+        count = int(self._dj_tracks_since_comment.get(guild_id, 0)) + 1
+        self._dj_tracks_since_comment[guild_id] = count
+        if count < consts.DJ_COMMENT_EVERY_N_TRACKS:
+            return
+        self._dj_tracks_since_comment[guild_id] = 0
+
+        channel_id = self.player_channels.get(guild_id)
+        if not channel_id:
+            return
+        channel = self.bot.get_channel(channel_id)
+        if not channel:
+            return
+
+        queue_size = len(self.queue_service.get_queue(guild_id))
+        penalties = self._automix_skip_penalties.get(guild_id, {})
+        recent_skips = sum(int(v or 0) for v in penalties.values())
+        song = self.current_song.get(guild_id, {})
+        comment = self.dj_service.generate_comment(
+            dj.get("persona", consts.DJ_DEFAULT_PERSONA),
+            context={
+                "title": song.get("title") or played_item.get("title") or "Unknown",
+                "queue_size": queue_size,
+                "recent_skips": recent_skips,
+            },
+        )
+        try:
+            await channel.send(f"🎙️ {comment}")
+            asyncio.ensure_future(
+                self.repository.add_dj_event(
+                    guild_id,
+                    "comment",
+                    persona=dj.get("persona"),
+                    track_url=song.get("url"),
+                    message=comment,
+                )
+            )
+        except Exception as e:
+            self.logger.warning(f"DJ comment send failed for {guild_id}: {e}")
 
     async def get_video_info(self, url):
         search_url = url if any(x in url.lower() for x in ['youtube.com', 'youtu.be', 'soundcloud.com']) else f"ytsearch:{url}"
@@ -374,7 +449,7 @@ class MusicCog(commands.Cog):
                     if guild_id in self.player_channels:
                         channel = self.bot.get_channel(self.player_channels[guild_id])
                         if channel: await self.update_player(guild, channel)
-                    
+                    await self._maybe_send_dj_comment(guild, item)
                     
                 except Exception as track_error:
                     self.logger.error(f"Failed to play track '{item.get('title', 'Unknown')}': {track_error}")
@@ -769,6 +844,46 @@ class MusicCog(commands.Cog):
             f"🎛️ Режим Automix: **{labels.get(val, val)}**",
             ephemeral=True,
         )
+
+    @app_commands.command(name="dj", description="Увімкнути/вимкнути DJ-коментарі")
+    @app_commands.describe(enabled="on/off")
+    async def dj(self, interaction: discord.Interaction, enabled: str):
+        value = enabled.strip().lower()
+        if value not in ("on", "off"):
+            await interaction.response.send_message("Вкажіть `on` або `off`.", ephemeral=True)
+            return
+        guild_id = interaction.guild.id
+        is_on = value == "on"
+        await self._ensure_dj_state_loaded(guild_id)
+        self._dj_settings_cache[guild_id]["enabled"] = is_on
+        asyncio.ensure_future(self.repository.set_dj_enabled(guild_id, is_on))
+        if is_on:
+            await interaction.response.send_message("🎙️ DJ **увімкнено**.", ephemeral=True)
+        else:
+            await interaction.response.send_message("🎙️ DJ **вимкнено**.", ephemeral=True)
+
+    @app_commands.command(name="dj_persona", description="Вибрати персону DJ")
+    @app_commands.choices(
+        persona=[
+            app_commands.Choice(name="chill", value="chill"),
+            app_commands.Choice(name="energetic", value="energetic"),
+            app_commands.Choice(name="funny", value="funny"),
+        ]
+    )
+    async def dj_persona(
+        self,
+        interaction: discord.Interaction,
+        persona: app_commands.Choice[str],
+    ):
+        guild_id = interaction.guild.id
+        val = persona.value
+        if val not in consts.DJ_VALID_PERSONAS:
+            await interaction.response.send_message("Невідома персона.", ephemeral=True)
+            return
+        await self._ensure_dj_state_loaded(guild_id)
+        self._dj_settings_cache[guild_id]["persona"] = val
+        asyncio.ensure_future(self.repository.set_dj_persona(guild_id, val))
+        await interaction.response.send_message(f"🎙️ Персона DJ: **{val}**", ephemeral=True)
 
     @app_commands.command(
         name="crossfade",

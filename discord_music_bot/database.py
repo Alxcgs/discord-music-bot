@@ -92,6 +92,29 @@ CREATE TABLE IF NOT EXISTS automix_feedback_events (
 );
 
 CREATE INDEX IF NOT EXISTS idx_automix_feedback_guild_time ON automix_feedback_events(guild_id, created_at DESC);
+
+-- DJ settings (MVP)
+CREATE TABLE IF NOT EXISTS dj_settings (
+    guild_id    INTEGER PRIMARY KEY,
+    enabled     INTEGER NOT NULL DEFAULT 0,
+    persona     TEXT DEFAULT 'chill',
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (guild_id) REFERENCES guild_state(guild_id)
+);
+
+-- DJ generated comments/events
+CREATE TABLE IF NOT EXISTS dj_events (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    guild_id    INTEGER NOT NULL,
+    action      TEXT NOT NULL,   -- e.g. comment
+    persona     TEXT,
+    track_url   TEXT,
+    message     TEXT,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (guild_id) REFERENCES guild_state(guild_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_dj_events_guild_time ON dj_events(guild_id, created_at DESC);
 """
 
 

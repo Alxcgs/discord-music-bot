@@ -196,6 +196,13 @@ class MusicControls(discord.ui.View):
                 self._sync_toggle_style()
 
             def _status_text(self) -> str:
+                dj = self.cog._dj_settings_cache.get(
+                    self.guild_id,
+                    {
+                        "enabled": _consts.DJ_DEFAULT_ENABLED,
+                        "persona": _consts.DJ_DEFAULT_PERSONA,
+                    },
+                )
                 enabled = self.cog._automix_enabled.get(
                     self.guild_id, _consts.AUTOMIX_DEFAULT_ENABLED
                 )
@@ -208,11 +215,14 @@ class MusicControls(discord.ui.View):
                     )
                 )
                 state = "ON" if enabled else "OFF"
+                dj_state = "ON" if dj.get("enabled", _consts.DJ_DEFAULT_ENABLED) else "OFF"
+                dj_persona = dj.get("persona", _consts.DJ_DEFAULT_PERSONA)
                 return (
                     "🎛️ **Mix settings**\n"
                     f"• Automix: **{state}**\n"
                     f"• Mode: **{mode}**\n"
-                    f"• Fade-out: **{fade:.1f}s**"
+                    f"• Fade-out: **{fade:.1f}s**\n"
+                    f"• DJ: **{dj_state}** ({dj_persona})"
                 )
 
             def _sync_toggle_style(self):
@@ -270,6 +280,29 @@ class MusicControls(discord.ui.View):
                 else:
                     await i.followup.send("🎛️ Automix **вимкнено**.", ephemeral=True)
 
+            @discord.ui.button(
+                label="DJ OFF",
+                style=discord.ButtonStyle.danger,
+                emoji="🎙️",
+                custom_id="mix_toggle_dj",
+                row=0,
+            )
+            async def toggle_dj(self, i: discord.Interaction, button: discord.ui.Button):
+                guild_id = i.guild.id
+                await self.cog._ensure_dj_state_loaded(guild_id)
+                cur = self.cog._dj_settings_cache[guild_id]["enabled"]
+                new_value = not cur
+                self.cog._dj_settings_cache[guild_id]["enabled"] = new_value
+                asyncio.ensure_future(self.cog.repository.set_dj_enabled(guild_id, new_value))
+                button.style = discord.ButtonStyle.success if new_value else discord.ButtonStyle.danger
+                button.label = "DJ ON" if new_value else "DJ OFF"
+                await i.response.edit_message(content=self._status_text(), view=self)
+                await self._bump_player(i)
+                if new_value:
+                    await i.followup.send("🎙️ DJ **увімкнено**.", ephemeral=True)
+                else:
+                    await i.followup.send("🎙️ DJ **вимкнено**.", ephemeral=True)
+
             @discord.ui.select(
                 placeholder="Automix режим",
                 min_values=1,
@@ -300,6 +333,30 @@ class MusicControls(discord.ui.View):
                 await i.response.edit_message(content=self._status_text(), view=self)
                 await self._bump_player(i)
                 await i.followup.send(f"🎛️ Automix режим: **{val}**", ephemeral=True)
+
+            @discord.ui.select(
+                placeholder="DJ персона",
+                min_values=1,
+                max_values=1,
+                options=[
+                    discord.SelectOption(label="chill", value="chill"),
+                    discord.SelectOption(label="energetic", value="energetic"),
+                    discord.SelectOption(label="funny", value="funny"),
+                ],
+                custom_id="mix_dj_persona_select",
+            )
+            async def dj_persona_select(self, i: discord.Interaction, select: discord.ui.Select):
+                val = select.values[0]
+                if val not in _consts.DJ_VALID_PERSONAS:
+                    await i.response.send_message("Невідома персона DJ.", ephemeral=True)
+                    return
+                guild_id = i.guild.id
+                await self.cog._ensure_dj_state_loaded(guild_id)
+                self.cog._dj_settings_cache[guild_id]["persona"] = val
+                asyncio.ensure_future(self.cog.repository.set_dj_persona(guild_id, val))
+                await i.response.edit_message(content=self._status_text(), view=self)
+                await self._bump_player(i)
+                await i.followup.send(f"🎙️ DJ персона: **{val}**", ephemeral=True)
 
             @discord.ui.select(
                 placeholder="Fade-out (секунди)",
@@ -342,6 +399,15 @@ class MusicControls(discord.ui.View):
                 await self._bump_player(i)
 
         mix_view = _MixSettingsView(self.cog, interaction.guild.id)
+        await self.cog._ensure_dj_state_loaded(interaction.guild.id)
+        dj_enabled = self.cog._dj_settings_cache.get(
+            interaction.guild.id, {}
+        ).get("enabled", _consts.DJ_DEFAULT_ENABLED)
+        for child in mix_view.children:
+            if isinstance(child, discord.ui.Button) and child.custom_id == "mix_toggle_dj":
+                child.style = discord.ButtonStyle.success if dj_enabled else discord.ButtonStyle.danger
+                child.label = "DJ ON" if dj_enabled else "DJ OFF"
+                break
         await interaction.response.send_message(
             mix_view._status_text(),
             view=mix_view,

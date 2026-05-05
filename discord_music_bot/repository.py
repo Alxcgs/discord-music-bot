@@ -551,3 +551,85 @@ class MusicRepository:
             }
         finally:
             await conn.close()
+
+    # ── DJ (MVP) ──────────────────────────────────────────────────
+
+    async def get_dj_settings(self, guild_id: int) -> Optional[Dict[str, Any]]:
+        conn = await get_connection()
+        try:
+            cursor = await conn.execute(
+                "SELECT enabled, persona FROM dj_settings WHERE guild_id = ?",
+                (guild_id,),
+            )
+            row = await cursor.fetchone()
+            if not row:
+                return None
+            d = dict(row)
+            return {
+                "enabled": bool(d.get("enabled", 0)),
+                "persona": d.get("persona") or "chill",
+            }
+        finally:
+            await conn.close()
+
+    async def set_dj_enabled(self, guild_id: int, enabled: bool) -> None:
+        conn = await get_connection()
+        try:
+            await conn.execute(
+                """
+                INSERT INTO dj_settings (guild_id, enabled, persona, updated_at)
+                VALUES (?, ?, 'chill', CURRENT_TIMESTAMP)
+                ON CONFLICT(guild_id) DO UPDATE SET
+                    enabled = excluded.enabled,
+                    updated_at = CURRENT_TIMESTAMP
+                """,
+                (guild_id, int(enabled)),
+            )
+            await conn.commit()
+        finally:
+            await conn.close()
+
+    async def set_dj_persona(self, guild_id: int, persona: str) -> None:
+        conn = await get_connection()
+        try:
+            cur = await conn.execute(
+                """
+                UPDATE dj_settings
+                SET persona = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE guild_id = ?
+                """,
+                (persona, guild_id),
+            )
+            if cur.rowcount == 0:
+                await conn.execute(
+                    """
+                    INSERT INTO dj_settings (guild_id, enabled, persona, updated_at)
+                    VALUES (?, 0, ?, CURRENT_TIMESTAMP)
+                    """,
+                    (guild_id, persona),
+                )
+            await conn.commit()
+        finally:
+            await conn.close()
+
+    async def add_dj_event(
+        self,
+        guild_id: int,
+        action: str,
+        *,
+        persona: Optional[str] = None,
+        track_url: Optional[str] = None,
+        message: Optional[str] = None,
+    ) -> None:
+        conn = await get_connection()
+        try:
+            await conn.execute(
+                """
+                INSERT INTO dj_events (guild_id, action, persona, track_url, message)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (guild_id, action, persona, track_url, message),
+            )
+            await conn.commit()
+        finally:
+            await conn.close()
