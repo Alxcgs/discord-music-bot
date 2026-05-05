@@ -23,6 +23,12 @@ AUTOMIX_VALID_STRATEGIES = frozenset(
 # Скільки останніх Automix-підборів уникати (diversity у межах сесії)
 AUTOMIX_DIVERSITY_RECENT_PICKS = 10
 
+# --- Playback transitions (MVP AutoMix-style fades) ---
+# 0 disables fades. This is per-track fade-in/out; true crossfade (overlap) would be a later step.
+DEFAULT_FADE_SECONDS = 6.0
+FADE_SECONDS_MIN = 0.0
+FADE_SECONDS_MAX = 15.0
+
 # --- Timeouts (Seconds) ---
 TIMEOUT_VOICE_DISCONNECT = 60
 TIMEOUT_EMPTY_CHANNEL = 10

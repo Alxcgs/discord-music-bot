@@ -163,6 +163,13 @@ class QueueView(discord.ui.View):
         close_button.callback = self.close_view
         self.add_item(close_button)
 
+    async def _bump_player(self, interaction: discord.Interaction):
+        """Опускає головну панель керування в низ чату."""
+        try:
+            await self.cog.update_player(interaction.guild, interaction.channel)
+        except Exception:
+            pass
+
     async def _handle_page_change(self, interaction: discord.Interaction, new_page):
         self.queue = self.cog.queue_service.get_queue(self.guild.id)  # Update local queue ref
         self.total_pages = max((len(self.queue) - 1) // self.items_per_page + 1, 1)
@@ -190,6 +197,7 @@ class QueueView(discord.ui.View):
         embed = self.create_embed()
         embed.set_author(name=f"{consts.EMOJI_SHUFFLE} Чергу перемішано! ({len(self.queue)} треків)")
         await interaction.response.edit_message(embed=embed, view=self)
+        await self._bump_player(interaction)
 
     async def move_track(self, interaction):
         modal = MoveTrackModal(self)
@@ -205,10 +213,12 @@ class QueueView(discord.ui.View):
         embed = self.create_embed()
         embed.set_author(name=f"{consts.EMOJI_CLEAR} Чергу очищено!")
         await interaction.response.edit_message(embed=embed, view=self)
+        await self._bump_player(interaction)
 
     async def close_view(self, interaction):
         try:
             await interaction.response.edit_message(content="✅ Закрито", embed=None, view=None, delete_after=0)
+            await self._bump_player(interaction)
         except Exception:
             try:
                 await interaction.message.delete()

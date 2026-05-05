@@ -45,6 +45,7 @@ class MusicCog(commands.Cog):
         self._automix_settings_cache = {}  # {guild_id: {"enabled": bool, "strategy": str}}
         self._automix_strategy_mode = {}  # {guild_id: str} — дзеркало cache після load
         self._automix_recent_picks = {}  # {guild_id: [url, ...]} — diversity у сесії
+        self._fade_seconds = {}  # {guild_id: float} — per-track fade in/out (MVP)
         self.logger = logging.getLogger('MusicBot')
         self.logger.setLevel(logging.INFO)
         
@@ -316,11 +317,22 @@ class MusicCog(commands.Cog):
                 
                 item = self.queue_service.get_next_track(guild_id)
                 try:
+                    fade_s = float(self._fade_seconds.get(guild_id, consts.DEFAULT_FADE_SECONDS))
+                    if fade_s < consts.FADE_SECONDS_MIN:
+                        fade_s = consts.FADE_SECONDS_MIN
+                    if fade_s > consts.FADE_SECONDS_MAX:
+                        fade_s = consts.FADE_SECONDS_MAX
+
                     player = await self.player_service.play_stream(
                         voice_client, 
                         item['url'], 
                         self.bot.loop, 
-                        lambda e: self.bot.loop.create_task(self.check_after_play(guild, voice_client, e))
+                        lambda e: self.bot.loop.create_task(self.check_after_play(guild, voice_client, e)),
+                        fade_seconds=fade_s,
+                        # Important: fade-in from silence feels like the track "starts later".
+                        # MVP: only fade-out previous track (fade-in stays normal).
+                        fade_in=False,
+                        fade_out=(fade_s > 0),
                     )
                     
                     # Застосовуємо збережену гучність
@@ -374,9 +386,10 @@ class MusicCog(commands.Cog):
                 if guild_id in self.current_song:
                     del self.current_song[guild_id]
 
+                # Load persisted Automix settings before checking enabled flag.
+                await self._ensure_automix_state_loaded(guild_id)
                 automix_on = self._automix_enabled.get(guild_id, consts.AUTOMIX_DEFAULT_ENABLED)
                 if automix_on and voice_client and voice_client.is_connected():
-                    await self._ensure_automix_state_loaded(guild_id)
                     # Only keep playing if there are humans in the channel.
                     vc_channel = voice_client.channel
                     humans = [m for m in (vc_channel.members if vc_channel else []) if not m.bot]
@@ -756,6 +769,25 @@ class MusicCog(commands.Cog):
             f"🎛️ Режим Automix: **{labels.get(val, val)}**",
             ephemeral=True,
         )
+
+    @app_commands.command(
+        name="crossfade",
+        description="Плавний кінець треку (fade-out), секунди 0–15",
+    )
+    @app_commands.describe(seconds="0 вимикає; 3–8 зазвичай комфортно")
+    async def crossfade(self, interaction: discord.Interaction, seconds: float):
+        try:
+            s = float(seconds)
+        except Exception:
+            await interaction.response.send_message("Вкажіть число секунд (наприклад 6).", ephemeral=True)
+            return
+
+        s = max(consts.FADE_SECONDS_MIN, min(consts.FADE_SECONDS_MAX, s))
+        self._fade_seconds[interaction.guild.id] = s
+        if s <= 0:
+            await interaction.response.send_message("🔇 Fade-out вимкнено.", ephemeral=True)
+        else:
+            await interaction.response.send_message(f"🎚️ Fade-out: **{s:.1f}с**.", ephemeral=True)
 
     @app_commands.command(name="pause", description="Поставити на паузу")
     async def pause(self, interaction: discord.Interaction):

@@ -7,14 +7,31 @@ class PlayerService:
     def __init__(self):
         self.logger = logging.getLogger('MusicBot.PlayerService')
 
-    async def play_stream(self, voice_client: discord.VoiceClient, url: str, loop: asyncio.AbstractEventLoop, after_callback) -> YTDLSource:
+    async def play_stream(
+        self,
+        voice_client: discord.VoiceClient,
+        url: str,
+        loop: asyncio.AbstractEventLoop,
+        after_callback,
+        *,
+        fade_seconds: float = 0.0,
+        fade_in: bool = False,
+        fade_out: bool = False,
+    ) -> YTDLSource:
         """Creates a player and starts playing on the voice client."""
         try:
             # Check voice connection before attempting playback
             if not voice_client or not voice_client.is_connected():
                 raise discord.errors.ClientException("Voice client is not connected — cannot start playback.")
             
-            player = await YTDLSource.from_url(url, loop=loop, stream=True)
+            player = await YTDLSource.from_url(
+                url,
+                loop=loop,
+                stream=True,
+                fade_seconds=fade_seconds,
+                fade_in=fade_in,
+                fade_out=fade_out,
+            )
             if player is None:
                 raise ValueError(f"Failed to create audio source for URL: {url}")
             

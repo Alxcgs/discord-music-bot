@@ -183,6 +183,171 @@ class MusicControls(discord.ui.View):
 
     # --- Другий рядок кнопок ---
 
+    @discord.ui.button(label="Mix", style=discord.ButtonStyle.secondary, emoji="🎛️", custom_id="mix_settings", row=1)
+    async def mix_settings_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        """Швидкі налаштування Automix + fade-out без slash-команд."""
+        from discord_music_bot import consts as _consts
+
+        class _MixSettingsView(discord.ui.View):
+            def __init__(self, cog, guild_id: int):
+                super().__init__(timeout=_consts.TIMEOUT_VIEW)
+                self.cog = cog
+                self.guild_id = guild_id
+                self._sync_toggle_style()
+
+            def _status_text(self) -> str:
+                enabled = self.cog._automix_enabled.get(
+                    self.guild_id, _consts.AUTOMIX_DEFAULT_ENABLED
+                )
+                mode = self.cog._automix_strategy_mode.get(
+                    self.guild_id, _consts.AUTOMIX_STRATEGY_DEFAULT
+                )
+                fade = float(
+                    self.cog._fade_seconds.get(
+                        self.guild_id, _consts.DEFAULT_FADE_SECONDS
+                    )
+                )
+                state = "ON" if enabled else "OFF"
+                return (
+                    "🎛️ **Mix settings**\n"
+                    f"• Automix: **{state}**\n"
+                    f"• Mode: **{mode}**\n"
+                    f"• Fade-out: **{fade:.1f}s**"
+                )
+
+            def _sync_toggle_style(self):
+                """Підсвічує кнопку ON/OFF: зелений=ON, червоний=OFF."""
+                enabled = self.cog._automix_enabled.get(
+                    self.guild_id,
+                    _consts.AUTOMIX_DEFAULT_ENABLED,
+                )
+                for child in self.children:
+                    if isinstance(child, discord.ui.Button) and child.custom_id == "mix_toggle_automix":
+                        child.style = discord.ButtonStyle.success if enabled else discord.ButtonStyle.danger
+                        child.label = "Automix ON" if enabled else "Automix OFF"
+                        break
+
+            async def _bump_player(self, interaction: discord.Interaction):
+                try:
+                    await self.cog.update_player(interaction.guild, interaction.channel)
+                except Exception:
+                    pass
+
+            @discord.ui.button(
+                label="Automix OFF",
+                style=discord.ButtonStyle.danger,
+                emoji="✅",
+                custom_id="mix_toggle_automix",
+                row=0,
+            )
+            async def toggle_automix(self, i: discord.Interaction, button: discord.ui.Button):
+                guild_id = i.guild.id
+                # Load persisted state if cache is empty
+                if guild_id not in self.cog._automix_settings_cache:
+                    await self.cog._ensure_automix_state_loaded(guild_id)
+
+                current = self.cog._automix_enabled.get(guild_id, _consts.AUTOMIX_DEFAULT_ENABLED)
+                new_value = not current
+                self.cog._automix_enabled[guild_id] = new_value
+                self.cog._automix_settings_cache.setdefault(
+                    guild_id,
+                    {
+                        "enabled": new_value,
+                        "strategy": self.cog._automix_strategy_mode.get(
+                            guild_id, _consts.AUTOMIX_STRATEGY_DEFAULT
+                        ),
+                    },
+                )
+                self.cog._automix_settings_cache[guild_id]["enabled"] = new_value
+                asyncio.ensure_future(self.cog.repository.set_automix_enabled(guild_id, new_value))
+
+                button.style = discord.ButtonStyle.success if new_value else discord.ButtonStyle.danger
+                button.label = "Automix ON" if new_value else "Automix OFF"
+                await i.response.edit_message(content=self._status_text(), view=self)
+                await self._bump_player(i)
+                if new_value:
+                    await i.followup.send("🎛️ Automix **увімкнено**.", ephemeral=True)
+                else:
+                    await i.followup.send("🎛️ Automix **вимкнено**.", ephemeral=True)
+
+            @discord.ui.select(
+                placeholder="Automix режим",
+                min_values=1,
+                max_values=1,
+                options=[
+                    discord.SelectOption(label="A/B (50% топ / 50% explore)", value="ab_split"),
+                    discord.SelectOption(label="Лише top_weighted", value="top_weighted"),
+                    discord.SelectOption(label="Лише history_explore", value="history_explore"),
+                ],
+                custom_id="mix_automix_mode_select",
+            )
+            async def automix_mode_select(self, i: discord.Interaction, select: discord.ui.Select):
+                val = select.values[0]
+                if val not in _consts.AUTOMIX_VALID_STRATEGIES:
+                    await i.response.send_message("Невідомий режим.", ephemeral=True)
+                    return
+                guild_id = i.guild.id
+                self.cog._automix_settings_cache.setdefault(
+                    guild_id,
+                    {
+                        "enabled": self.cog._automix_enabled.get(guild_id, _consts.AUTOMIX_DEFAULT_ENABLED),
+                        "strategy": val,
+                    },
+                )
+                self.cog._automix_settings_cache[guild_id]["strategy"] = val
+                self.cog._automix_strategy_mode[guild_id] = val
+                asyncio.ensure_future(self.cog.repository.set_automix_strategy(guild_id, val))
+                await i.response.edit_message(content=self._status_text(), view=self)
+                await self._bump_player(i)
+                await i.followup.send(f"🎛️ Automix режим: **{val}**", ephemeral=True)
+
+            @discord.ui.select(
+                placeholder="Fade-out (секунди)",
+                min_values=1,
+                max_values=1,
+                options=[
+                    discord.SelectOption(label="0 (вимкнено)", value="0"),
+                    discord.SelectOption(label="3s", value="3"),
+                    discord.SelectOption(label="6s", value="6"),
+                    discord.SelectOption(label="8s", value="8"),
+                    discord.SelectOption(label="10s", value="10"),
+                    discord.SelectOption(label="15s", value="15"),
+                ],
+                custom_id="mix_fade_select",
+            )
+            async def fade_select(self, i: discord.Interaction, select: discord.ui.Select):
+                try:
+                    s = float(select.values[0])
+                except Exception:
+                    await i.response.send_message("Некоректне значення.", ephemeral=True)
+                    return
+                s = max(_consts.FADE_SECONDS_MIN, min(_consts.FADE_SECONDS_MAX, s))
+                self.cog._fade_seconds[i.guild.id] = s
+                await i.response.edit_message(content=self._status_text(), view=self)
+                await self._bump_player(i)
+                if s <= 0:
+                    await i.followup.send("🔇 Fade-out вимкнено.", ephemeral=True)
+                else:
+                    await i.followup.send(f"🎚️ Fade-out: **{s:.1f}с**", ephemeral=True)
+
+            @discord.ui.button(
+                label="Закрити",
+                style=discord.ButtonStyle.secondary,
+                emoji="❌",
+                custom_id="mix_close",
+                row=2,
+            )
+            async def close_mix(self, i: discord.Interaction, button: discord.ui.Button):
+                await i.response.edit_message(content="Налаштування Mix закрито.", view=None)
+                await self._bump_player(i)
+
+        mix_view = _MixSettingsView(self.cog, interaction.guild.id)
+        await interaction.response.send_message(
+            mix_view._status_text(),
+            view=mix_view,
+            ephemeral=True,
+        )
+
     @discord.ui.button(label="Гучність", style=discord.ButtonStyle.secondary, emoji="🔊", custom_id="volume_modal", row=1)
     async def volume_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         voice_client = interaction.guild.voice_client

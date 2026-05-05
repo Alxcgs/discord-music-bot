@@ -4708,3 +4708,235 @@ discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
 2026-05-04 23:13:20 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=-6kYEWEJR7M
 2026-05-04 23:13:22 [INFO] root: Creating audio pipeline for: Весна
 2026-05-04 23:13:22 [INFO] root: Audio pipeline started for: Весна
+2026-05-04 23:18:16 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-04 23:18:20 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=C9N4b-OohjU
+2026-05-04 23:18:22 [INFO] root: Creating audio pipeline for: Юний орел (Live)
+2026-05-04 23:18:22 [INFO] root: Audio pipeline started for: Юний орел (Live)
+2026-05-04 23:21:47 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=hPHGzIb0_8A
+2026-05-04 23:21:48 [INFO] root: Creating audio pipeline for: grouping
+2026-05-04 23:21:48 [INFO] root: Audio pipeline started for: grouping
+2026-05-04 23:23:17 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-04 23:23:22 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=shWap9T13zU
+2026-05-04 23:23:23 [INFO] root: Creating audio pipeline for: Я рождена для любви
+2026-05-04 23:23:23 [INFO] root: Audio pipeline started for: Я рождена для любви
+2026-05-04 23:23:56 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-05-04 23:24:25 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-05-04 23:24:25 [INFO] root: Бот вимикається...
+2026-05-05 21:29:53 [INFO] root: Opus завантажено (default)
+2026-05-05 21:29:53 [INFO] discord.client: logging in using static token
+2026-05-05 21:29:54 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 90ab2fe581eec391428a46d4e4c20761).
+2026-05-05 21:29:56 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-05-05 21:29:56 [INFO] root: ID бота: 1368988347619479635
+2026-05-05 21:29:56 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot2\data\music_bot.db
+2026-05-05 21:29:56 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-05-05 21:29:56 [INFO] root: Завантажено ког: slash_music_cog
+2026-05-05 21:29:57 [INFO] root: Синхронізовано 18 Slash-команд.
+2026-05-05 21:29:57 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-05-05 21:30:06 [INFO] discord.voice_state: Connecting to voice...
+2026-05-05 21:30:06 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-05-05 21:30:06 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e8105930.discord.media:443
+2026-05-05 21:30:07 [INFO] discord.voice_state: Voice connection complete.
+2026-05-05 21:30:42 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=Rpc8pTvNHwA
+2026-05-05 21:30:44 [INFO] root: Creating audio pipeline for: INNA - Caliente | Official Music Video
+2026-05-05 21:30:45 [INFO] root: Audio pipeline started for: INNA - Caliente | Official Music Video
+2026-05-05 21:31:22 [ERROR] discord.ui.view: Ignoring exception in view <SearchResultsView timeout=60 children=7> for item <Button style=<ButtonStyle.secondary: 2> url=None disabled=False label='1' emoji=None row=None sku_id=None id=None>
+Traceback (most recent call last):
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\ui\view.py", line 598, in _scheduled_task
+    await item.callback(interaction)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot2\discord_music_bot\views\search_results_view.py", line 50, in callback
+    await interaction.message.delete()
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\message.py", line 1308, in delete
+    await self._state.http.delete_message(self.channel.id, self.id)
+  File "C:\Users\dmitr\PycharmProjects\discord-music-bot1\.venv\Lib\site-packages\discord\http.py", line 776, in request
+    raise DiscordServerError(response, data)
+discord.errors.DiscordServerError: 503 Service Unavailable (error code: 0): upstream connect error or disconnect/reset before headers. reset reason: remote connection failure, transport failure reason: immediate connect error: No such file or directory
+2026-05-05 21:34:18 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=ZpUYjpKg9KY
+2026-05-05 21:34:20 [INFO] root: Creating audio pipeline for: Limp Bizkit - Break Stuff (Official Music Video)
+2026-05-05 21:34:20 [INFO] root: Audio pipeline started for: Limp Bizkit - Break Stuff (Official Music Video)
+2026-05-05 21:34:57 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-05 21:34:58 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=kvN_eXJKf5s
+2026-05-05 21:35:03 [INFO] root: Creating audio pipeline for: Степан Гіга - Вино кохання
+2026-05-05 21:35:03 [INFO] root: Audio pipeline started for: Степан Гіга - Вино кохання
+2026-05-05 21:38:23 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=Y9jqh3ihgi8
+2026-05-05 21:38:25 [INFO] root: Creating audio pipeline for: Flo Rida - Whistle | Lyrics
+2026-05-05 21:38:25 [INFO] root: Audio pipeline started for: Flo Rida - Whistle | Lyrics
+2026-05-05 21:39:58 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-05 21:41:00 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-05-05 21:41:02 [WARNING] MusicBot: Voice not connected for guild Сервер користувача Alxcgs, attempting single reconnect...
+2026-05-05 21:41:02 [INFO] discord.voice_state: Connecting to voice...
+2026-05-05 21:41:02 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-05-05 21:41:02 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e8105930.discord.media:443
+2026-05-05 21:41:02 [INFO] discord.voice_state: Voice connection complete.
+2026-05-05 21:41:02 [INFO] MusicBot: Reconnected to Загальний (Сервер користувача Alxcgs)
+2026-05-05 21:41:02 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=pDbQPsENMoI
+2026-05-05 21:41:04 [INFO] root: Creating audio pipeline for: Харфанг feat. DJ Valiko - Золото (Official Video)
+2026-05-05 21:41:04 [INFO] root: Audio pipeline started for: Харфанг feat. DJ Valiko - Золото (Official Video)
+2026-05-05 21:43:43 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=cSnkWzZ7ZAA
+2026-05-05 21:43:45 [INFO] root: Creating audio pipeline for: Flo Rida - Whistle [Official Video]
+2026-05-05 21:43:45 [INFO] root: Audio pipeline started for: Flo Rida - Whistle [Official Video]
+2026-05-05 21:44:58 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-05 21:45:02 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=shWap9T13zU
+2026-05-05 21:45:03 [INFO] root: Creating audio pipeline for: Я рождена для любви
+2026-05-05 21:45:03 [INFO] root: Audio pipeline started for: Я рождена для любви
+2026-05-05 21:48:31 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-05-05 21:48:37 [INFO] root: Opus завантажено (default)
+2026-05-05 21:48:37 [INFO] discord.client: logging in using static token
+2026-05-05 21:48:38 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 412d2e41b61f6b54029fc478baf1c2e7).
+2026-05-05 21:48:40 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-05-05 21:48:40 [INFO] root: ID бота: 1368988347619479635
+2026-05-05 21:48:40 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot2\data\music_bot.db
+2026-05-05 21:48:40 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-05-05 21:48:40 [INFO] root: Завантажено ког: slash_music_cog
+2026-05-05 21:48:41 [INFO] root: Синхронізовано 18 Slash-команд.
+2026-05-05 21:48:41 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-05-05 21:48:54 [INFO] discord.voice_state: Connecting to voice...
+2026-05-05 21:48:54 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-05-05 21:48:54 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e8105930.discord.media:443
+2026-05-05 21:48:54 [INFO] discord.voice_state: Voice connection complete.
+2026-05-05 21:49:18 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=hPHGzIb0_8A
+2026-05-05 21:49:20 [INFO] root: Creating audio pipeline for: grouping
+2026-05-05 21:49:20 [INFO] root: Audio pipeline started for: grouping
+2026-05-05 21:50:25 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-05-05 21:50:43 [INFO] discord.voice_state: Connecting to voice...
+2026-05-05 21:50:43 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-05-05 21:50:43 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e8105930.discord.media:443
+2026-05-05 21:50:43 [INFO] discord.voice_state: Voice connection complete.
+2026-05-05 21:50:48 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=jpnsQHs9qV0
+2026-05-05 21:50:51 [INFO] root: Creating audio pipeline for: Dan Balan - Lendo Calendo (ft.Tany Vander & Brasco) Official video
+2026-05-05 21:50:51 [INFO] root: Audio pipeline started for: Dan Balan - Lendo Calendo (ft.Tany Vander & Brasco) Official video
+2026-05-05 21:51:59 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-05-05 21:57:40 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-05-05 21:57:40 [INFO] root: Бот вимикається...
+2026-05-05 21:57:48 [INFO] root: Opus завантажено (default)
+2026-05-05 21:57:48 [INFO] discord.client: logging in using static token
+2026-05-05 21:57:50 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 739a6bb5598c6f1b861f6591112ed2b4).
+2026-05-05 21:57:52 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-05-05 21:57:52 [INFO] root: ID бота: 1368988347619479635
+2026-05-05 21:57:52 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot2\data\music_bot.db
+2026-05-05 21:57:52 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-05-05 21:57:52 [INFO] root: Завантажено ког: slash_music_cog
+2026-05-05 21:57:52 [INFO] root: Синхронізовано 18 Slash-команд.
+2026-05-05 21:57:52 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-05-05 21:58:02 [INFO] discord.voice_state: Connecting to voice...
+2026-05-05 21:58:02 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-05-05 21:58:02 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e8105930.discord.media:443
+2026-05-05 21:58:02 [INFO] discord.voice_state: Voice connection complete.
+2026-05-05 21:58:23 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=jpnsQHs9qV0
+2026-05-05 21:58:25 [INFO] root: Creating audio pipeline for: Dan Balan - Lendo Calendo (ft.Tany Vander & Brasco) Official video
+2026-05-05 21:58:25 [INFO] root: Audio pipeline started for: Dan Balan - Lendo Calendo (ft.Tany Vander & Brasco) Official video
+2026-05-05 22:02:14 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=ax9ge-ymWIQ
+2026-05-05 22:02:16 [INFO] root: Creating audio pipeline for: INNA - Ruleta (feat. Erik) | Official Music Video
+2026-05-05 22:02:16 [INFO] root: Audio pipeline started for: INNA - Ruleta (feat. Erik) | Official Music Video
+2026-05-05 22:05:33 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=ZhIsAZO5gl0
+2026-05-05 22:05:35 [INFO] root: Creating audio pipeline for: Kiss - I Was Made For Lovin' You
+2026-05-05 22:05:35 [INFO] root: Audio pipeline started for: Kiss - I Was Made For Lovin' You
+2026-05-05 22:08:03 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-05 22:09:05 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-05-05 22:10:05 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-05-05 22:10:05 [INFO] root: Бот вимикається...
+2026-05-05 22:10:10 [INFO] root: Opus завантажено (default)
+2026-05-05 22:10:10 [INFO] discord.client: logging in using static token
+2026-05-05 22:10:11 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 08e218832991bd45657f72d80b512f0c).
+2026-05-05 22:10:13 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-05-05 22:10:13 [INFO] root: ID бота: 1368988347619479635
+2026-05-05 22:10:13 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot2\data\music_bot.db
+2026-05-05 22:10:13 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-05-05 22:10:13 [INFO] root: Завантажено ког: slash_music_cog
+2026-05-05 22:10:14 [INFO] root: Синхронізовано 18 Slash-команд.
+2026-05-05 22:10:14 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-05-05 22:10:24 [INFO] discord.voice_state: Connecting to voice...
+2026-05-05 22:10:24 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-05-05 22:10:25 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e8105930.discord.media:443
+2026-05-05 22:10:25 [INFO] discord.voice_state: Voice connection complete.
+2026-05-05 22:10:47 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=bnrcK9fgndw
+2026-05-05 22:10:48 [INFO] root: Creating audio pipeline for: Полиграф ШарикOFF - Какао белого цвета
+2026-05-05 22:10:48 [INFO] root: Audio pipeline started for: Полиграф ШарикOFF - Какао белого цвета
+2026-05-05 22:15:15 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-05 22:16:17 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-05-05 22:16:21 [INFO] discord.voice_state: Connecting to voice...
+2026-05-05 22:16:21 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-05-05 22:16:21 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e8105930.discord.media:443
+2026-05-05 22:16:23 [INFO] discord.voice_state: Voice connection complete.
+2026-05-05 22:16:29 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=Y9jqh3ihgi8
+2026-05-05 22:16:31 [INFO] root: Creating audio pipeline for: Flo Rida - Whistle | Lyrics
+2026-05-05 22:16:31 [INFO] root: Audio pipeline started for: Flo Rida - Whistle | Lyrics
+2026-05-05 22:20:15 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 1 зомбі-процес(ів).
+2026-05-05 22:20:19 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=ZhIsAZO5gl0
+2026-05-05 22:20:20 [INFO] root: Creating audio pipeline for: Kiss - I Was Made For Lovin' You
+2026-05-05 22:20:21 [INFO] root: Audio pipeline started for: Kiss - I Was Made For Lovin' You
+2026-05-05 22:24:24 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=eLD-EjVFpiw
+2026-05-05 22:24:25 [INFO] root: Creating audio pipeline for: Скрябiн – Годинник [Lyric Video]
+2026-05-05 22:24:25 [INFO] root: Audio pipeline started for: Скрябiн – Годинник [Lyric Video]
+2026-05-05 22:25:16 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-05 22:25:19 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=s4pSEhRwnlg
+2026-05-05 22:25:20 [INFO] root: Creating audio pipeline for: Star Monster - Crazy Brain
+2026-05-05 22:25:20 [INFO] root: Audio pipeline started for: Star Monster - Crazy Brain
+2026-05-05 22:27:59 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=QIL0Ad1Ax_I
+2026-05-05 22:28:01 [INFO] root: Creating audio pipeline for: Конь (Купыла мама коника)
+2026-05-05 22:28:01 [INFO] root: Audio pipeline started for: Конь (Купыла мама коника)
+2026-05-05 22:30:16 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-05 22:30:20 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=shWap9T13zU
+2026-05-05 22:30:21 [INFO] root: Creating audio pipeline for: Я рождена для любви
+2026-05-05 22:30:21 [INFO] root: Audio pipeline started for: Я рождена для любви
+2026-05-05 22:34:30 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-05-05 22:34:36 [INFO] root: Opus завантажено (default)
+2026-05-05 22:34:36 [INFO] discord.client: logging in using static token
+2026-05-05 22:34:37 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 99ded42da1b6288c69fb02671ffe4d05).
+2026-05-05 22:34:39 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-05-05 22:34:39 [INFO] root: ID бота: 1368988347619479635
+2026-05-05 22:34:39 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot2\data\music_bot.db
+2026-05-05 22:34:39 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-05-05 22:34:39 [INFO] root: Завантажено ког: slash_music_cog
+2026-05-05 22:34:40 [INFO] root: Синхронізовано 18 Slash-команд.
+2026-05-05 22:34:40 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-05-05 22:34:42 [INFO] discord.voice_state: Connecting to voice...
+2026-05-05 22:34:42 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-05-05 22:34:43 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e8105930.discord.media:443
+2026-05-05 22:34:43 [INFO] discord.voice_state: Voice connection complete.
+2026-05-05 22:35:15 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=17JglVXCxQs
+2026-05-05 22:35:16 [INFO] root: Creating audio pipeline for: Бiблiотека
+2026-05-05 22:35:16 [INFO] root: Audio pipeline started for: Бiблiотека
+2026-05-05 22:38:24 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=kcuMzuYYnYk
+2026-05-05 22:38:26 [INFO] root: Creating audio pipeline for: Hot
+2026-05-05 22:38:26 [INFO] root: Audio pipeline started for: Hot
+2026-05-05 22:39:40 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
+2026-05-05 22:39:44 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=C9N4b-OohjU
+2026-05-05 22:39:46 [INFO] root: Creating audio pipeline for: Юний орел (Live)
+2026-05-05 22:39:46 [INFO] root: Audio pipeline started for: Юний орел (Live)
+2026-05-05 22:39:58 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-05-05 22:40:04 [INFO] root: Opus завантажено (default)
+2026-05-05 22:40:04 [INFO] discord.client: logging in using static token
+2026-05-05 22:40:06 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 12315f0b1cc1ac883b90135835aec327).
+2026-05-05 22:40:08 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-05-05 22:40:08 [INFO] root: ID бота: 1368988347619479635
+2026-05-05 22:40:08 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot2\data\music_bot.db
+2026-05-05 22:40:08 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-05-05 22:40:08 [INFO] root: Завантажено ког: slash_music_cog
+2026-05-05 22:40:09 [INFO] root: Синхронізовано 18 Slash-команд.
+2026-05-05 22:40:09 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-05-05 22:40:17 [INFO] discord.voice_state: Connecting to voice...
+2026-05-05 22:40:17 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-05-05 22:40:18 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e8105930.discord.media:443
+2026-05-05 22:40:18 [INFO] discord.voice_state: Voice connection complete.
+2026-05-05 22:40:25 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=QgYhkqS8ppk
+2026-05-05 22:40:27 [INFO] root: Creating audio pipeline for: DZIDZIO - XA-XA-XA (TV)
+2026-05-05 22:40:27 [INFO] root: Audio pipeline started for: DZIDZIO - XA-XA-XA (TV)
+2026-05-05 22:43:32 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
+2026-05-05 22:43:38 [INFO] root: Opus завантажено (default)
+2026-05-05 22:43:38 [INFO] discord.client: logging in using static token
+2026-05-05 22:43:39 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 166f7e56fa23f6c9a14c97e3c7528432).
+2026-05-05 22:43:41 [INFO] root: Бот SUPER SUS підключений до Discord!
+2026-05-05 22:43:41 [INFO] root: ID бота: 1368988347619479635
+2026-05-05 22:43:41 [INFO] MusicBot.Database: База даних ініціалізована: C:\Users\dmitr\PycharmProjects\discord-music-bot2\data\music_bot.db
+2026-05-05 22:43:41 [INFO] MusicBot: БД ініціалізована, ког MusicCog завантажений.
+2026-05-05 22:43:41 [INFO] root: Завантажено ког: slash_music_cog
+2026-05-05 22:43:41 [INFO] root: Синхронізовано 18 Slash-команд.
+2026-05-05 22:43:41 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-05-05 22:43:48 [INFO] discord.voice_state: Connecting to voice...
+2026-05-05 22:43:48 [INFO] discord.voice_state: Starting voice handshake... (connection attempt 1)
+2026-05-05 22:43:49 [INFO] discord.voice_state: Voice handshake complete. Endpoint found: c-waw06-e8105930.discord.media:443
+2026-05-05 22:43:49 [INFO] discord.voice_state: Voice connection complete.
+2026-05-05 22:43:53 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=oOaVy5hClc0
+2026-05-05 22:43:55 [INFO] root: Creating audio pipeline for: DZIDZIO - MARSIK
+2026-05-05 22:43:55 [INFO] root: Audio pipeline started for: DZIDZIO - MARSIK
+2026-05-05 22:48:26 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)

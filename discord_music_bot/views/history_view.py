@@ -10,6 +10,12 @@ class HistoryView(discord.ui.View):
         self.cog = cog
         self.guild_id = guild_id
 
+    async def _bump_player(self, interaction: discord.Interaction):
+        try:
+            await self.cog.update_player(interaction.guild, interaction.channel)
+        except Exception:
+            pass
+
     @discord.ui.button(label="Очистити історію", style=discord.ButtonStyle.danger, emoji=consts.EMOJI_CLEAR)
     async def clear_history_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         try:
@@ -20,6 +26,7 @@ class HistoryView(discord.ui.View):
             # Вимикаємо кнопку очищення після натискання
             button.disabled = True
             await interaction.response.edit_message(embed=embed, view=self)
+            await self._bump_player(interaction)
         except Exception as e:
             logging.getLogger('MusicBot').error(f"Clear history error: {e}", exc_info=True)
             await interaction.response.send_message("❌ Помилка очищення історії.", ephemeral=True)
@@ -28,6 +35,7 @@ class HistoryView(discord.ui.View):
     async def dismiss_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         try:
             await interaction.response.edit_message(content="✅ Закрито", embed=None, view=None, delete_after=0)
+            await self._bump_player(interaction)
         except Exception:
             try:
                 await interaction.message.delete()

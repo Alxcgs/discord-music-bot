@@ -81,7 +81,16 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.thumbnail = data.get('thumbnail')
 
     @classmethod
-    async def from_url(cls, url, *, loop=None, stream=True):
+    async def from_url(
+        cls,
+        url,
+        *,
+        loop=None,
+        stream=True,
+        fade_seconds: float = 0.0,
+        fade_in: bool = False,
+        fade_out: bool = False,
+    ):
         """Створює екземпляр YTDLSource з URL або пошукового запиту."""
         loop = loop or asyncio.get_event_loop()
         logging.info(f"Attempting to extract info for URL: {url}")
@@ -121,15 +130,30 @@ class YTDLSource(discord.PCMVolumeTransformer):
                 stdout=subprocess.PIPE, stderr=subprocess.DEVNULL
             )
             
+            # Base audio filter: resampling + stable timestamps
+            audio_filter = 'aresample=async=1:first_pts=0,asetpts=N/SR/TB'
+
+            # MVP "AutoMix-style" fades (NOT an overlapped crossfade yet)
+            try:
+                fade_s = float(fade_seconds or 0.0)
+            except Exception:
+                fade_s = 0.0
+            if fade_s > 0:
+                if fade_in:
+                    audio_filter += f',afade=t=in:st=0:d={fade_s}'
+                if fade_out:
+                    dur = data.get('duration')
+                    if isinstance(dur, (int, float)) and dur and dur > fade_s:
+                        st = max(0.0, float(dur) - fade_s)
+                        audio_filter += f',afade=t=out:st={st}:d={fade_s}'
+
             ffmpeg_cmd = [
                 'ffmpeg',
                 '-fflags', '+discardcorrupt',
                 '-nostdin',
                 '-i', 'pipe:0',
                 '-f', 's16le',
-                # aresample синхронізує timestamps, asetpts перераховує PTS
-                # по кількості семплів — фіксить стрибки швидкості
-                '-af', 'aresample=async=1:first_pts=0,asetpts=N/SR/TB',
+                '-af', audio_filter,
             ] + ffmpeg_opts_list + ['pipe:1'] # Додаємо опції з config.py (rate, channels, etc)
             
             ffmpeg_process = subprocess.Popen(
