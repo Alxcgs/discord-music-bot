@@ -11,9 +11,11 @@ from discord_music_bot.services.automix_service import AutomixService, AutomixCo
 from discord_music_bot.services.dj_service import DJService
 from discord_music_bot.audio_source import YTDLSource
 from discord_music_bot.utils import format_duration
+from discord_music_bot.utils import format_duration
 from discord_music_bot.database import init_db
 from discord_music_bot.repository import MusicRepository
 from discord_music_bot.services.auto_resume import auto_resume
+from discord_music_bot.services.source_service import SourceService
 from discord_music_bot.views.dismiss_view import DismissView
 from discord_music_bot.views.history_view import HistoryView
 from discord_music_bot.views.music_controls import MusicControls
@@ -35,6 +37,7 @@ class MusicCog(commands.Cog):
             config=AutomixConfig(recent_window=consts.AUTOMIX_RECENT_WINDOW),
         )
         self.dj_service = DJService()
+        self.source_service = SourceService()
         self.current_song = {}
         self.control_messages = {}
         self.player_channels = {}
@@ -204,91 +207,7 @@ class MusicCog(commands.Cog):
         except Exception as e:
             self.logger.warning(f"DJ comment send failed for {guild_id}: {e}")
 
-    async def get_video_info(self, url):
-        search_url = url if any(x in url.lower() for x in ['youtube.com', 'youtu.be', 'soundcloud.com']) else f"ytsearch:{url}"
-        # SoundCloud потребує повної екстракції для отримання назв
-        is_soundcloud = 'soundcloud.com' in url.lower()
-        ydl_opts = self.light_ydl_opts.copy()
-        if is_soundcloud:
-            ydl_opts['extract_flat'] = False
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            try:
-                info = await self.bot.loop.run_in_executor(None, lambda: ydl.extract_info(search_url, download=False))
-                if not info: return None
-                if 'entries' in info: info = info['entries'][0]
-                return {
-                    'title': info.get('title') or info.get('fulltitle') or 'Unknown',
-                    'url': info.get('webpage_url', url) or info.get('url', url),
-                    'duration': info.get('duration'),
-                    'thumbnail': info.get('thumbnail')
-                }
-            except Exception as e:
-                self.logger.error(f"Error extracting info: {e}")
-                return None
 
-    async def search_videos(self, query, max_results=10):
-        """Шукає кілька відео за текстовим запитом для меню вибору."""
-        search_url = f"ytsearch{max_results}:{query}"
-        with yt_dlp.YoutubeDL(self.light_ydl_opts) as ydl:
-            try:
-                info = await self.bot.loop.run_in_executor(None, lambda: ydl.extract_info(search_url, download=False))
-                if not info or 'entries' not in info:
-                    return []
-                results = []
-                for entry in info['entries']:
-                    if entry:
-                        results.append({
-                            'title': entry.get('title', 'Unknown'),
-                            'url': entry.get('webpage_url', entry.get('url', '')),
-                            'webpage_url': entry.get('webpage_url', entry.get('url', '')),
-                            'duration': entry.get('duration'),
-                            'thumbnail': entry.get('thumbnail')
-                        })
-                return results
-            except Exception as e:
-                self.logger.error(f"Error searching videos: {e}")
-                return []
-
-    async def extract_playlist(self, url):
-        """Витягує список треків з плейлиста (тільки метадані, швидко)."""
-        # SoundCloud не підтримує extract_flat — використовуємо повну екстракцію
-        is_soundcloud = 'soundcloud.com' in url.lower()
-        ydl_opts = {
-            'quiet': True,
-            'no_warnings': True,
-            'extract_flat': False if is_soundcloud else 'in_playlist',
-            'skip_download': True,
-            'ignoreerrors': True,
-        }
-        try:
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = await self.bot.loop.run_in_executor(
-                    None, lambda: ydl.extract_info(url, download=False)
-                )
-                if not info or 'entries' not in info:
-                    return None, []
-
-                playlist_title = info.get('title', 'Плейлист')
-                tracks = []
-                for entry in info['entries']:
-                    if not entry:
-                        continue
-                    track_url = entry.get('url') or entry.get('webpage_url', '')
-                    if not track_url:
-                        continue
-                    # Для flat extraction URL може бути ID — конвертуємо у повний URL
-                    if not track_url.startswith('http'):
-                        track_url = f"https://www.youtube.com/watch?v={track_url}"
-                    tracks.append({
-                        'title': entry.get('title', 'Unknown'),
-                        'url': track_url,
-                        'duration': entry.get('duration'),
-                        'thumbnail': None,
-                    })
-                return playlist_title, tracks
-        except Exception as e:
-            self.logger.error(f"Error extracting playlist: {e}")
-            return None, []
 
     async def update_player(self, guild, channel):
         try:
@@ -400,7 +319,7 @@ class MusicCog(commands.Cog):
 
                     player = await self.player_service.play_stream(
                         voice_client, 
-                        item['url'], 
+                        item, 
                         self.bot.loop, 
                         lambda e: self.bot.loop.create_task(self.check_after_play(guild, voice_client, e)),
                         fade_seconds=fade_s,
@@ -633,10 +552,9 @@ class MusicCog(commands.Cog):
                 return
         
         self.player_channels[interaction.guild.id] = interaction.channel.id # Save channel for notifications
-        # Check for playlist
         is_playlist = 'list=' in query or '/sets/' in query or '/playlist' in query
         if is_playlist:
-            playlist_title, tracks = await self.extract_playlist(query)
+            playlist_title, tracks = await self.source_service.extract_playlist(query)
             if not tracks:
                 await interaction.followup.send("❌ Не вдалося завантажити плейлист або він порожній.")
                 return
@@ -660,7 +578,7 @@ class MusicCog(commands.Cog):
         
         if is_url:
             # Пряме посилання — додаємо одразу
-            info = await self.get_video_info(query)
+            info = await self.source_service.get_video_info(query)
             if not info:
                 await interaction.followup.send("❌ Не вдалося знайти трек.")
                 return
@@ -669,7 +587,7 @@ class MusicCog(commands.Cog):
             await interaction.followup.send(f"✅ Додано: **{info['title']}**")
         else:
             # Текстовий запит — показуємо меню вибору
-            results = await self.search_videos(query)
+            results = await self.source_service.search_videos(query)
             if not results:
                 await interaction.followup.send("❌ Не вдалося знайти треки за запитом.")
                 return

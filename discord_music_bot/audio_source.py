@@ -81,38 +81,27 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.thumbnail = data.get('thumbnail')
 
     @classmethod
-    async def from_url(
+    async def from_track_dict(
         cls,
-        url,
+        track_dict: dict,
         *,
         loop=None,
-        stream=True,
         fade_seconds: float = 0.0,
         fade_in: bool = False,
         fade_out: bool = False,
     ):
-        """Створює екземпляр YTDLSource з URL або пошукового запиту."""
+        """Створює екземпляр YTDLSource напряму з метаданих треку (без повторного виклику yt-dlp API)."""
         loop = loop or asyncio.get_event_loop()
-        logging.info(f"Attempting to extract info for URL: {url}")
+        
+        url = track_dict.get('webpage_url') or track_dict.get('url')
+        if not url:
+            logging.error("No URL provided in track_dict")
+            return None
+
+        logging.info(f"Creating audio pipeline for: {track_dict.get('title', 'Unknown')}")
 
         try:
             ydl_opts = YDL_OPTIONS.copy()
-            
-            if not url.startswith('http'):
-                url = f"ytsearch:{url}"
-
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                try:
-                    data = await loop.run_in_executor(None, lambda: ydl.extract_info(url, download=False))
-                except Exception as e:
-                    logging.error(f"Failed to extract info: {e}")
-                    return None
-
-            if data is None: return None
-            if 'entries' in data: data = data['entries'][0]
-
-            webpage_url = data.get('webpage_url') or data.get('url') or url
-            logging.info(f"Creating audio pipeline for: {data.get('title')}")
             
             # Розбираємо глобальні FFMPEG опції для використання в subprocess
             # FFMPEG_OPTIONS['options'] містить рядок параметрів, треба його розбити на list
@@ -125,7 +114,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
                     '--format', ydl_opts['format'], # Використовуємо формат з конфігу (opus HQ)
                     '--output', '-',
                     '--quiet', '--no-warnings',
-                    webpage_url
+                    url
                 ],
                 stdout=subprocess.PIPE, stderr=subprocess.DEVNULL
             )
@@ -142,7 +131,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
                 if fade_in:
                     audio_filter += f',afade=t=in:st=0:d={fade_s}'
                 if fade_out:
-                    dur = data.get('duration')
+                    dur = track_dict.get('duration')
                     if isinstance(dur, (int, float)) and dur and dur > fade_s:
                         st = max(0.0, float(dur) - fade_s)
                         audio_filter += f',afade=t=out:st={st}:d={fade_s}'
@@ -166,9 +155,9 @@ class YTDLSource(discord.PCMVolumeTransformer):
             ytdlp_process.stdout.close()
             
             source = YTDLPPipeSource(ytdlp_process, ffmpeg_process)
-            logging.info(f"Audio pipeline started for: {data.get('title')}")
-            return cls(source, data=data)
+            logging.info(f"Audio pipeline started for: {track_dict.get('title', 'Unknown')}")
+            return cls(source, data=track_dict)
 
         except Exception as e:
-            logging.error(f"Error in from_url: {str(e)}", exc_info=True)
+            logging.error(f"Error in from_track_dict: {str(e)}", exc_info=True)
             return None
