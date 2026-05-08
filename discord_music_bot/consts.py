@@ -99,6 +99,9 @@ YTDL_OPTIONS_LIGHT = {
     'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'opus', 'preferredquality': '128'}]
 }
 
+# --- Auto-Resume ---
+AUTO_RESUME_STALENESS_THRESHOLD = 24 * 3600  # 24 hours in seconds
+
 # --- Messages ---
 MSG_NOT_IN_VOICE = "Ви не в голосовому каналі!"
 MSG_BOT_NOT_IN_VOICE = "Бот наразі не в голосовому каналі."

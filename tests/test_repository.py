@@ -132,3 +132,89 @@ async def test_automix_settings(repo):
     await repo.set_automix_strategy(1, "llm_based")
     settings = await repo.get_automix_settings(1)
     assert settings["strategy"] == "llm_based"
+
+@pytest.mark.asyncio
+async def test_analytics(repo):
+    await repo.save_guild_state(1)
+    
+    # Add history
+    tracks = [
+        {"url": "http://1", "title": "T1", "duration": 100},
+        {"url": "http://1", "title": "T1", "duration": 100},
+        {"url": "http://2", "title": "T2", "duration": 300},
+    ]
+    for t in tracks:
+        await repo.add_history_track(1, t)
+    
+    # Top tracks
+    top = await repo.get_top_tracks(1)
+    assert len(top) == 2
+    assert top[0]["url"] == "http://1"
+    assert top[0]["play_count"] == 2
+    
+    # Total time
+    total_time = await repo.get_total_listening_time(1)
+    assert total_time == 500
+    
+    # Stats (last 30 days)
+    stats = await repo.get_listening_stats(1, days=30)
+    assert stats["total_tracks"] == 3
+    assert stats["unique_tracks"] == 2
+    assert stats["total_seconds"] == 500
+    
+    # Search history
+    search_results = await repo.search_history(1, "T2")
+    assert len(search_results) == 1
+    assert search_results[0]["title"] == "T2"
+
+@pytest.mark.asyncio
+async def test_automix_feedback(repo):
+    await repo.save_guild_state(1)
+    
+    # Skip penalties
+    await repo.increment_automix_skip(1, "http://bad")
+    await repo.increment_automix_skip(1, "http://bad")
+    penalties = await repo.get_automix_skip_penalties(1)
+    assert penalties["http://bad"] == 2
+    
+    # Feedback events
+    await repo.add_automix_feedback_event(1, "recommended", "http://1", "top_weighted")
+    await repo.add_automix_feedback_event(1, "skipped", "http://1", "top_weighted")
+    await repo.add_automix_feedback_event(1, "recommended", "http://2", "history_explore")
+    
+    counts = await repo.get_automix_feedback_counts(1)
+    assert counts["recommended"] == 2
+    assert counts["skipped"] == 1
+    
+    # AB comparison
+    ab = await repo.get_automix_ab_comparison(1)
+    # ab is a list of dicts like {'strat': 'top_weighted', 'action': 'recommended', 'cnt': 1}
+    assert len(ab) >= 2
+    
+    # Diversity
+    div = await repo.get_automix_diversity_stats(1)
+    assert div["rec_total"] == 2
+    assert div["rec_distinct"] == 2
+
+@pytest.mark.asyncio
+async def test_dj_settings_and_events(repo):
+    await repo.save_guild_state(1)
+    
+    # Initial settings
+    settings = await repo.get_dj_settings(1)
+    assert settings is None
+    
+    # Enable DJ
+    await repo.set_dj_enabled(1, True)
+    settings = await repo.get_dj_settings(1)
+    assert settings["enabled"] is True
+    assert settings["persona"] == "chill" # Default
+    
+    # Set persona
+    await repo.set_dj_persona(1, "funny")
+    settings = await repo.get_dj_settings(1)
+    assert settings["persona"] == "funny"
+    
+    # DJ Events
+    await repo.add_dj_event(1, "intro", persona="funny", track_url="http://1", message="Hello!")
+    # Just verify no crash for now as there is no get_dj_events yet in repo.

@@ -57,6 +57,7 @@ class MusicCog(commands.Cog):
         self.logger.setLevel(logging.INFO)
         
         self.light_ydl_opts = consts.YTDL_OPTIONS_LIGHT
+        self._auto_resume_executed = False
 
     async def cog_load(self):
         """Викликається при завантаженні когу — ініціалізує БД та запускає auto-resume."""
@@ -131,10 +132,14 @@ class MusicCog(commands.Cog):
 
     async def _on_ready_auto_resume(self):
         """Запускає auto-resume після повної готовності бота."""
+        if self._auto_resume_executed:
+            return
+        self._auto_resume_executed = True
+        
         await asyncio.sleep(3)  # Невелика затримка для стабільності
         count = await auto_resume(self.bot, self)
         if count > 0:
-            self.logger.info(f"Auto-Resume: відновлено {count} сервер(ів).")
+            self.logger.info(f"Auto-Resume: успішно відновлено {count} сервер(ів).")
 
     async def _ensure_dj_state_loaded(self, guild_id: int) -> None:
         if guild_id in self._dj_settings_cache:

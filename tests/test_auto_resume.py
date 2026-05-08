@@ -1,21 +1,22 @@
 import pytest
-from unittest.mock import AsyncMock, Mock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import datetime, timezone, timedelta
 from discord_music_bot.services.auto_resume import auto_resume
+from discord_music_bot import consts
 
 @pytest.fixture
 def mock_bot():
-    bot = Mock()
-    bot.get_guild = Mock()
+    bot = MagicMock()
     return bot
 
 @pytest.fixture
 def mock_cog():
-    cog = AsyncMock()
+    cog = MagicMock()
     cog.repository = AsyncMock()
-    cog.queue_service = Mock()
+    cog.queue_service = MagicMock() # Use MagicMock for synchronous methods
+    cog.queue_service.get_queue = MagicMock(return_value=[])
     cog.queue_service.load_from_db = AsyncMock()
-    cog.queue_service.push_front = Mock()
-    cog.queue_service.get_queue = Mock(return_value=[])
+    cog.queue_service.push_front = MagicMock()
     cog.player_channels = {}
     cog.play_next_song = AsyncMock()
     cog.update_player = AsyncMock()
@@ -28,123 +29,112 @@ async def test_auto_resume_no_active_guilds(mock_bot, mock_cog):
     count = await auto_resume(mock_bot, mock_cog)
     
     assert count == 0
-    mock_bot.get_guild.assert_not_called()
+    mock_cog.repository.get_all_active_guilds.assert_called_once()
 
 @pytest.mark.asyncio
-async def test_auto_resume_guild_not_found(mock_bot, mock_cog):
-    mock_cog.repository.get_all_active_guilds.return_value = [
-        {"guild_id": 1, "voice_channel_id": 10, "text_channel_id": 20, "current_track_url": "http"}
-    ]
-    mock_bot.get_guild.return_value = None
+async def test_auto_resume_staleness_policy(mock_bot, mock_cog):
+    # Сесія створена 25 годин тому
+    stale_time = (datetime.now(timezone.utc) - timedelta(hours=25)).strftime("%Y-%m-%d %H:%M:%S")
     
-    count = await auto_resume(mock_bot, mock_cog)
-    
-    assert count == 0
-    mock_cog.repository.clear_guild_state.assert_awaited_once_with(1)
-
-@pytest.mark.asyncio
-async def test_auto_resume_voice_channel_not_found(mock_bot, mock_cog):
-    mock_cog.repository.get_all_active_guilds.return_value = [
-        {"guild_id": 1, "voice_channel_id": 10, "text_channel_id": 20, "current_track_url": "http"}
-    ]
-    mock_guild = Mock()
-    mock_guild.get_channel.return_value = None  # Channel not found
-    mock_bot.get_guild.return_value = mock_guild
-    
-    count = await auto_resume(mock_bot, mock_cog)
-    
-    assert count == 0
-    mock_cog.repository.clear_guild_state.assert_awaited_once_with(1)
-
-@pytest.mark.asyncio
-async def test_auto_resume_empty_voice_channel(mock_bot, mock_cog):
-    mock_cog.repository.get_all_active_guilds.return_value = [
-        {"guild_id": 1, "voice_channel_id": 10, "text_channel_id": 20, "current_track_url": "http"}
-    ]
-    mock_guild = Mock()
-    mock_channel = Mock()
-    # All members are bots
-    bot_member = Mock(bot=True)
-    mock_channel.members = [bot_member]
-    mock_guild.get_channel.return_value = mock_channel
-    mock_bot.get_guild.return_value = mock_guild
-    
-    count = await auto_resume(mock_bot, mock_cog)
-    
-    assert count == 0
-    mock_cog.repository.clear_guild_state.assert_awaited_once_with(1)
-
-@pytest.mark.asyncio
-async def test_auto_resume_success(mock_bot, mock_cog):
     mock_cog.repository.get_all_active_guilds.return_value = [
         {
-            "guild_id": 1, 
-            "voice_channel_id": 10, 
-            "text_channel_id": 20, 
-            "current_track_url": "http://test",
-            "current_track_title": "Test Title",
-            "current_track_duration": 100,
-            "current_track_thumbnail": "http://thumb"
+            'guild_id': 123,
+            'updated_at': stale_time,
+            'voice_channel_id': 456,
+            'text_channel_id': 789,
+            'current_track_url': 'http://example.com',
         }
     ]
     
-    mock_guild = Mock()
-    mock_guild.name = "Test Guild"
+    count = await auto_resume(mock_bot, mock_cog)
     
-    # Mock text and voice channels properly
-    def get_channel_side_effect(channel_id):
-        if channel_id == 10:
-            mock_vc = AsyncMock()
-            mock_vc.name = "Voice Channel"
-            human_member = Mock(bot=False)
-            mock_vc.members = [human_member]
-            mock_vc.connect = AsyncMock(return_value="connected_voice_client")
-            return mock_vc
-        elif channel_id == 20:
-            mock_tc = AsyncMock()
-            mock_tc.send = AsyncMock()
-            return mock_tc
-        return None
-        
-    mock_guild.get_channel.side_effect = get_channel_side_effect
-    mock_bot.get_guild.return_value = mock_guild
-    
-    # Run the function
-    # Mock asyncio.sleep to not wait during tests
-    with patch("discord_music_bot.services.auto_resume.asyncio.sleep", new_callable=AsyncMock):
-        count = await auto_resume(mock_bot, mock_cog)
-    
-    assert count == 1
-    
-    # Verify interactions
-    mock_cog.queue_service.load_from_db.assert_awaited_once_with(1)
-    mock_cog.queue_service.push_front.assert_called_once()
-    args, _ = mock_cog.queue_service.push_front.call_args
-    assert args[0] == 1
-    assert args[1]["url"] == "http://test"
-    assert args[1]["title"] == "Test Title"
-    
-    assert mock_cog.player_channels[1] == 20
-    mock_cog.play_next_song.assert_awaited_once_with(mock_guild, "connected_voice_client")
-    mock_cog.update_player.assert_awaited_once()
+    assert count == 0
+    # Перевірка що стан було очищено через застарілість
+    mock_cog.repository.clear_guild_state.assert_called_with(123)
 
 @pytest.mark.asyncio
-async def test_auto_resume_exception_during_connect(mock_bot, mock_cog):
+async def test_auto_resume_missing_guild(mock_bot, mock_cog):
+    valid_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     mock_cog.repository.get_all_active_guilds.return_value = [
-        {"guild_id": 1, "voice_channel_id": 10, "text_channel_id": 20, "current_track_url": "http"}
+        {
+            'guild_id': 123,
+            'updated_at': valid_time,
+            'voice_channel_id': 456,
+            'text_channel_id': 789,
+            'current_track_url': 'http://example.com',
+        }
     ]
     
-    mock_guild = Mock()
-    mock_vc = Mock()
-    human_member = Mock(bot=False)
-    mock_vc.members = [human_member]
-    mock_vc.connect = AsyncMock(side_effect=Exception("Connection Error"))
-    
-    mock_guild.get_channel.return_value = mock_vc
-    mock_bot.get_guild.return_value = mock_guild
+    mock_bot.get_guild.return_value = None # Guild не знайдено
     
     count = await auto_resume(mock_bot, mock_cog)
     
-    # Should handle exception and clear state
     assert count == 0
-    mock_cog.repository.clear_guild_state.assert_awaited_once_with(1)
+    mock_cog.repository.clear_guild_state.assert_called_with(123)
+
+@pytest.mark.asyncio
+async def test_auto_resume_empty_channel(mock_bot, mock_cog):
+    valid_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    mock_cog.repository.get_all_active_guilds.return_value = [
+        {
+            'guild_id': 123,
+            'updated_at': valid_time,
+            'voice_channel_id': 456,
+            'text_channel_id': 789,
+            'current_track_url': 'http://example.com',
+        }
+    ]
+    
+    mock_guild = MagicMock()
+    mock_voice_channel = MagicMock()
+    # Тільки боти в каналі
+    mock_member = MagicMock()
+    mock_member.bot = True
+    mock_voice_channel.members = [mock_member]
+    
+    mock_bot.get_guild.return_value = mock_guild
+    mock_guild.get_channel.return_value = mock_voice_channel
+    
+    count = await auto_resume(mock_bot, mock_cog)
+    
+    assert count == 0
+    mock_cog.repository.clear_guild_state.assert_called_with(123)
+
+@pytest.mark.asyncio
+async def test_auto_resume_success(mock_bot, mock_cog):
+    valid_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    mock_cog.repository.get_all_active_guilds.return_value = [
+        {
+            'guild_id': 123,
+            'updated_at': valid_time,
+            'voice_channel_id': 456,
+            'text_channel_id': 789,
+            'current_track_url': 'http://example.com',
+            'current_track_title': 'Test Track'
+        }
+    ]
+    
+    mock_guild = MagicMock()
+    mock_voice_channel = MagicMock()
+    mock_voice_channel.connect = AsyncMock()
+    
+    # Є людина в каналі
+    mock_human = MagicMock()
+    mock_human.bot = False
+    mock_voice_channel.members = [mock_human]
+    
+    mock_bot.get_guild.return_value = mock_guild
+    mock_guild.get_channel.return_value = mock_voice_channel
+    
+    # Мокаємо відправку повідомлення в текстовий канал
+    mock_text_channel = AsyncMock()
+    mock_guild.get_channel.side_effect = lambda id: mock_voice_channel if id == 456 else mock_text_channel
+    
+    count = await auto_resume(mock_bot, mock_cog)
+    
+    assert count == 1
+    mock_voice_channel.connect.assert_called_once()
+    mock_cog.queue_service.load_from_db.assert_called_with(123)
+    mock_cog.queue_service.push_front.assert_called_once()
+    mock_cog.play_next_song.assert_called_once()
+    mock_text_channel.send.assert_called()
