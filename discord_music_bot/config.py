@@ -1,4 +1,5 @@
 import os
+import sys
 from dotenv import load_dotenv
 import logging
 
@@ -9,7 +10,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 
 # --- Токен Discord ---
-DISCORD_TOKEN = os.getenv('DISCORD_TOKEN', 'dummy_test_token')
+DISCORD_TOKEN = 'dummy_test_token' if 'pytest' in sys.modules else os.getenv('DISCORD_TOKEN', 'dummy_test_token')
 
 if DISCORD_TOKEN == 'dummy_test_token':
     logging.warning("Увага: Не знайдено DISCORD_TOKEN у .env файлі. Тести будуть працювати, але реальний бот не запуститься.")

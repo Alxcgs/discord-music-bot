@@ -5019,3 +5019,780 @@ discord.errors.DiscordServerError: 503 Service Unavailable (error code: 0): upst
 2026-05-05 23:47:56 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=N7FEo6t6w5w
 2026-05-05 23:47:58 [INFO] root: Creating audio pipeline for: Victoria Niro - Питань нема
 2026-05-05 23:47:58 [INFO] root: Audio pipeline started for: Victoria Niro - Питань нема
+2026-05-09 20:50:40 [WARNING] discord.client: davey is not installed, voice will NOT be supported
+2026-05-09 20:50:40 [INFO] root: Creating audio pipeline for: Test
+2026-05-09 20:50:40 [INFO] root: Audio pipeline started for: Test
+2026-05-09 20:50:40 [ERROR] MusicBot.SourceService: Error extracting playlist http://playlist: Extract Fail
+2026-05-09 20:50:40 [ERROR] root: No URL provided in track_dict
+2026-05-09 20:50:40 [INFO] root: Creating audio pipeline for: Test
+2026-05-09 20:50:40 [INFO] root: Audio pipeline started for: Test
+2026-05-09 20:50:40 [ERROR] root: No URL provided in track_dict
+2026-05-09 20:50:40 [INFO] root: Creating audio pipeline for: Test
+2026-05-09 20:50:40 [INFO] root: Audio pipeline started for: Test
+2026-05-09 20:50:40 [INFO] root: Creating audio pipeline for: Test
+2026-05-09 20:50:40 [ERROR] root: Error in from_track_dict: Subprocess Error
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/audio_source.py", line 111, in from_track_dict
+    ytdlp_process = subprocess.Popen(
+        [
+    ...<6 lines>...
+        stdout=subprocess.PIPE, stderr=subprocess.DEVNULL
+    )
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1169, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1173, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1228, in _execute_mock_call
+    raise effect
+Exception: Subprocess Error
+2026-05-09 20:50:40 [INFO] MusicBot.AutoResume: Auto-Resume: немає активних серверів для відновлення.
+2026-05-09 20:50:40 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:50:40 [INFO] MusicBot.AutoResume: Auto-Resume: сесія 123 застаріла (25г тому). Очищаємо.
+2026-05-09 20:50:40 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:50:40 [WARNING] MusicBot.AutoResume: Auto-Resume: Guild 123 не знайдено. Очищаємо стан.
+2026-05-09 20:50:40 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:50:40 [INFO] MusicBot.AutoResume: Auto-Resume: Канал <MagicMock name='mock.get_guild().get_channel().name' id='4476148368'> (<MagicMock name='mock.get_guild().name' id='4476144336'>) порожній. Очищаємо стан.
+2026-05-09 20:50:40 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:50:40 [INFO] MusicBot.AutoResume: Auto-Resume: Відновлення <MagicMock name='mock.get_guild().get_channel().name' id='4475157680'> (<MagicMock name='mock.get_guild().name' id='4475156000'>)...
+2026-05-09 20:50:42 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:50:42 [ERROR] MusicBot.AutoResume: Auto-Resume critical error: 'current_track_url'
+2026-05-09 20:50:42 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:50:42 [ERROR] MusicBot.AutoResume: Auto-Resume critical error: 'voice_channel_id'
+2026-05-09 20:50:42 [WARNING] MusicBot.AutomixService: Top tracks query failed for 123: DB Error
+2026-05-09 20:50:42 [WARNING] MusicBot.AutomixService: History query failed for 123: DB Error
+2026-05-09 20:50:42 [WARNING] MusicBot.AutomixService: playcount map failed for 123: DB Error
+2026-05-09 20:50:42 [WARNING] MusicBot.AutomixService: History query failed for 123: DB Error
+2026-05-09 20:50:43 [ERROR] MusicBot.AutoResume: Auto-Resume critical error: object MagicMock can't be used in 'await' expression
+2026-05-09 20:50:43 [INFO] root: Бот <MagicMock name='mock.user.name' id='4477207952'> підключений до Discord!
+2026-05-09 20:50:43 [INFO] root: ID бота: <MagicMock name='mock.user.id' id='4477208624'>
+2026-05-09 20:50:43 [ERROR] root: Помилка завантаження кога test: Fail
+2026-05-09 20:50:43 [ERROR] MusicBot: Stats error: Fail
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/cogs/slash_music_cog.py", line 947, in stats
+    stats_30d = await self.repository.get_listening_stats(guild_id, days=30)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 2321, in _execute_mock_call
+    raise effect
+Exception: Fail
+2026-05-09 20:50:43 [ERROR] MusicBot: History error: Fail
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/cogs/slash_music_cog.py", line 1003, in history
+    tracks = await self.repository.get_history(guild_id, limit=25)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 2321, in _execute_mock_call
+    raise effect
+Exception: Fail
+2026-05-09 20:50:43 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:50:43 [ERROR] MusicBot.AutoResume: Auto-Resume critical error: 'current_track_url'
+2026-05-09 20:50:43 [ERROR] root: В команді test виникла помилка: Internal
+2026-05-09 20:50:43 [ERROR] root: Помилка завантаження кога fail: Load Fail
+2026-05-09 20:50:43 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 1 зомбі-процес(ів).
+2026-05-09 20:50:43 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-05-09 20:50:43 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 100с)
+2026-05-09 20:50:43 [INFO] MusicBot.HistoryService: Guild 123: завантажено 2 з історії
+2026-05-09 20:50:43 [ERROR] MusicBot.HistoryService: Помилка завантаження історії з БД для 123: DB Error
+2026-05-09 20:50:43 [ERROR] MusicBot: Clear history error: Clear error
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/views/history_view.py", line 22, in clear_history_button
+    self.cog.history_service.clear_history(self.guild_id)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1169, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1173, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1228, in _execute_mock_call
+    raise effect
+Exception: Clear error
+2026-05-09 20:50:43 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 100с)
+2026-05-09 20:50:43 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpzo31dsqx
+2026-05-09 20:50:43 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpjve6lfu4
+2026-05-09 20:50:43 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp177ah2p6
+2026-05-09 20:50:43 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpguz9jpty
+2026-05-09 20:50:43 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpoikweglj
+2026-05-09 20:50:43 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpxbyzgwd6
+2026-05-09 20:50:43 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpztmyq_cj
+2026-05-09 20:50:43 [INFO] root: Завантажено ког: music_cog
+2026-05-09 20:50:43 [ERROR] root: Помилка завантаження кога fail_cog: Load Fail
+2026-05-09 20:50:43 [ERROR] root: В команді test виникла помилка: Internal
+2026-05-09 20:50:43 [ERROR] root: Необроблена помилка: Unknown
+2026-05-09 20:50:43 [INFO] root: Opus завантажено з: /opt/homebrew/lib/libopus.dylib
+2026-05-09 20:50:44 [ERROR] MusicBot.PlayerService: Error creating stream: Voice client is not connected — cannot start playback.
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/services/player_service.py", line 25, in play_stream
+    raise discord.errors.ClientException("Voice client is not connected — cannot start playback.")
+discord.errors.ClientException: Voice client is not connected — cannot start playback.
+2026-05-09 20:50:44 [ERROR] MusicBot.PlayerService: Error creating stream: Failed to create audio source for URL: http://test
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/services/player_service.py", line 36, in play_stream
+    raise ValueError(f"Failed to create audio source for URL: {url}")
+ValueError: Failed to create audio source for URL: http://test
+2026-05-09 20:50:44 [ERROR] MusicBot.PlayerService: Error creating stream: Voice connection lost while preparing audio source.
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/services/player_service.py", line 40, in play_stream
+    raise discord.errors.ClientException("Voice connection lost while preparing audio source.")
+discord.errors.ClientException: Voice connection lost while preparing audio source.
+2026-05-09 20:50:44 [INFO] MusicBot.QueueService: Guild 123: завантажено 1 треків з черги
+2026-05-09 20:50:44 [ERROR] MusicBot.QueueService: Помилка завантаження черги з БД для 123: DB Error
+2026-05-09 20:50:44 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp5oh816i1.db
+2026-05-09 20:50:44 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmptdjdyahu.db
+2026-05-09 20:50:44 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp7o0upajv.db
+2026-05-09 20:50:44 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpf1o23070.db
+2026-05-09 20:50:44 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp1gtsiwaa.db
+2026-05-09 20:50:44 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp1qjxyh18.db
+2026-05-09 20:50:44 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpv178k4ux.db
+2026-05-09 20:50:44 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpc3_8_qck.db
+2026-05-09 20:50:44 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpjsv0qlju
+2026-05-09 20:50:44 [INFO] MusicBot.Database: База даних ініціалізована: /Users/alxcgs/Para/git-ds/discord-music-bot/data/music_bot.db
+2026-05-09 20:51:12 [ERROR] MusicBot.SourceService: Error extracting info for url: YTDL Error
+2026-05-09 20:51:12 [ERROR] MusicBot.SourceService: Error searching videos for query: YTDL Error
+2026-05-09 20:51:12 [ERROR] MusicBot.SourceService: Error extracting playlist url: YTDL Error
+2026-05-09 20:51:45 [WARNING] discord.client: davey is not installed, voice will NOT be supported
+2026-05-09 20:51:45 [INFO] root: Creating audio pipeline for: Test
+2026-05-09 20:51:45 [INFO] root: Audio pipeline started for: Test
+2026-05-09 20:51:45 [ERROR] MusicBot.SourceService: Error extracting playlist http://playlist: Extract Fail
+2026-05-09 20:51:45 [ERROR] root: No URL provided in track_dict
+2026-05-09 20:51:45 [INFO] root: Creating audio pipeline for: Test
+2026-05-09 20:51:45 [INFO] root: Audio pipeline started for: Test
+2026-05-09 20:51:45 [ERROR] root: No URL provided in track_dict
+2026-05-09 20:51:45 [INFO] root: Creating audio pipeline for: Test
+2026-05-09 20:51:45 [INFO] root: Audio pipeline started for: Test
+2026-05-09 20:51:45 [INFO] root: Creating audio pipeline for: Test
+2026-05-09 20:51:45 [ERROR] root: Error in from_track_dict: Subprocess Error
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/audio_source.py", line 111, in from_track_dict
+    ytdlp_process = subprocess.Popen(
+                    ^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+Exception: Subprocess Error
+2026-05-09 20:51:45 [INFO] MusicBot.AutoResume: Auto-Resume: немає активних серверів для відновлення.
+2026-05-09 20:51:45 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:51:45 [INFO] MusicBot.AutoResume: Auto-Resume: сесія 123 застаріла (25г тому). Очищаємо.
+2026-05-09 20:51:45 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:51:45 [WARNING] MusicBot.AutoResume: Auto-Resume: Guild 123 не знайдено. Очищаємо стан.
+2026-05-09 20:51:45 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:51:45 [INFO] MusicBot.AutoResume: Auto-Resume: Канал <MagicMock name='mock.get_guild().get_channel().name' id='4471562912'> (<MagicMock name='mock.get_guild().name' id='4471634064'>) порожній. Очищаємо стан.
+2026-05-09 20:51:45 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:51:45 [INFO] MusicBot.AutoResume: Auto-Resume: Відновлення <MagicMock name='mock.get_guild().get_channel().name' id='4471943680'> (<MagicMock name='mock.get_guild().name' id='4471863296'>)...
+2026-05-09 20:51:47 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:51:47 [ERROR] MusicBot.AutoResume: Auto-Resume critical error: 'current_track_url'
+2026-05-09 20:51:47 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:51:47 [ERROR] MusicBot.AutoResume: Auto-Resume critical error: 'voice_channel_id'
+2026-05-09 20:51:47 [WARNING] MusicBot.AutomixService: Top tracks query failed for 123: DB Error
+2026-05-09 20:51:47 [WARNING] MusicBot.AutomixService: History query failed for 123: DB Error
+2026-05-09 20:51:47 [WARNING] MusicBot.AutomixService: playcount map failed for 123: DB Error
+2026-05-09 20:51:47 [WARNING] MusicBot.AutomixService: History query failed for 123: DB Error
+2026-05-09 20:51:48 [ERROR] MusicBot.AutoResume: Auto-Resume critical error: object MagicMock can't be used in 'await' expression
+2026-05-09 20:51:48 [INFO] root: Бот <MagicMock name='mock.user.name' id='4473042848'> підключений до Discord!
+2026-05-09 20:51:48 [INFO] root: ID бота: <MagicMock name='mock.user.id' id='4472952288'>
+2026-05-09 20:51:48 [ERROR] root: Помилка завантаження кога test: Fail
+2026-05-09 20:51:48 [ERROR] MusicBot: Stats error: Fail
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/cogs/slash_music_cog.py", line 947, in stats
+    stats_30d = await self.repository.get_listening_stats(guild_id, days=30)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 2291, in _execute_mock_call
+    raise effect
+Exception: Fail
+2026-05-09 20:51:48 [ERROR] MusicBot: History error: Fail
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/cogs/slash_music_cog.py", line 1003, in history
+    tracks = await self.repository.get_history(guild_id, limit=25)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 2291, in _execute_mock_call
+    raise effect
+Exception: Fail
+2026-05-09 20:51:48 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:51:48 [ERROR] MusicBot.AutoResume: Auto-Resume critical error: 'current_track_url'
+2026-05-09 20:51:48 [ERROR] root: В команді test виникла помилка: Internal
+2026-05-09 20:51:48 [ERROR] root: Помилка завантаження кога fail: Load Fail
+2026-05-09 20:51:48 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 1 зомбі-процес(ів).
+2026-05-09 20:51:48 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-05-09 20:51:48 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 100с)
+2026-05-09 20:51:48 [INFO] MusicBot.HistoryService: Guild 123: завантажено 2 з історії
+2026-05-09 20:51:48 [ERROR] MusicBot.HistoryService: Помилка завантаження історії з БД для 123: DB Error
+2026-05-09 20:51:48 [ERROR] MusicBot: Clear history error: Clear error
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/views/history_view.py", line 22, in clear_history_button
+    self.cog.history_service.clear_history(self.guild_id)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+Exception: Clear error
+2026-05-09 20:51:48 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 100с)
+2026-05-09 20:51:48 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpfjpi1mma
+2026-05-09 20:51:48 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpohwfmlme
+2026-05-09 20:51:48 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpg4purrm0
+2026-05-09 20:51:48 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpkgqzeeiz
+2026-05-09 20:51:48 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpvouge5fy
+2026-05-09 20:51:48 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpciddgt2d
+2026-05-09 20:51:48 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp6l5_ka6b
+2026-05-09 20:51:48 [INFO] root: Завантажено ког: music_cog
+2026-05-09 20:51:48 [ERROR] root: Помилка завантаження кога fail_cog: Load Fail
+2026-05-09 20:51:48 [ERROR] root: В команді test виникла помилка: Internal
+2026-05-09 20:51:48 [ERROR] root: Необроблена помилка: Unknown
+2026-05-09 20:51:48 [INFO] root: Opus завантажено з: /opt/homebrew/lib/libopus.dylib
+2026-05-09 20:51:49 [ERROR] MusicBot.PlayerService: Error creating stream: Voice client is not connected — cannot start playback.
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/services/player_service.py", line 25, in play_stream
+    raise discord.errors.ClientException("Voice client is not connected — cannot start playback.")
+discord.errors.ClientException: Voice client is not connected — cannot start playback.
+2026-05-09 20:51:49 [ERROR] MusicBot.PlayerService: Error creating stream: Failed to create audio source for URL: http://test
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/services/player_service.py", line 36, in play_stream
+    raise ValueError(f"Failed to create audio source for URL: {url}")
+ValueError: Failed to create audio source for URL: http://test
+2026-05-09 20:51:49 [ERROR] MusicBot.PlayerService: Error creating stream: Voice connection lost while preparing audio source.
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/services/player_service.py", line 40, in play_stream
+    raise discord.errors.ClientException("Voice connection lost while preparing audio source.")
+discord.errors.ClientException: Voice connection lost while preparing audio source.
+2026-05-09 20:51:49 [INFO] MusicBot.QueueService: Guild 123: завантажено 1 треків з черги
+2026-05-09 20:51:49 [ERROR] MusicBot.QueueService: Помилка завантаження черги з БД для 123: DB Error
+2026-05-09 20:51:49 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp8a9f8l27.db
+2026-05-09 20:51:49 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpvkojf1xk.db
+2026-05-09 20:51:49 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpz95ycbcl.db
+2026-05-09 20:51:49 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpp63tqofk.db
+2026-05-09 20:51:49 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmppmkl30mz.db
+2026-05-09 20:51:49 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp1ag1jk1o.db
+2026-05-09 20:51:49 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp7ht2papc.db
+2026-05-09 20:51:49 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpjvz08pnh.db
+2026-05-09 20:51:49 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpy5kgyw1_
+2026-05-09 20:51:49 [INFO] MusicBot.Database: База даних ініціалізована: /Users/alxcgs/Para/git-ds/discord-music-bot/data/music_bot.db
+2026-05-09 20:52:17 [ERROR] MusicBot.SourceService: Error extracting info for url: YTDL Error
+2026-05-09 20:52:17 [ERROR] MusicBot.SourceService: Error searching videos for query: YTDL Error
+2026-05-09 20:52:17 [ERROR] MusicBot.SourceService: Error extracting playlist url: YTDL Error
+2026-05-09 20:56:48 [WARNING] discord.client: davey is not installed, voice will NOT be supported
+2026-05-09 20:56:48 [INFO] root: Creating audio pipeline for: Test
+2026-05-09 20:56:48 [INFO] root: Audio pipeline started for: Test
+2026-05-09 20:56:48 [ERROR] MusicBot.SourceService: Error extracting playlist http://playlist: Extract Fail
+2026-05-09 20:56:48 [ERROR] MusicBot.SourceService: Error extracting info for http://video: Extract Fail
+2026-05-09 20:56:48 [ERROR] MusicBot.SourceService: Error searching videos for query: Extract Fail
+2026-05-09 20:56:48 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:56:48 [WARNING] MusicBot.AutoResume: Auto-Resume: Voice channel 456 не знайдено у <Mock name='mock.get_guild().name' id='4508848816'>. Очищаємо стан.
+2026-05-09 20:56:48 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:56:48 [WARNING] MusicBot.AutoResume: Auto-Resume: voice_channel_id відсутній для 123. Очищаємо стан.
+2026-05-09 20:56:48 [ERROR] MusicBot.AutoResume: Auto-Resume critical error: object MagicMock can't be used in 'await' expression
+2026-05-09 20:56:48 [INFO] root: Бот <MagicMock name='mock.user.name' id='4508593680'> підключений до Discord!
+2026-05-09 20:56:48 [INFO] root: ID бота: <MagicMock name='mock.user.id' id='4508585424'>
+2026-05-09 20:56:48 [ERROR] root: Помилка завантаження кога test: Fail
+2026-05-09 20:56:48 [ERROR] MusicBot: Stats error: Fail
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/cogs/slash_music_cog.py", line 965, in stats
+    stats_30d = await self.repository.get_listening_stats(guild_id, days=30)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 2291, in _execute_mock_call
+    raise effect
+Exception: Fail
+2026-05-09 20:56:48 [ERROR] MusicBot: History error: Fail
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/cogs/slash_music_cog.py", line 1021, in history
+    tracks = await self.repository.get_history(guild_id, limit=25)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 2291, in _execute_mock_call
+    raise effect
+Exception: Fail
+2026-05-09 20:56:48 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:56:48 [WARNING] MusicBot.AutoResume: Auto-Resume: Voice channel 456 не знайдено у <MagicMock name='mock.get_guild().name' id='4502243616'>. Очищаємо стан.
+2026-05-09 20:56:48 [ERROR] root: В команді test виникла помилка: Internal
+2026-05-09 20:56:48 [INFO] root: Бот <Mock name='Bot.name' id='4508555584'> підключений до Discord!
+2026-05-09 20:56:48 [INFO] root: ID бота: 1
+2026-05-09 20:56:48 [ERROR] root: Помилка синхронізації команд: Sync Fail
+2026-05-09 20:56:48 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-05-09 20:56:48 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-05-09 20:56:48 [ERROR] root: Помилка завантаження кога fail: Load Fail
+2026-05-09 20:56:48 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 100с)
+2026-05-09 20:56:48 [INFO] root: Завантажено ког: music_cog
+2026-05-09 20:56:48 [ERROR] root: Помилка завантаження кога fail_cog: Load Fail
+2026-05-09 20:56:48 [INFO] root: Бот <Mock name='BotName.name' id='4500562016'> підключений до Discord!
+2026-05-09 20:56:48 [INFO] root: ID бота: 123
+2026-05-09 20:56:48 [INFO] root: Синхронізовано 0 Slash-команд.
+2026-05-09 20:56:48 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-05-09 20:56:48 [INFO] root: Бот <Mock name='BotName.name' id='4500562016'> підключений до Discord!
+2026-05-09 20:56:48 [INFO] root: ID бота: 123
+2026-05-09 20:56:48 [ERROR] root: Помилка синхронізації команд: Sync Fail
+2026-05-09 20:56:48 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-05-09 20:56:48 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-05-09 20:56:48 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-05-09 20:56:48 [ERROR] root: В команді test виникла помилка: Internal
+2026-05-09 20:56:48 [ERROR] root: Необроблена помилка: Unknown
+2026-05-09 20:56:48 [INFO] root: Opus завантажено з: /opt/homebrew/lib/libopus.dylib
+2026-05-09 20:57:32 [WARNING] discord.client: davey is not installed, voice will NOT be supported
+2026-05-09 20:57:32 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:57:32 [WARNING] MusicBot.AutoResume: Auto-Resume: Voice channel 2 не знайдено у <MagicMock name='mock.get_guild().name' id='4396068944'>. Очищаємо стан.
+2026-05-09 20:57:32 [ERROR] MusicBot.AutoResume: Auto-Resume critical error: Global Fail
+2026-05-09 20:57:43 [WARNING] discord.client: davey is not installed, voice will NOT be supported
+2026-05-09 20:57:48 [WARNING] discord.client: davey is not installed, voice will NOT be supported
+2026-05-09 20:57:57 [WARNING] discord.client: davey is not installed, voice will NOT be supported
+2026-05-09 20:58:15 [WARNING] discord.client: davey is not installed, voice will NOT be supported
+2026-05-09 20:58:19 [WARNING] discord.client: davey is not installed, voice will NOT be supported
+2026-05-09 20:58:19 [INFO] root: Creating audio pipeline for: Test
+2026-05-09 20:58:19 [INFO] root: Audio pipeline started for: Test
+2026-05-09 20:58:19 [ERROR] MusicBot.SourceService: Error extracting playlist http://playlist: Extract Fail
+2026-05-09 20:58:19 [ERROR] MusicBot.SourceService: Error extracting info for http://video: Extract Fail
+2026-05-09 20:58:19 [ERROR] MusicBot.SourceService: Error searching videos for query: Extract Fail
+2026-05-09 20:58:19 [ERROR] root: No URL provided in track_dict
+2026-05-09 20:58:19 [INFO] root: Creating audio pipeline for: Test
+2026-05-09 20:58:19 [INFO] root: Audio pipeline started for: Test
+2026-05-09 20:58:19 [ERROR] root: No URL provided in track_dict
+2026-05-09 20:58:19 [INFO] root: Creating audio pipeline for: Test
+2026-05-09 20:58:19 [INFO] root: Audio pipeline started for: Test
+2026-05-09 20:58:19 [INFO] root: Creating audio pipeline for: Test
+2026-05-09 20:58:19 [ERROR] root: Error in from_track_dict: Subprocess Error
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/audio_source.py", line 111, in from_track_dict
+    ytdlp_process = subprocess.Popen(
+                    ^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+Exception: Subprocess Error
+2026-05-09 20:58:19 [INFO] MusicBot.AutoResume: Auto-Resume: немає активних серверів для відновлення.
+2026-05-09 20:58:19 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:58:19 [INFO] MusicBot.AutoResume: Auto-Resume: сесія 123 застаріла (25г тому). Очищаємо.
+2026-05-09 20:58:19 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:58:19 [WARNING] MusicBot.AutoResume: Auto-Resume: Guild 123 не знайдено. Очищаємо стан.
+2026-05-09 20:58:19 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:58:19 [INFO] MusicBot.AutoResume: Auto-Resume: Канал <MagicMock name='mock.get_guild().get_channel().name' id='4506694144'> (<MagicMock name='mock.get_guild().name' id='4482833952'>) порожній. Очищаємо стан.
+2026-05-09 20:58:19 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:58:19 [INFO] MusicBot.AutoResume: Auto-Resume: Відновлення <MagicMock name='mock.get_guild().get_channel().name' id='4482951520'> (<MagicMock name='mock.get_guild().name' id='4507459344'>)...
+2026-05-09 20:58:21 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:58:21 [WARNING] MusicBot.AutoResume: Auto-Resume: Voice channel 456 не знайдено у <Mock name='mock.get_guild().name' id='4507465776'>. Очищаємо стан.
+2026-05-09 20:58:21 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:58:21 [WARNING] MusicBot.AutoResume: Auto-Resume: voice_channel_id відсутній для 123. Очищаємо стан.
+2026-05-09 20:58:21 [WARNING] MusicBot.AutomixService: History query failed for 123: object MagicMock can't be used in 'await' expression
+2026-05-09 20:58:21 [WARNING] MusicBot.AutomixService: Top tracks query failed for 123: object MagicMock can't be used in 'await' expression
+2026-05-09 20:58:21 [WARNING] MusicBot.AutomixService: Top tracks query failed for 123: object MagicMock can't be used in 'await' expression
+2026-05-09 20:58:21 [WARNING] MusicBot.AutomixService: History query failed for 123: object MagicMock can't be used in 'await' expression
+2026-05-09 20:58:21 [WARNING] MusicBot.AutomixService: Top tracks query failed for 123: object MagicMock can't be used in 'await' expression
+2026-05-09 20:58:21 [WARNING] MusicBot.AutomixService: History query failed for 123: object MagicMock can't be used in 'await' expression
+2026-05-09 20:58:21 [WARNING] MusicBot.AutomixService: Top tracks query failed for 123: object MagicMock can't be used in 'await' expression
+2026-05-09 20:58:21 [WARNING] MusicBot.AutomixService: History query failed for 123: object MagicMock can't be used in 'await' expression
+2026-05-09 20:58:21 [WARNING] MusicBot.AutomixService: Top tracks query failed for 123: object MagicMock can't be used in 'await' expression
+2026-05-09 20:58:21 [WARNING] MusicBot.AutomixService: Top tracks query failed for 123: object MagicMock can't be used in 'await' expression
+2026-05-09 20:58:21 [WARNING] MusicBot.AutomixService: History query failed for 123: object MagicMock can't be used in 'await' expression
+2026-05-09 20:58:21 [WARNING] MusicBot.AutomixService: Top tracks query failed for 123: object MagicMock can't be used in 'await' expression
+2026-05-09 20:58:21 [WARNING] MusicBot.AutomixService: History query failed for 123: DB Error
+2026-05-09 20:58:21 [WARNING] MusicBot.AutomixService: playcount map failed for 123: DB Error
+2026-05-09 20:58:21 [WARNING] MusicBot.AutomixService: History query failed for 123: object MagicMock can't be used in 'await' expression
+2026-05-09 20:58:21 [WARNING] MusicBot.AutomixService: History query failed for 123: object MagicMock can't be used in 'await' expression
+2026-05-09 20:58:21 [WARNING] MusicBot.AutomixService: Top tracks query failed for 123: object MagicMock can't be used in 'await' expression
+2026-05-09 20:58:21 [WARNING] MusicBot.AutomixService: Top tracks query failed for 123: object Mock can't be used in 'await' expression
+2026-05-09 20:58:21 [WARNING] MusicBot.AutomixService: History query failed for 123: object Mock can't be used in 'await' expression
+2026-05-09 20:58:21 [WARNING] MusicBot.AutomixService: Top tracks query failed for 123: object Mock can't be used in 'await' expression
+2026-05-09 20:58:21 [WARNING] MusicBot.AutomixService: Top tracks query failed for 123: object Mock can't be used in 'await' expression
+2026-05-09 20:58:21 [WARNING] MusicBot.AutomixService: History query failed for 123: object Mock can't be used in 'await' expression
+2026-05-09 20:58:21 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:58:21 [WARNING] MusicBot.AutoResume: Auto-Resume: Voice channel 2 не знайдено у <MagicMock name='mock.get_guild().name' id='4507494080'>. Очищаємо стан.
+2026-05-09 20:58:21 [ERROR] MusicBot.AutoResume: Auto-Resume critical error: Global Fail
+2026-05-09 20:58:22 [INFO] root: Бот <MagicMock name='mock.user.name' id='4508747824'> підключений до Discord!
+2026-05-09 20:58:22 [INFO] root: ID бота: <MagicMock name='mock.user.id' id='4506780880'>
+2026-05-09 20:58:22 [ERROR] root: Помилка завантаження кога test: Fail
+2026-05-09 20:58:22 [ERROR] MusicBot: Stats error: Fail
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/cogs/slash_music_cog.py", line 968, in stats
+    stats_30d = await self.repository.get_listening_stats(guild_id, days=30)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 2291, in _execute_mock_call
+    raise effect
+Exception: Fail
+2026-05-09 20:58:22 [ERROR] MusicBot: History error: Fail
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/cogs/slash_music_cog.py", line 1024, in history
+    tracks = await self.repository.get_history(guild_id, limit=25)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 2291, in _execute_mock_call
+    raise effect
+Exception: Fail
+2026-05-09 20:58:22 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:58:22 [WARNING] MusicBot.AutoResume: Auto-Resume: Voice channel 456 не знайдено у <MagicMock name='mock.get_guild().name' id='4507488944'>. Очищаємо стан.
+2026-05-09 20:58:22 [ERROR] root: В команді test виникла помилка: Internal
+2026-05-09 20:58:22 [INFO] root: Бот <Mock name='Bot.name' id='4506825840'> підключений до Discord!
+2026-05-09 20:58:22 [INFO] root: ID бота: 1
+2026-05-09 20:58:22 [ERROR] root: Помилка синхронізації команд: Sync Fail
+2026-05-09 20:58:22 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-05-09 20:58:22 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-05-09 20:58:22 [ERROR] root: Помилка завантаження кога fail: Load Fail
+2026-05-09 20:58:22 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 1 зомбі-процес(ів).
+2026-05-09 20:58:22 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-05-09 20:58:22 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 100с)
+2026-05-09 20:58:22 [INFO] MusicBot.HistoryService: Guild 123: завантажено 2 з історії
+2026-05-09 20:58:22 [ERROR] MusicBot.HistoryService: Помилка завантаження історії з БД для 123: DB Error
+2026-05-09 20:58:22 [ERROR] MusicBot: Clear history error: Clear error
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/views/history_view.py", line 22, in clear_history_button
+    self.cog.history_service.clear_history(self.guild_id)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+Exception: Clear error
+2026-05-09 20:58:22 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 100с)
+2026-05-09 20:58:22 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpbc4nfq5t
+2026-05-09 20:58:22 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpk8it_94p
+2026-05-09 20:58:22 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpcnw5g_ij
+2026-05-09 20:58:22 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmprfqjuy2q
+2026-05-09 20:58:22 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpy0t0dgeq
+2026-05-09 20:58:22 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpen65h_er
+2026-05-09 20:58:22 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmplfo6nwd9
+2026-05-09 20:58:22 [INFO] root: Завантажено ког: music_cog
+2026-05-09 20:58:22 [ERROR] root: Помилка завантаження кога fail_cog: Load Fail
+2026-05-09 20:58:22 [INFO] root: Бот <Mock name='BotName.name' id='4508671136'> підключений до Discord!
+2026-05-09 20:58:22 [INFO] root: ID бота: 123
+2026-05-09 20:58:22 [INFO] root: Синхронізовано 0 Slash-команд.
+2026-05-09 20:58:22 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-05-09 20:58:22 [INFO] root: Бот <Mock name='BotName.name' id='4508671136'> підключений до Discord!
+2026-05-09 20:58:22 [INFO] root: ID бота: 123
+2026-05-09 20:58:22 [ERROR] root: Помилка синхронізації команд: Sync Fail
+2026-05-09 20:58:22 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-05-09 20:58:22 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-05-09 20:58:22 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-05-09 20:58:22 [ERROR] root: В команді test виникла помилка: Internal
+2026-05-09 20:58:22 [ERROR] root: Необроблена помилка: Unknown
+2026-05-09 20:58:22 [INFO] root: Opus завантажено з: /opt/homebrew/lib/libopus.dylib
+2026-05-09 20:58:23 [ERROR] MusicBot.PlayerService: Error creating stream: Voice client is not connected — cannot start playback.
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/services/player_service.py", line 25, in play_stream
+    raise discord.errors.ClientException("Voice client is not connected — cannot start playback.")
+discord.errors.ClientException: Voice client is not connected — cannot start playback.
+2026-05-09 20:58:23 [ERROR] MusicBot.PlayerService: Error creating stream: Failed to create audio source for URL: http://test
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/services/player_service.py", line 36, in play_stream
+    raise ValueError(f"Failed to create audio source for URL: {url}")
+ValueError: Failed to create audio source for URL: http://test
+2026-05-09 20:58:23 [ERROR] MusicBot.PlayerService: Error creating stream: Voice connection lost while preparing audio source.
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/services/player_service.py", line 40, in play_stream
+    raise discord.errors.ClientException("Voice connection lost while preparing audio source.")
+discord.errors.ClientException: Voice connection lost while preparing audio source.
+2026-05-09 20:58:23 [INFO] MusicBot.QueueService: Guild 123: завантажено 1 треків з черги
+2026-05-09 20:58:23 [ERROR] MusicBot.QueueService: Помилка завантаження черги з БД для 123: DB Error
+2026-05-09 20:58:23 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpdratkj37.db
+2026-05-09 20:58:23 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpp6_25jwz.db
+2026-05-09 20:58:23 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp4ecggexx.db
+2026-05-09 20:58:23 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpmv_7sl39.db
+2026-05-09 20:58:23 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpu7gjzgeg.db
+2026-05-09 20:58:23 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpnp5_q61i.db
+2026-05-09 20:58:23 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp7blwsco9.db
+2026-05-09 20:58:23 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpta29ci48.db
+2026-05-09 20:58:23 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpw0f1moc9
+2026-05-09 20:58:23 [INFO] MusicBot.Database: База даних ініціалізована: /Users/alxcgs/Para/git-ds/discord-music-bot/data/music_bot.db
+2026-05-09 20:58:51 [ERROR] MusicBot.SourceService: Error extracting info for url: YTDL Error
+2026-05-09 20:58:51 [ERROR] MusicBot.SourceService: Error searching videos for query: YTDL Error
+2026-05-09 20:58:51 [ERROR] MusicBot.SourceService: Error extracting playlist url: YTDL Error
+2026-05-09 20:59:02 [WARNING] discord.client: davey is not installed, voice will NOT be supported
+2026-05-09 20:59:02 [INFO] root: Creating audio pipeline for: Test
+2026-05-09 20:59:02 [INFO] root: Audio pipeline started for: Test
+2026-05-09 20:59:02 [ERROR] MusicBot.SourceService: Error extracting playlist http://playlist: Extract Fail
+2026-05-09 20:59:02 [ERROR] MusicBot.SourceService: Error extracting info for http://video: Extract Fail
+2026-05-09 20:59:02 [ERROR] MusicBot.SourceService: Error searching videos for query: Extract Fail
+2026-05-09 20:59:02 [ERROR] root: No URL provided in track_dict
+2026-05-09 20:59:02 [INFO] root: Creating audio pipeline for: Test
+2026-05-09 20:59:02 [INFO] root: Audio pipeline started for: Test
+2026-05-09 20:59:02 [ERROR] root: No URL provided in track_dict
+2026-05-09 20:59:02 [INFO] root: Creating audio pipeline for: Test
+2026-05-09 20:59:02 [INFO] root: Audio pipeline started for: Test
+2026-05-09 20:59:02 [INFO] root: Creating audio pipeline for: Test
+2026-05-09 20:59:02 [ERROR] root: Error in from_track_dict: Subprocess Error
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/audio_source.py", line 111, in from_track_dict
+    ytdlp_process = subprocess.Popen(
+                    ^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+Exception: Subprocess Error
+2026-05-09 20:59:02 [INFO] MusicBot.AutoResume: Auto-Resume: немає активних серверів для відновлення.
+2026-05-09 20:59:02 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:59:02 [INFO] MusicBot.AutoResume: Auto-Resume: сесія 123 застаріла (25г тому). Очищаємо.
+2026-05-09 20:59:02 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:59:02 [WARNING] MusicBot.AutoResume: Auto-Resume: Guild 123 не знайдено. Очищаємо стан.
+2026-05-09 20:59:02 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:59:02 [INFO] MusicBot.AutoResume: Auto-Resume: Канал <MagicMock name='mock.get_guild().get_channel().name' id='4427394864'> (<MagicMock name='mock.get_guild().name' id='4428331728'>) порожній. Очищаємо стан.
+2026-05-09 20:59:02 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:59:02 [INFO] MusicBot.AutoResume: Auto-Resume: Відновлення <MagicMock name='mock.get_guild().get_channel().name' id='4428428016'> (<MagicMock name='mock.get_guild().name' id='4428468192'>)...
+2026-05-09 20:59:04 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:59:04 [WARNING] MusicBot.AutoResume: Auto-Resume: Voice channel 456 не знайдено у <Mock name='mock.get_guild().name' id='4428478464'>. Очищаємо стан.
+2026-05-09 20:59:04 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:59:04 [WARNING] MusicBot.AutoResume: Auto-Resume: voice_channel_id відсутній для 123. Очищаємо стан.
+2026-05-09 20:59:04 [WARNING] MusicBot.AutomixService: Top tracks query failed for 123: DB Error
+2026-05-09 20:59:04 [WARNING] MusicBot.AutomixService: History query failed for 123: DB Error
+2026-05-09 20:59:04 [WARNING] MusicBot.AutomixService: playcount map failed for 123: DB Error
+2026-05-09 20:59:04 [WARNING] MusicBot.AutomixService: History query failed for 123: DB Error
+2026-05-09 20:59:04 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:59:04 [WARNING] MusicBot.AutoResume: Auto-Resume: Voice channel 2 не знайдено у <MagicMock name='mock.get_guild().name' id='4428195088'>. Очищаємо стан.
+2026-05-09 20:59:04 [ERROR] MusicBot.AutoResume: Auto-Resume critical error: Global Fail
+2026-05-09 20:59:05 [INFO] root: Бот <MagicMock name='mock.user.name' id='4429809424'> підключений до Discord!
+2026-05-09 20:59:05 [INFO] root: ID бота: <MagicMock name='mock.user.id' id='4429817056'>
+2026-05-09 20:59:05 [ERROR] root: Помилка завантаження кога test: Fail
+2026-05-09 20:59:05 [ERROR] MusicBot: Stats error: Fail
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/cogs/slash_music_cog.py", line 968, in stats
+    stats_30d = await self.repository.get_listening_stats(guild_id, days=30)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 2291, in _execute_mock_call
+    raise effect
+Exception: Fail
+2026-05-09 20:59:05 [ERROR] MusicBot: History error: Fail
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/cogs/slash_music_cog.py", line 1024, in history
+    tracks = await self.repository.get_history(guild_id, limit=25)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 2291, in _execute_mock_call
+    raise effect
+Exception: Fail
+2026-05-09 20:59:05 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 20:59:05 [WARNING] MusicBot.AutoResume: Auto-Resume: Voice channel 456 не знайдено у <MagicMock name='mock.get_guild().name' id='4428372240'>. Очищаємо стан.
+2026-05-09 20:59:05 [ERROR] root: В команді test виникла помилка: Internal
+2026-05-09 20:59:05 [INFO] root: Бот <Mock name='Bot.name' id='4428557072'> підключений до Discord!
+2026-05-09 20:59:05 [INFO] root: ID бота: 1
+2026-05-09 20:59:05 [ERROR] root: Помилка синхронізації команд: Sync Fail
+2026-05-09 20:59:05 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-05-09 20:59:05 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-05-09 20:59:05 [ERROR] root: Помилка завантаження кога fail: Load Fail
+2026-05-09 20:59:05 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 1 зомбі-процес(ів).
+2026-05-09 20:59:05 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-05-09 20:59:05 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 100с)
+2026-05-09 20:59:05 [INFO] MusicBot.HistoryService: Guild 123: завантажено 2 з історії
+2026-05-09 20:59:05 [ERROR] MusicBot.HistoryService: Помилка завантаження історії з БД для 123: DB Error
+2026-05-09 20:59:05 [ERROR] MusicBot: Clear history error: Clear error
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/views/history_view.py", line 22, in clear_history_button
+    self.cog.history_service.clear_history(self.guild_id)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+Exception: Clear error
+2026-05-09 20:59:05 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 100с)
+2026-05-09 20:59:05 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp4eee2vfd
+2026-05-09 20:59:05 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp64f0s2m8
+2026-05-09 20:59:05 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp_wnu2g_r
+2026-05-09 20:59:05 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpxm9uyx51
+2026-05-09 20:59:05 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpvyjresjc
+2026-05-09 20:59:05 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpyc5cj24h
+2026-05-09 20:59:05 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp37lqa9kv
+2026-05-09 20:59:05 [INFO] root: Завантажено ког: music_cog
+2026-05-09 20:59:05 [ERROR] root: Помилка завантаження кога fail_cog: Load Fail
+2026-05-09 20:59:05 [INFO] root: Бот <Mock name='BotName.name' id='4427845264'> підключений до Discord!
+2026-05-09 20:59:05 [INFO] root: ID бота: 123
+2026-05-09 20:59:05 [INFO] root: Синхронізовано 0 Slash-команд.
+2026-05-09 20:59:05 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-05-09 20:59:05 [INFO] root: Бот <Mock name='BotName.name' id='4427845264'> підключений до Discord!
+2026-05-09 20:59:05 [INFO] root: ID бота: 123
+2026-05-09 20:59:05 [ERROR] root: Помилка синхронізації команд: Sync Fail
+2026-05-09 20:59:05 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-05-09 20:59:05 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-05-09 20:59:05 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-05-09 20:59:05 [ERROR] root: В команді test виникла помилка: Internal
+2026-05-09 20:59:05 [ERROR] root: Необроблена помилка: Unknown
+2026-05-09 20:59:05 [INFO] root: Opus завантажено з: /opt/homebrew/lib/libopus.dylib
+2026-05-09 20:59:06 [ERROR] MusicBot.PlayerService: Error creating stream: Voice client is not connected — cannot start playback.
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/services/player_service.py", line 25, in play_stream
+    raise discord.errors.ClientException("Voice client is not connected — cannot start playback.")
+discord.errors.ClientException: Voice client is not connected — cannot start playback.
+2026-05-09 20:59:06 [ERROR] MusicBot.PlayerService: Error creating stream: Failed to create audio source for URL: http://test
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/services/player_service.py", line 36, in play_stream
+    raise ValueError(f"Failed to create audio source for URL: {url}")
+ValueError: Failed to create audio source for URL: http://test
+2026-05-09 20:59:06 [ERROR] MusicBot.PlayerService: Error creating stream: Voice connection lost while preparing audio source.
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/services/player_service.py", line 40, in play_stream
+    raise discord.errors.ClientException("Voice connection lost while preparing audio source.")
+discord.errors.ClientException: Voice connection lost while preparing audio source.
+2026-05-09 20:59:06 [INFO] MusicBot.QueueService: Guild 123: завантажено 1 треків з черги
+2026-05-09 20:59:06 [ERROR] MusicBot.QueueService: Помилка завантаження черги з БД для 123: DB Error
+2026-05-09 20:59:06 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpuqcvz07t.db
+2026-05-09 20:59:06 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpb2huak1a.db
+2026-05-09 20:59:06 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpcs9sxjvg.db
+2026-05-09 20:59:06 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpnl8s73lx.db
+2026-05-09 20:59:06 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpmmvzxo_r.db
+2026-05-09 20:59:06 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpzp_r5c47.db
+2026-05-09 20:59:06 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp2icf7stp.db
+2026-05-09 20:59:06 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmprrmp05l0.db
+2026-05-09 20:59:06 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp3kyqt_aq
+2026-05-09 20:59:06 [INFO] MusicBot.Database: База даних ініціалізована: /Users/alxcgs/Para/git-ds/discord-music-bot/data/music_bot.db
+2026-05-09 20:59:34 [ERROR] MusicBot.SourceService: Error extracting info for url: YTDL Error
+2026-05-09 20:59:34 [ERROR] MusicBot.SourceService: Error searching videos for query: YTDL Error
+2026-05-09 20:59:34 [ERROR] MusicBot.SourceService: Error extracting playlist url: YTDL Error
+2026-05-09 21:00:24 [WARNING] discord.client: davey is not installed, voice will NOT be supported
+2026-05-09 21:00:24 [INFO] root: Creating audio pipeline for: Test
+2026-05-09 21:00:24 [INFO] root: Audio pipeline started for: Test
+2026-05-09 21:00:24 [ERROR] MusicBot.SourceService: Error extracting playlist http://playlist: Extract Fail
+2026-05-09 21:00:24 [ERROR] MusicBot.SourceService: Error extracting info for http://video: Extract Fail
+2026-05-09 21:00:24 [ERROR] MusicBot.SourceService: Error searching videos for query: Extract Fail
+2026-05-09 21:00:24 [ERROR] root: No URL provided in track_dict
+2026-05-09 21:00:24 [INFO] root: Creating audio pipeline for: Test
+2026-05-09 21:00:24 [INFO] root: Audio pipeline started for: Test
+2026-05-09 21:00:24 [ERROR] root: No URL provided in track_dict
+2026-05-09 21:00:24 [INFO] root: Creating audio pipeline for: Test
+2026-05-09 21:00:24 [INFO] root: Audio pipeline started for: Test
+2026-05-09 21:00:24 [INFO] root: Creating audio pipeline for: Test
+2026-05-09 21:00:24 [ERROR] root: Error in from_track_dict: Subprocess Error
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/audio_source.py", line 111, in from_track_dict
+    ytdlp_process = subprocess.Popen(
+                    ^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+Exception: Subprocess Error
+2026-05-09 21:00:24 [INFO] MusicBot.AutoResume: Auto-Resume: немає активних серверів для відновлення.
+2026-05-09 21:00:24 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 21:00:24 [INFO] MusicBot.AutoResume: Auto-Resume: сесія 123 застаріла (25г тому). Очищаємо.
+2026-05-09 21:00:24 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 21:00:24 [WARNING] MusicBot.AutoResume: Auto-Resume: Guild 123 не знайдено. Очищаємо стан.
+2026-05-09 21:00:24 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 21:00:24 [INFO] MusicBot.AutoResume: Auto-Resume: Канал <MagicMock name='mock.get_guild().get_channel().name' id='4440069312'> (<MagicMock name='mock.get_guild().name' id='4441302912'>) порожній. Очищаємо стан.
+2026-05-09 21:00:24 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 21:00:24 [INFO] MusicBot.AutoResume: Auto-Resume: Відновлення <MagicMock name='mock.get_guild().get_channel().name' id='4440603680'> (<MagicMock name='mock.get_guild().name' id='4441323856'>)...
+2026-05-09 21:00:26 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 21:00:26 [WARNING] MusicBot.AutoResume: Auto-Resume: Voice channel 456 не знайдено у <Mock name='mock.get_guild().name' id='4440609072'>. Очищаємо стан.
+2026-05-09 21:00:26 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 21:00:26 [WARNING] MusicBot.AutoResume: Auto-Resume: voice_channel_id відсутній для 123. Очищаємо стан.
+2026-05-09 21:00:26 [WARNING] MusicBot.AutomixService: Top tracks query failed for 123: DB Error
+2026-05-09 21:00:26 [WARNING] MusicBot.AutomixService: History query failed for 123: DB Error
+2026-05-09 21:00:26 [WARNING] MusicBot.AutomixService: playcount map failed for 123: DB Error
+2026-05-09 21:00:26 [WARNING] MusicBot.AutomixService: History query failed for 123: DB Error
+2026-05-09 21:00:26 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 21:00:26 [WARNING] MusicBot.AutoResume: Auto-Resume: Voice channel 2 не знайдено у <MagicMock name='mock.get_guild().name' id='4440673120'>. Очищаємо стан.
+2026-05-09 21:00:26 [ERROR] MusicBot.AutoResume: Auto-Resume critical error: Global Fail
+2026-05-09 21:00:27 [INFO] root: Бот <MagicMock name='mock.user.name' id='4440525664'> підключений до Discord!
+2026-05-09 21:00:27 [INFO] root: ID бота: <MagicMock name='mock.user.id' id='4440462048'>
+2026-05-09 21:00:27 [ERROR] root: Помилка завантаження кога test: Fail
+2026-05-09 21:00:27 [ERROR] MusicBot: Stats error: Fail
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/cogs/slash_music_cog.py", line 968, in stats
+    stats_30d = await self.repository.get_listening_stats(guild_id, days=30)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 2291, in _execute_mock_call
+    raise effect
+Exception: Fail
+2026-05-09 21:00:27 [ERROR] MusicBot: History error: Fail
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/cogs/slash_music_cog.py", line 1024, in history
+    tracks = await self.repository.get_history(guild_id, limit=25)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 2291, in _execute_mock_call
+    raise effect
+Exception: Fail
+2026-05-09 21:00:27 [INFO] MusicBot.AutoResume: Auto-Resume: знайдено 1 сесій у БД.
+2026-05-09 21:00:27 [WARNING] MusicBot.AutoResume: Auto-Resume: Voice channel 456 не знайдено у <MagicMock name='mock.get_guild().name' id='4442633328'>. Очищаємо стан.
+2026-05-09 21:00:27 [ERROR] root: В команді test виникла помилка: Internal
+2026-05-09 21:00:27 [INFO] root: Бот <Mock name='Bot.name' id='4442577888'> підключений до Discord!
+2026-05-09 21:00:27 [INFO] root: ID бота: 1
+2026-05-09 21:00:27 [ERROR] root: Помилка синхронізації команд: Sync Fail
+2026-05-09 21:00:27 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-05-09 21:00:27 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-05-09 21:00:27 [ERROR] root: Помилка завантаження кога fail: Load Fail
+2026-05-09 21:00:27 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 1 зомбі-процес(ів).
+2026-05-09 21:00:27 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-05-09 21:00:27 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 100с)
+2026-05-09 21:00:27 [INFO] MusicBot.HistoryService: Guild 123: завантажено 2 з історії
+2026-05-09 21:00:27 [ERROR] MusicBot.HistoryService: Помилка завантаження історії з БД для 123: DB Error
+2026-05-09 21:00:27 [ERROR] MusicBot: Clear history error: Clear error
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/views/history_view.py", line 22, in clear_history_button
+    self.cog.history_service.clear_history(self.guild_id)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+Exception: Clear error
+2026-05-09 21:00:27 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 100с)
+2026-05-09 21:00:27 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpbxd8wpyw
+2026-05-09 21:00:27 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp7ftk9q3t
+2026-05-09 21:00:27 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpf57_2y3l
+2026-05-09 21:00:27 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpw83dqbzm
+2026-05-09 21:00:27 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpsivtwdrv
+2026-05-09 21:00:27 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmptvzkpam0
+2026-05-09 21:00:27 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpojj9f0o2
+2026-05-09 21:00:27 [INFO] root: Завантажено ког: music_cog
+2026-05-09 21:00:27 [ERROR] root: Помилка завантаження кога fail_cog: Load Fail
+2026-05-09 21:00:27 [INFO] root: Бот <Mock name='BotName.name' id='4444312144'> підключений до Discord!
+2026-05-09 21:00:27 [INFO] root: ID бота: 123
+2026-05-09 21:00:27 [INFO] root: Синхронізовано 0 Slash-команд.
+2026-05-09 21:00:27 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-05-09 21:00:27 [INFO] root: Бот <Mock name='BotName.name' id='4444312144'> підключений до Discord!
+2026-05-09 21:00:27 [INFO] root: ID бота: 123
+2026-05-09 21:00:27 [ERROR] root: Помилка синхронізації команд: Sync Fail
+2026-05-09 21:00:27 [INFO] MusicBot.Healthcheck: Zombie cleanup task запущено (інтервал: 300с)
+2026-05-09 21:00:27 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-05-09 21:00:27 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
+2026-05-09 21:00:27 [ERROR] root: В команді test виникла помилка: Internal
+2026-05-09 21:00:27 [ERROR] root: Необроблена помилка: Unknown
+2026-05-09 21:00:27 [INFO] root: Opus завантажено з: /opt/homebrew/lib/libopus.dylib
+2026-05-09 21:00:28 [ERROR] MusicBot.PlayerService: Error creating stream: Voice client is not connected — cannot start playback.
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/services/player_service.py", line 25, in play_stream
+    raise discord.errors.ClientException("Voice client is not connected — cannot start playback.")
+discord.errors.ClientException: Voice client is not connected — cannot start playback.
+2026-05-09 21:00:28 [ERROR] MusicBot.PlayerService: Error creating stream: Failed to create audio source for URL: http://test
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/services/player_service.py", line 36, in play_stream
+    raise ValueError(f"Failed to create audio source for URL: {url}")
+ValueError: Failed to create audio source for URL: http://test
+2026-05-09 21:00:28 [ERROR] MusicBot.PlayerService: Error creating stream: Voice connection lost while preparing audio source.
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/services/player_service.py", line 40, in play_stream
+    raise discord.errors.ClientException("Voice connection lost while preparing audio source.")
+discord.errors.ClientException: Voice connection lost while preparing audio source.
+2026-05-09 21:00:28 [INFO] MusicBot.QueueService: Guild 123: завантажено 1 треків з черги
+2026-05-09 21:00:28 [ERROR] MusicBot.QueueService: Помилка завантаження черги з БД для 123: DB Error
+2026-05-09 21:00:28 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpoq37go7c.db
+2026-05-09 21:00:28 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpkez6p4qq.db
+2026-05-09 21:00:28 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpaww3izrq.db
+2026-05-09 21:00:28 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp_k3hr04h.db
+2026-05-09 21:00:28 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpvfxdws2r.db
+2026-05-09 21:00:28 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpaeoem8ro.db
+2026-05-09 21:00:28 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmph5iybm5u.db
+2026-05-09 21:00:28 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpfupqxr77.db
+2026-05-09 21:00:28 [INFO] MusicBot.Database: База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpm0e4jtjn
+2026-05-09 21:00:28 [INFO] MusicBot.Database: База даних ініціалізована: /Users/alxcgs/Para/git-ds/discord-music-bot/data/music_bot.db
+2026-05-09 21:00:56 [ERROR] MusicBot.SourceService: Error extracting info for url: YTDL Error
+2026-05-09 21:00:56 [ERROR] MusicBot.SourceService: Error searching videos for query: YTDL Error
+2026-05-09 21:00:56 [ERROR] MusicBot.SourceService: Error extracting playlist url: YTDL Error
