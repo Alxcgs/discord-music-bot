@@ -226,7 +226,7 @@ class MusicRepository:
                 SELECT url, title, duration, thumbnail, played_at
                 FROM history_tracks
                 WHERE guild_id = ?
-                ORDER BY played_at DESC
+                ORDER BY played_at DESC, id DESC
                 LIMIT ?
                 """,
                 (guild_id, limit),
@@ -245,7 +245,7 @@ class MusicRepository:
                 SELECT id, url, title, duration, thumbnail
                 FROM history_tracks
                 WHERE guild_id = ?
-                ORDER BY played_at DESC
+                ORDER BY played_at DESC, id DESC
                 LIMIT 1
                 """,
                 (guild_id,),

@@ -5019,13 +5019,3 @@ discord.errors.DiscordServerError: 503 Service Unavailable (error code: 0): upst
 2026-05-05 23:47:56 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=N7FEo6t6w5w
 2026-05-05 23:47:58 [INFO] root: Creating audio pipeline for: Victoria Niro - Питань нема
 2026-05-05 23:47:58 [INFO] root: Audio pipeline started for: Victoria Niro - Питань нема
-2026-05-05 23:49:46 [WARNING] MusicBot.Healthcheck: Zombie cleanup: вбито 2 зомбі-процес(ів).
-2026-05-05 23:49:49 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=i3mHMo_Upuo
-2026-05-05 23:49:50 [INFO] root: Creating audio pipeline for: LOMIY - Клянуся Небом #пісня #українськамузика #2025музика
-2026-05-05 23:49:50 [INFO] root: Audio pipeline started for: LOMIY - Клянуся Небом #пісня #українськамузика #2025музика
-2026-05-05 23:52:26 [INFO] root: Attempting to extract info for URL: https://www.youtube.com/watch?v=m0R9vGVU0PY
-2026-05-05 23:52:27 [INFO] root: Creating audio pipeline for: SAYAN - Мальборо (Lyric Video)
-2026-05-05 23:52:27 [INFO] root: Audio pipeline started for: SAYAN - Мальборо (Lyric Video)
-2026-05-05 23:53:13 [INFO] discord.voice_state: The voice handshake is being terminated for Channel ID 1369110517553299519 (Guild ID 1369110517070823464)
-2026-05-05 23:53:16 [INFO] MusicBot.Healthcheck: Zombie cleanup task cancelled.
-2026-05-05 23:53:16 [INFO] root: Бот вимикається...
