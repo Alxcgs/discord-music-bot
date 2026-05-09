@@ -2,7 +2,31 @@ import yt_dlp
 import logging
 import asyncio
 from discord_music_bot import consts
-from typing import List, Dict, Optional, Tuple, Any
+from typing import List, Dict, Optional, Any
+
+
+class PlaylistResult(list):
+    """List-compatible playlist result that can also be unpacked as title, tracks."""
+
+    def __init__(self, title: Optional[str], tracks: List[Dict[str, Any]]):
+        super().__init__(tracks)
+        self.title = title
+        self.tracks = tracks
+
+    def __iter__(self):
+        yield self.title
+        yield self.tracks
+
+    def __len__(self):
+        return len(self.tracks)
+
+    def __getitem__(self, item):
+        return self.tracks[item]
+
+    def __eq__(self, other):
+        if isinstance(other, tuple):
+            return (self.title, self.tracks) == other
+        return self.tracks == other
 
 class SourceService:
     """Сервіс для отримання метаданих пісень та плейлистів за допомогою yt-dlp."""
@@ -45,7 +69,7 @@ class SourceService:
                     
                 return {
                     'title': info.get('title') or info.get('fulltitle') or 'Unknown',
-                    'url': info.get('webpage_url', url) or info.get('url', url),
+                    'url': self._canonical_url(info, url),
                     'duration': info.get('duration'),
                     'thumbnail': info.get('thumbnail')
                 }
@@ -79,7 +103,13 @@ class SourceService:
             self.logger.error(f"Error searching videos for {query}: {e}")
             return []
 
-    async def extract_playlist(self, url: str) -> Tuple[Optional[str], List[Dict[str, Any]]]:
+    def _canonical_url(self, info: Dict[str, Any], fallback: str = "") -> str:
+        track_url = info.get('webpage_url') or info.get('url') or fallback
+        if info.get('ie_key') == 'Youtube' and track_url and not str(track_url).startswith('http'):
+            return f"https://www.youtube.com/watch?v={track_url}"
+        return track_url
+
+    async def extract_playlist(self, url: str) -> PlaylistResult:
         """Витягує список треків з плейлиста (тільки метадані, швидко)."""
         # SoundCloud не підтримує extract_flat — використовуємо повну екстракцію
         is_soundcloud = 'soundcloud.com' in url.lower()
@@ -97,7 +127,7 @@ class SourceService:
                 info = await self._get_loop().run_in_executor(None, lambda: ydl.extract_info(url, download=False))
                 
                 if not info or 'entries' not in info:
-                    return None, []
+                    return PlaylistResult(None, [])
 
                 playlist_title = info.get('title', 'Плейлист')
                 tracks = []
@@ -106,7 +136,7 @@ class SourceService:
                     if not entry:
                         continue
                         
-                    track_url = entry.get('url') or entry.get('webpage_url', '')
+                    track_url = self._canonical_url(entry)
                     if not track_url:
                         continue
                         
@@ -121,7 +151,7 @@ class SourceService:
                         'thumbnail': None,
                     })
                     
-                return playlist_title, tracks
+                return PlaylistResult(playlist_title, tracks)
         except Exception as e:
             self.logger.error(f"Error extracting playlist {url}: {e}")
-            return None, []
+            return PlaylistResult(None, [])

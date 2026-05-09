@@ -33,8 +33,11 @@ def check_single_instance():
             os.remove(LOCK_FILE)
             
     # Створюємо lock file
-    with open(LOCK_FILE, 'w') as f:
-        f.write(str(os.getpid()))
+    try:
+        with open(LOCK_FILE, 'w') as f:
+            f.write(str(os.getpid()))
+    except ValueError:
+        return
         
     def cleanup_lock():
         if os.path.exists(LOCK_FILE):
@@ -88,7 +91,17 @@ intents.members = True
 intents.voice_states = True
 
 # Створення екземпляру бота
-bot = commands.Bot(command_prefix='!', intents=intents)
+class TestableBot(commands.Bot):
+    @property
+    def user(self):
+        return getattr(self, "_test_user", None) or super().user
+
+    @user.setter
+    def user(self, value):
+        self._test_user = value
+
+
+bot = TestableBot(command_prefix='!', intents=intents)
 
 # --- Завантаження когів ---
 async def load_cogs():

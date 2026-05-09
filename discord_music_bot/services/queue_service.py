@@ -19,6 +19,23 @@ class QueueService:
         self._queues: Dict[int, List[Dict[str, Any]]] = {}
         self._repo = repository
 
+    @property
+    def repository(self) -> MusicRepository:
+        return self._repo
+
+    def _schedule(self, coro) -> None:
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+        if loop and loop.is_running():
+            loop.create_task(coro)
+        else:
+            try:
+                coro.close()
+            except Exception:
+                pass
+
     # ── Queue Operations ─────────────────────────────────────────
 
     def get_queue(self, guild_id: int) -> List[Dict[str, Any]]:
@@ -31,39 +48,39 @@ class QueueService:
             self._queues[guild_id] = []
         self._queues[guild_id].append(track)
         # Фонове збереження в БД
-        asyncio.ensure_future(self._persist_queue(guild_id))
+        self._schedule(self._persist_queue(guild_id))
 
     def add_tracks(self, guild_id: int, tracks: List[Dict[str, Any]]) -> None:
         """Додає список треків у чергу (для плейлистів)."""
         if guild_id not in self._queues:
             self._queues[guild_id] = []
         self._queues[guild_id].extend(tracks)
-        asyncio.ensure_future(self._persist_queue(guild_id))
+        self._schedule(self._persist_queue(guild_id))
 
     def get_next_track(self, guild_id: int) -> Optional[Dict[str, Any]]:
         """Returns the next track and removes it from the queue."""
         if guild_id in self._queues and self._queues[guild_id]:
             track = self._queues[guild_id].pop(0)
-            asyncio.ensure_future(self._persist_queue(guild_id))
+            self._schedule(self._persist_queue(guild_id))
             return track
         return None
 
     def clear(self, guild_id: int) -> None:
         if guild_id in self._queues:
             self._queues[guild_id].clear()
-        asyncio.ensure_future(self._repo.clear_queue(guild_id))
+        self._schedule(self._repo.clear_queue(guild_id))
 
     def shuffle(self, guild_id: int) -> None:
         if guild_id in self._queues:
             random.shuffle(self._queues[guild_id])
-            asyncio.ensure_future(self._persist_queue(guild_id))
+            self._schedule(self._persist_queue(guild_id))
 
     def push_front(self, guild_id: int, track: Dict[str, Any]) -> None:
         """Adds a track to the front of the queue (priority)."""
         if guild_id not in self._queues:
             self._queues[guild_id] = []
         self._queues[guild_id].insert(0, track)
-        asyncio.ensure_future(self._persist_queue(guild_id))
+        self._schedule(self._persist_queue(guild_id))
 
     def move_track(self, guild_id: int, from_pos: int, to_pos: int) -> Optional[Dict[str, Any]]:
         """Переміщує трек з позиції from_pos на позицію to_pos (1-indexed).
@@ -80,7 +97,7 @@ class QueueService:
             return queue[from_idx]
         track = queue.pop(from_idx)
         queue.insert(to_idx, track)
-        asyncio.ensure_future(self._persist_queue(guild_id))
+        self._schedule(self._persist_queue(guild_id))
         return track
 
     def peek_next(self, guild_id: int) -> Optional[Dict[str, Any]]:

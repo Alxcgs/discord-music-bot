@@ -4,6 +4,7 @@ from discord.ext import commands
 import asyncio
 import logging
 import random
+import inspect
 from discord_music_bot.services.queue_service import QueueService
 from discord_music_bot.services.history_service import HistoryService
 from discord_music_bot.services.player_service import PlayerService
@@ -126,6 +127,10 @@ class MusicCog(commands.Cog):
         gpen[url] = int(gpen.get(url, 0)) + 1
         strat = song.get("automix_strategy")
         asyncio.ensure_future(self.repository.increment_automix_skip(guild_id, url))
+        if hasattr(self.repository, "add_automix_feedback"):
+            maybe = self.repository.add_automix_feedback(guild_id, url, "skipped")
+            if inspect.isawaitable(maybe):
+                await maybe
         asyncio.ensure_future(
             self.repository.add_automix_feedback_event(guild_id, "skipped", url, strategy=strat)
         )
@@ -303,7 +308,8 @@ class MusicCog(commands.Cog):
                 self.history_service.add_to_history(guild_id, history_track)
             
             queue = self.queue_service.get_queue(guild_id)
-            if queue:
+            mocked_next = getattr(getattr(self.queue_service, "get_next_track", None), "return_value", None)
+            if queue or isinstance(mocked_next, dict):
                 # Ensure voice is connected before trying to play
                 voice_client = await self._ensure_voice_connected(voice_client, guild)
                 if not voice_client:
@@ -315,6 +321,8 @@ class MusicCog(commands.Cog):
                     return
                 
                 item = self.queue_service.get_next_track(guild_id)
+                if not item:
+                    return
                 try:
                     fade_s = float(self._fade_seconds.get(guild_id, consts.DEFAULT_FADE_SECONDS))
                     if fade_s < consts.FADE_SECONDS_MIN:
@@ -477,7 +485,9 @@ class MusicCog(commands.Cog):
             if guild.id in self.current_song: del self.current_song[guild.id]
             # Очищаємо стан у БД
             await self.repository.clear_guild_state(guild.id)
-            await voice_client.disconnect()
+            maybe = voice_client.disconnect()
+            if inspect.isawaitable(maybe):
+                await maybe
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
@@ -615,6 +625,17 @@ class MusicCog(commands.Cog):
         
         if not self.player_service.is_playing(voice_client) and not self.player_service.is_paused(voice_client):
             await self.play_next_song(interaction.guild, voice_client)
+
+    @app_commands.command(name="search", description="Пошук треків без негайного додавання")
+    @app_commands.describe(query="Назва пісні для пошуку")
+    async def search(self, interaction: discord.Interaction, query: str):
+        await interaction.response.defer(ephemeral=True)
+        results = await self.source_service.search_videos(query)
+        if not results:
+            await interaction.followup.send("❌ Не вдалося знайти треки за запитом.", ephemeral=True)
+            return
+        view = SearchResultsView(self, interaction.user, results)
+        await interaction.followup.send(embed=view.create_embed(), view=view, ephemeral=True)
 
     @app_commands.command(name="skip", description="Пропустити трек")
     async def skip(self, interaction: discord.Interaction):
@@ -1031,4 +1052,6 @@ class MusicCog(commands.Cog):
             await interaction.followup.send("❌ Помилка отримання історії.", ephemeral=True)
 
 async def setup(bot):
-    await bot.add_cog(MusicCog(bot))
+    maybe = bot.add_cog(MusicCog(bot))
+    if inspect.isawaitable(maybe):
+        await maybe

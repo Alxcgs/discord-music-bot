@@ -407,6 +407,10 @@ class MusicRepository:
     async def set_automix_strategy(self, guild_id: int, strategy: str) -> None:
         conn = await get_connection()
         try:
+            await conn.execute(
+                "INSERT OR IGNORE INTO guild_state (guild_id) VALUES (?)",
+                (guild_id,),
+            )
             cur = await conn.execute(
                 """
                 UPDATE automix_settings

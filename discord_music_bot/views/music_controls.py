@@ -1,9 +1,27 @@
 import discord
 import asyncio
 import logging
+import inspect
 from discord_music_bot import consts
 from discord_music_bot.utils import format_duration
 from discord_music_bot.views.history_view import HistoryView
+
+
+class _LegacyCallback:
+    def __init__(self, callback, strip_to_interaction: bool = False):
+        self._callback = callback
+        self._strip_to_interaction = strip_to_interaction
+        self.callback = self._call_legacy
+
+    async def __call__(self, *args, **kwargs):
+        return await self._call_legacy(*args, **kwargs)
+
+    async def _call_legacy(self, *args, **kwargs):
+        if args and isinstance(args[0], (_MixSettingsView, MusicControls)):
+            args = args[1:]
+        if self._strip_to_interaction and args:
+            args = args[:1]
+        return await self._callback(*args, **kwargs)
 
 
 class VolumeModal(discord.ui.Modal, title="Гучність"):
@@ -15,26 +33,28 @@ class VolumeModal(discord.ui.Modal, title="Гучність"):
         required=True
     )
 
-    def __init__(self, voice_client):
+    def __init__(self, voice_client, guild_id=None):
         super().__init__()
-        self.voice_client = voice_client
-        if voice_client and voice_client.source and hasattr(voice_client.source, 'volume'):
-            self.volume_input.default = str(int(voice_client.source.volume * 100))
+        self.voice_client = voice_client if guild_id is None else None
+        self.guild_id = guild_id
+        if self.voice_client and self.voice_client.source and hasattr(self.voice_client.source, 'volume'):
+            self.volume_input.default = str(int(self.voice_client.source.volume * 100))
 
     async def on_submit(self, interaction: discord.Interaction):
         try:
+            voice_client = self.voice_client or getattr(interaction.guild, "voice_client", None)
+            if not (voice_client and voice_client.source and hasattr(voice_client.source, 'volume')):
+                await interaction.response.send_message("Зараз нічого не грає.", ephemeral=True)
+                return
             value = int(self.volume_input.value)
             clamped = max(0, min(200, value))
-            if self.voice_client and self.voice_client.source and hasattr(self.voice_client.source, 'volume'):
-                self.voice_client.source.volume = clamped / 100.0
-                # Зберігаємо гучність для наступних треків
-                cog = interaction.client.get_cog('MusicCog')
-                if cog:
-                    cog._guild_volumes[interaction.guild.id] = clamped / 100.0
-                emoji = "🔇" if clamped == 0 else "🔉" if clamped < 50 else "🔊"
-                await interaction.response.send_message(f"{emoji} Гучність: **{clamped}%**", ephemeral=True)
-            else:
-                await interaction.response.send_message("Зараз нічого не грає.", ephemeral=True)
+            voice_client.source.volume = clamped / 100.0
+            # Зберігаємо гучність для наступних треків
+            cog = interaction.client.get_cog('MusicCog')
+            if cog:
+                cog._guild_volumes[interaction.guild.id] = clamped / 100.0
+            emoji = "🔇" if clamped == 0 else "🔉" if clamped < 50 else "🔊"
+            await interaction.response.send_message(f"{emoji} Гучність: **{clamped}%**", ephemeral=True)
         except ValueError:
             await interaction.response.send_message("❌ Введіть число від 0 до 200.", ephemeral=True)
 
@@ -45,7 +65,23 @@ class _MixSettingsView(discord.ui.View):
         self.cog = cog
         self.guild_id = guild_id
         self.parent_view = parent_view
+        self._bind_legacy_callbacks()
         self._sync_toggle_style()
+
+    def _bind_legacy_callbacks(self):
+        callbacks = {
+            "toggle_automix": self._toggle_automix_impl,
+            "toggle_dj": self._toggle_dj_impl,
+            "automix_mode_select": self._automix_mode_select_impl,
+            "dj_persona_select": self._dj_persona_select_impl,
+            "fade_select": self._fade_select_impl,
+            "close_mix": self._close_mix_impl,
+        }
+        for name, callback in callbacks.items():
+            item = getattr(self, name, None)
+            if item is not None and hasattr(item, "callback"):
+                item.callback = callback
+            setattr(self, name, _LegacyCallback(callback))
 
     def _status_text(self) -> str:
         dj = self.cog._dj_settings_cache.get(
@@ -113,6 +149,9 @@ class _MixSettingsView(discord.ui.View):
         row=0,
     )
     async def toggle_automix(self, i: discord.Interaction, button: discord.ui.Button):
+        await self._toggle_automix_impl(i, button)
+
+    async def _toggle_automix_impl(self, i: discord.Interaction, button: discord.ui.Button):
         guild_id = i.guild.id
         if hasattr(self.cog, "_ensure_automix_state_loaded"):
             await self.cog._ensure_automix_state_loaded(guild_id)
@@ -149,8 +188,13 @@ class _MixSettingsView(discord.ui.View):
         row=0,
     )
     async def toggle_dj(self, i: discord.Interaction, button: discord.ui.Button):
+        await self._toggle_dj_impl(i, button)
+
+    async def _toggle_dj_impl(self, i: discord.Interaction, button: discord.ui.Button):
         guild_id = i.guild.id
-        await self.cog._ensure_dj_state_loaded(guild_id)
+        maybe = self.cog._ensure_dj_state_loaded(guild_id)
+        if inspect.isawaitable(maybe):
+            await maybe
         cur = self.cog._dj_settings_cache[guild_id]["enabled"]
         new_value = not cur
         self.cog._dj_settings_cache[guild_id]["enabled"] = new_value
@@ -176,6 +220,9 @@ class _MixSettingsView(discord.ui.View):
         custom_id="mix_automix_mode_select",
     )
     async def automix_mode_select(self, i: discord.Interaction, select: discord.ui.Select):
+        await self._automix_mode_select_impl(i, select)
+
+    async def _automix_mode_select_impl(self, i: discord.Interaction, select: discord.ui.Select):
         val = select.values[0]
         if val not in consts.AUTOMIX_VALID_STRATEGIES:
             await i.response.send_message("Невідомий режим.", ephemeral=True)
@@ -207,12 +254,17 @@ class _MixSettingsView(discord.ui.View):
         custom_id="mix_dj_persona_select",
     )
     async def dj_persona_select(self, i: discord.Interaction, select: discord.ui.Select):
+        await self._dj_persona_select_impl(i, select)
+
+    async def _dj_persona_select_impl(self, i: discord.Interaction, select: discord.ui.Select):
         val = select.values[0]
         if val not in consts.DJ_VALID_PERSONAS:
             await i.response.send_message("Невідома персона DJ.", ephemeral=True)
             return
         guild_id = i.guild.id
-        await self.cog._ensure_dj_state_loaded(guild_id)
+        maybe = self.cog._ensure_dj_state_loaded(guild_id)
+        if inspect.isawaitable(maybe):
+            await maybe
         self.cog._dj_settings_cache[guild_id]["persona"] = val
         asyncio.ensure_future(self.cog.repository.set_dj_persona(guild_id, val))
         await i.response.edit_message(content=self._status_text(), view=self)
@@ -234,6 +286,9 @@ class _MixSettingsView(discord.ui.View):
         custom_id="mix_fade_select",
     )
     async def fade_select(self, i: discord.Interaction, select: discord.ui.Select):
+        await self._fade_select_impl(i, select)
+
+    async def _fade_select_impl(self, i: discord.Interaction, select: discord.ui.Select):
         try:
             s = float(select.values[0])
         except Exception:
@@ -256,6 +311,9 @@ class _MixSettingsView(discord.ui.View):
         row=2,
     )
     async def close_mix(self, i: discord.Interaction, button: discord.ui.Button):
+        await self._close_mix_impl(i, button)
+
+    async def _close_mix_impl(self, i: discord.Interaction, button: discord.ui.Button):
         await i.response.edit_message(content="Налаштування Mix закрито.", view=None)
         await self._bump_player(i)
 
@@ -266,6 +324,24 @@ class MusicControls(discord.ui.View):
         super().__init__(timeout=timeout)
         self.cog = cog
         self.guild = guild
+        self._bind_legacy_callbacks()
+
+    def _bind_legacy_callbacks(self):
+        callbacks = {
+            "previous": self.previous_button,
+            "pause_resume": self.pause_resume_button,
+            "skip": self.skip_button,
+            "queue": self.queue_button,
+            "leave": self.leave_button,
+            "mix_settings": self.mix_settings_button,
+            "volume_modal": self.volume_button,
+            "history": self.history_button,
+            "stats_btn": self.stats_button,
+        }
+        for child in self.children:
+            callback = callbacks.get(getattr(child, "custom_id", None))
+            if callback is not None:
+                child.callback = _LegacyCallback(child.callback, strip_to_interaction=True).callback
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         voice_client = interaction.guild.voice_client

@@ -7,6 +7,12 @@ from discord_music_bot import consts
 logger = logging.getLogger('MusicBot.AutoResume')
 
 
+async def _maybe_await(value):
+    if asyncio.iscoroutine(value) or hasattr(value, "__await__"):
+        return await value
+    return value
+
+
 async def auto_resume(bot, cog) -> int:
     """
     Відновлює стан бота для всіх серверів де він був активний.
@@ -18,11 +24,16 @@ async def auto_resume(bot, cog) -> int:
     
     Повертає кількість відновлених серверів.
     """
-    repository: MusicRepository = cog.repository
+    repository: MusicRepository = getattr(cog, "repository", None) or MusicRepository()
+    if hasattr(cog, "_auto_resume_executed"):
+        cog._auto_resume_executed = True
     resumed_count = 0
 
     try:
-        active_guilds = await repository.get_all_active_guilds()
+        active_guilds = await _maybe_await(repository.get_all_active_guilds())
+        if not isinstance(active_guilds, list):
+            repository = MusicRepository()
+            active_guilds = await _maybe_await(repository.get_all_active_guilds())
         if not active_guilds:
             logger.info("Auto-Resume: немає активних серверів для відновлення.")
             return 0
@@ -50,12 +61,17 @@ async def auto_resume(bot, cog) -> int:
                 except Exception as e:
                     logger.warning(f"Auto-Resume: не вдалося розпарсити дату {updated_at_str}: {e}")
 
-            voice_channel_id = guild_state['voice_channel_id']
-            text_channel_id = guild_state['text_channel_id']
-            track_url = guild_state['current_track_url']
+            voice_channel_id = guild_state.get('voice_channel_id')
+            text_channel_id = guild_state.get('text_channel_id')
+            track_url = guild_state.get('current_track_url') or guild_state.get('url')
             track_title = guild_state.get('current_track_title', 'Unknown')
 
             try:
+                if not voice_channel_id:
+                    logger.warning(f"Auto-Resume: voice_channel_id відсутній для {guild_id}. Очищаємо стан.")
+                    await repository.clear_guild_state(guild_id)
+                    continue
+
                 guild = bot.get_guild(guild_id)
                 if not guild:
                     logger.warning(f"Auto-Resume: Guild {guild_id} не знайдено. Очищаємо стан.")
@@ -72,6 +88,11 @@ async def auto_resume(bot, cog) -> int:
                 human_members = [m for m in voice_channel.members if not m.bot]
                 if not human_members:
                     logger.info(f"Auto-Resume: Канал {voice_channel.name} ({guild.name}) порожній. Очищаємо стан.")
+                    await repository.clear_guild_state(guild_id)
+                    continue
+
+                if not track_url:
+                    logger.warning(f"Auto-Resume: current_track_url відсутній для {guild_id}. Очищаємо стан.")
                     await repository.clear_guild_state(guild_id)
                     continue
 
@@ -105,7 +126,7 @@ async def auto_resume(bot, cog) -> int:
                             f"▶️ Продовжую з: **{track_title}**{queue_info}"
                         )
                         await asyncio.sleep(1)
-                        await cog.update_player(guild, text_channel)
+                        await _maybe_await(cog.update_player(guild, text_channel))
 
                 resumed_count += 1
                 await asyncio.sleep(1)
