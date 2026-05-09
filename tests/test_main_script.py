@@ -2,7 +2,7 @@ import pytest
 import sys
 import os
 import asyncio
-from unittest.mock import Mock, AsyncMock, patch, MagicMock
+from unittest.mock import Mock, AsyncMock, patch, MagicMock, PropertyMock
 
 # Patch load_dotenv before anything imports config
 with patch('dotenv.load_dotenv'):
@@ -30,16 +30,18 @@ async def test_main_load_cogs_error():
 
 @pytest.mark.asyncio
 async def test_on_ready_logic():
-    main.bot.user = Mock(name="BotName", id=123)
-    with patch('main.load_cogs', new_callable=AsyncMock), \
-         patch.object(main.bot.tree, 'sync', new_callable=AsyncMock) as mock_sync, \
-         patch.object(main.bot, 'change_presence', new_callable=AsyncMock):
-        
-        await main.on_ready()
-        mock_sync.assert_called()
-        
-        mock_sync.side_effect = Exception("Sync Fail")
-        await main.on_ready()
+    with patch('main.bot') as mock_bot:
+        type(mock_bot).user = PropertyMock(return_value=Mock(name="BotName", id=123))
+        with patch('main.load_cogs', new_callable=AsyncMock), \
+             patch.object(main.bot.tree, 'sync', new_callable=AsyncMock) as mock_sync, \
+             patch.object(main.bot, 'change_presence', new_callable=AsyncMock):
+            
+            await main.on_ready()
+            mock_sync.assert_called()
+            
+            mock_sync.side_effect = Exception("Sync Fail")
+            await main.on_ready()
+
 
 @pytest.mark.asyncio
 async def test_on_command_error_cases():
@@ -80,8 +82,10 @@ def test_check_single_instance_exists():
             mock_remove.assert_called()
 
 def test_check_single_instance_invalid_file():
+    mock_f = MagicMock()
+    mock_f.read.return_value = "invalid_pid"
     with patch('os.path.exists', return_value=True), \
-         patch('builtins.open', side_effect=ValueError()):
+         patch('builtins.open', MagicMock(__enter__=MagicMock(return_value=mock_f))):
         with patch('os.remove') as mock_remove:
             main.check_single_instance()
             mock_remove.assert_called()

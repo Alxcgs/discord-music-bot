@@ -266,6 +266,14 @@ class MusicControls(discord.ui.View):
         super().__init__(timeout=timeout)
         self.cog = cog
         self.guild = guild
+        
+        # Динамічна зміна кнопки Пауза/Відтворити
+        voice_client = guild.voice_client
+        if voice_client and cog.player_service.is_paused(voice_client):
+            for child in self.children:
+                if getattr(child, "custom_id", "") == "pause_resume":
+                    child.label = "Відтворити"
+                    child.emoji = "▶️"
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         voice_client = interaction.guild.voice_client

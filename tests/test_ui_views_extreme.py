@@ -43,8 +43,11 @@ def cog():
 
 @pytest.mark.asyncio
 async def test_volume_modal_no_playing(cog):
-    modal = VolumeModal(cog, 123)
     i = create_robust_interaction()
+    i.guild.voice_client = None
+    modal = VolumeModal(i.guild.voice_client)
+    for child in modal.children:
+        child._value = "100"
     i.guild.voice_client = None
     await modal.on_submit(i)
     i.response.send_message.assert_called_with("Зараз нічого не грає.", ephemeral=True)
@@ -56,7 +59,7 @@ async def test_mix_settings_view_toggles(cog):
     button = MagicMock(spec=discord.ui.Button)
     
     # Toggle DJ
-    await view.toggle_dj(i, button)
+    await view.toggle_dj.callback(i)
     i.followup.send.assert_called()
 
 @pytest.mark.asyncio
@@ -65,14 +68,14 @@ async def test_dismiss_view_full_coverage():
     i = create_robust_interaction()
     
     # Case 1: Success
-    await view.dismiss_button(i, Mock())
+    await view.dismiss_button.callback(i)
     i.response.edit_message.assert_called()
     
     # Case 2: Edit fail, delete success
     i.response.edit_message.side_effect = Exception("Fail")
-    await view.dismiss_button(i, Mock())
+    await view.dismiss_button.callback(i)
     i.message.delete.assert_called()
     
     # Case 3: Both fail
     i.message.delete.side_effect = Exception("Fail")
-    await view.dismiss_button(i, Mock())
+    await view.dismiss_button.callback(i)

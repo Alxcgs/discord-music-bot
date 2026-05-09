@@ -1,6 +1,6 @@
 import pytest
 import discord
-from unittest.mock import Mock, AsyncMock, patch, MagicMock
+from unittest.mock import Mock, AsyncMock, patch, MagicMock, PropertyMock
 from discord_music_bot.cogs.slash_music_cog import MusicCog
 from discord_music_bot.services.auto_resume import auto_resume
 from discord_music_bot import consts
@@ -54,9 +54,8 @@ async def test_auto_resume_voice_not_found(mock_cog):
     guild = MagicMock()
     guild.get_channel.return_value = None # Voice channel missing
     bot.get_guild.return_value = guild
-    mock_cog.repository.get_all_active_guilds.return_value = [
-        {'guild_id': 123, 'voice_channel_id': 456, 'text_channel_id': 789}
-    ]
+    with patch('discord_music_bot.database.get_connection', AsyncMock()):
+        mock_cog.repository.get_all_active_guilds.return_value = [{'guild_id': 123, 'voice_channel_id': 456, 'text_channel_id': 789, 'current_track_url': 'test'}]
     await auto_resume(bot, mock_cog)
     mock_cog.repository.clear_guild_state.assert_called_with(123) # Line 68
 
@@ -81,11 +80,13 @@ async def test_main_error_handlers():
 
 @pytest.mark.asyncio
 async def test_main_on_ready_sync_error():
-    main.bot.user = Mock(id=1, name="Bot")
-    with patch.object(main.bot.tree, 'sync', side_effect=Exception("Sync Fail")), \
-         patch('main.load_cogs', AsyncMock()), \
-         patch.object(main.bot, 'change_presence', AsyncMock()):
-        await main.on_ready() # Line 161
+    with patch('main.bot') as mock_bot:
+        # Mock configure user
+        type(mock_bot).user = PropertyMock(return_value=Mock(name="TestBot", id=123))
+        mock_bot.tree.sync = AsyncMock(side_effect=Exception("Sync Error"))
+        with patch('main.load_cogs', AsyncMock()), \
+             patch.object(main.bot, 'change_presence', AsyncMock()):
+            await main.on_ready() # Line 161
 
 def test_main_load_cogs_exception():
     with patch('os.listdir', return_value=['fail.py']), \

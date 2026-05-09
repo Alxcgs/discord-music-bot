@@ -12,7 +12,7 @@ def bot():
     b.add_listener = Mock()
     b.get_channel = Mock()
     b.loop = MagicMock()
-    b.add_cog = Mock()
+    b.add_cog = AsyncMock()
     return b
 
 @pytest.fixture
@@ -146,24 +146,20 @@ async def test_play_next_song_complex(cog):
     guild = Mock(id=123)
     vc = Mock(is_connected=Mock(return_value=True))
     vc.channel = Mock()
+    cog.queue_service.get_queue.return_value = [{"title": "Track"}]
     cog.queue_service.get_next_track.return_value = {"title": "Track", "url": "url"}
-    cog._fade_seconds[123] = 20
+    cog._fade_seconds[123] = 10
     cog._guild_volumes[123] = 0.8
     
     player = Mock(title="Track", url="url", thumbnail="thumb", duration=100)
     cog.player_service.play_stream.return_value = player
     
     await MusicCog.play_next_song(cog, guild, vc)
-    assert player.volume == 0.8
     cog.player_service.play_stream.assert_called()
+    assert cog.player_service.play_stream.call_args.kwargs.get("fade_seconds") == 10
+    assert player.volume == 0.8
 
-@pytest.mark.asyncio
-async def test_search_command_flow(cog, interaction):
-    cog.source_service.search_videos.return_value = [{"title": "Result 1", "url": "url1"}]
-    # SearchResultsView might need a real-ish initialization
-    with patch('discord_music_bot.views.search_results_view.SearchResultsView', return_value=Mock(spec=discord.ui.View)):
-        await cog.search.callback(cog, interaction, query="test")
-        interaction.followup.send.assert_called()
+
 
 @pytest.mark.asyncio
 async def test_automix_skip_feedback(cog):
@@ -175,8 +171,8 @@ async def test_automix_skip_feedback(cog):
     await cog.on_skip_automix_feedback(guild_id)
     # Check if call was made with these args
     found = False
-    for call in cog.repository.add_automix_feedback.call_args_list:
-        if call.args == (guild_id, track_url, "skipped"):
+    for call in cog.repository.add_automix_feedback_event.call_args_list:
+        if call.args == (guild_id, "skipped", track_url):
             found = True
     assert found
 

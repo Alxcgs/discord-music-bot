@@ -42,7 +42,7 @@ async def test_source_service_missing_branches():
         instance.extract_info.side_effect = Exception("Extract Fail")
         
         # Test extract_playlist failure
-        assert await service.extract_playlist("http://playlist") == [] # line 21
+        assert await service.extract_playlist("http://playlist") == (None, []) # line 21
         # Test get_video_info failure
         assert await service.get_video_info("http://video") is None # line 38
         # Test search_videos failure
@@ -55,11 +55,11 @@ async def test_source_service_extract_playlist_no_entries():
         instance = mock_ydl.return_value.__enter__.return_value
         # Case: _type is not playlist
         instance.extract_info.return_value = {"_type": "video", "url": "test"}
-        assert await service.extract_playlist("url") == [] # line 17
+        assert await service.extract_playlist("url") == (None, []) # line 17
         
         # Case: playlist but no entries
         instance.extract_info.return_value = {"_type": "playlist"}
-        assert await service.extract_playlist("url") == [] # line 20
+        assert await service.extract_playlist("url") == (None, []) # line 20
 
 @pytest.mark.asyncio
 async def test_source_service_extract_playlist_ie_key():
@@ -67,15 +67,15 @@ async def test_source_service_extract_playlist_ie_key():
     with patch('yt_dlp.YoutubeDL') as mock_ydl:
         instance = mock_ydl.return_value.__enter__.return_value
         instance.extract_info.return_value = {"_type": "playlist", "entries": [{"ie_key": "Youtube", "url": "test"}]}
-        res = await service.extract_playlist("url")
-        assert len(res) == 1
-        assert res[0]["url"] == "https://www.youtube.com/watch?v=test" # line 31
+        title, tracks = await service.extract_playlist("url")
+        assert len(tracks) == 1
+        assert tracks[0]["url"] == "https://www.youtube.com/watch?v=test" # line 31
 
 @pytest.mark.asyncio
 async def test_source_service_get_video_info_ie_key():
     service = source_service.SourceService()
     with patch('yt_dlp.YoutubeDL') as mock_ydl:
         instance = mock_ydl.return_value.__enter__.return_value
-        instance.extract_info.return_value = {"ie_key": "Youtube", "url": "test"}
+        instance.extract_info.return_value = {"ie_key": "Youtube", "webpage_url": "https://www.youtube.com/watch?v=test"}
         res = await service.get_video_info("url")
         assert res["url"] == "https://www.youtube.com/watch?v=test" # line 43

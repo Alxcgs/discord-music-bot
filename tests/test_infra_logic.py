@@ -8,6 +8,7 @@ import asyncio
 import subprocess
 
 # --- utils.py tests ---
+
 def test_format_duration_edge_cases():
     assert utils.format_duration(-10) == "∞"
     assert utils.format_duration("invalid") == "∞"
@@ -16,8 +17,12 @@ def test_format_duration_edge_cases():
 
 # --- config.py tests ---
 def test_config_import_and_warning():
-    with patch('os.getenv', return_value='dummy_test_token'):
-        # Reloading config might be tricky, but we can check the logic if we refactor.
+    with patch('os.getenv', return_value='dummy_test_token'), \
+         patch('logging.warning') as mock_warning:
+        import importlib
+        import discord_music_bot.config
+        importlib.reload(discord_music_bot.config)
+        mock_warning.assert_called()
         # For now, just ensure it's imported.
         assert config.DISCORD_TOKEN == 'dummy_test_token'
 

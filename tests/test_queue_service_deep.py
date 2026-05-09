@@ -7,10 +7,12 @@ def service():
     repo = AsyncMock()
     return QueueService(repo)
 
-def test_queue_service_push_front_new_guild(service):
+@pytest.mark.asyncio
+async def test_queue_service_push_front_new_guild(service):
     # line 64
-    service.push_front(999, {"title": "T1"})
-    assert len(service._queues[999]) == 1
+    with patch('asyncio.ensure_future'):
+        service.push_front(999, {"title": "T1"})
+        assert len(service._queues[999]) == 1
 
 def test_queue_service_move_track_empty(service):
     # line 73

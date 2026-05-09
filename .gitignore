@@ -1,3 +1,32 @@
-/.env
+# Environments
+.env
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Data and Logs
+data/
 logs/
-*.loggit status
+*.log
+*.pid
+
+# Testing and Coverage
+.pytest_cache/
+.coverage
+coverage.json
+coverage_report.txt
+htmlcov/
+test_output.txt
+errors.txt
+
+# IDEs
+.idea/
+.vscode/
+
+# Other
+discord_music_bot.lock

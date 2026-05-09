@@ -30,7 +30,8 @@ def test_kill_zombie_processes_branches(os_name):
             stdout = '1234 1 Z yt-dlp\n5678 1 S ffmpeg'
             with patch('subprocess.run') as mock_run:
                 mock_run.return_value = Mock(stdout=stdout)
-                with patch('os.kill') as mock_kill:
+                with patch('os.kill') as mock_kill, \
+                     patch('discord_music_bot.healthcheck.signal.SIGKILL', 9, create=True):
                     killed = _kill_zombie_processes()
                     assert killed == 2 # Both 1234 (Z) and 5678 (ppid=1)
                     

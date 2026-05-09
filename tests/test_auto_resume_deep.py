@@ -36,7 +36,7 @@ async def test_auto_resume_voice_channel_missing(bot, cog):
     guild.get_channel.return_value = None # Voice missing
     bot.get_guild.return_value = guild
     cog.repository.get_all_active_guilds.return_value = [
-        {'guild_id': 123, 'voice_channel_id': 456, 'text_channel_id': 789}
+        {'guild_id': 123, 'voice_channel_id': 456, 'text_channel_id': 789, 'current_track_url': 'test'}
     ]
     await auto_resume(bot, cog)
     cog.repository.clear_guild_state.assert_called_with(123) # Line 68
@@ -52,6 +52,6 @@ async def test_auto_resume_critical_error(bot, cog):
 async def test_auto_resume_failure_for_guild(bot, cog):
     # Triggers line 114
     bot.get_guild.side_effect = Exception("Guild Fetch Fail")
-    cog.repository.get_all_active_guilds.return_value = [{'guild_id': 123}]
+    cog.repository.get_all_active_guilds.return_value = [{'guild_id': 123, 'voice_channel_id': 456, 'text_channel_id': 789, 'current_track_url': 'test'}]
     await auto_resume(bot, cog)
     cog.repository.clear_guild_state.assert_called_with(123)
