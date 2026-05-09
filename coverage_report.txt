@@ -1,0 +1,336 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.3, pytest-9.0.3, pluggy-1.6.0
+rootdir: /Users/alxcgs/Para/git-ds/discord-music-bot
+configfile: pytest.ini
+plugins: mock-3.15.1, cov-7.1.0, timeout-2.4.0, asyncio-1.3.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 139 items
+
+tests/test_audio_source.py::test_ytdlp_pipe_source_read PASSED           [  0%]
+tests/test_audio_source.py::test_ytdlp_pipe_source_end_of_track PASSED   [  1%]
+tests/test_audio_source.py::test_ytdlp_pipe_source_cleanup PASSED        [  2%]
+tests/test_audio_source.py::test_ytdl_source_properties PASSED           [  2%]
+tests/test_audio_source.py::test_ytdl_source_from_track_dict_no_url 
+-------------------------------- live log call ---------------------------------
+ERROR    root:audio_source.py:98 No URL provided in track_dict
+PASSED                                                                   [  3%]
+tests/test_audio_source.py::test_ytdl_source_from_track_dict_success 
+-------------------------------- live log call ---------------------------------
+INFO     root:audio_source.py:101 Creating audio pipeline for: Test
+INFO     root:audio_source.py:158 Audio pipeline started for: Test
+PASSED                                                                   [  4%]
+tests/test_audio_source_deep.py::test_ytdlp_pipe_source_read_branches[finished] PASSED [  5%]
+tests/test_audio_source_deep.py::test_ytdlp_pipe_source_read_branches[retries] PASSED [  5%]
+tests/test_audio_source_deep.py::test_ytdlp_pipe_source_read_branches[padding] PASSED [  6%]
+tests/test_audio_source_deep.py::test_ytdlp_pipe_source_cleanup PASSED   [  7%]
+tests/test_audio_source_deep.py::test_ytdl_source_from_track_dict_branches 
+-------------------------------- live log call ---------------------------------
+ERROR    root:audio_source.py:98 No URL provided in track_dict
+INFO     root:audio_source.py:101 Creating audio pipeline for: Test
+INFO     root:audio_source.py:158 Audio pipeline started for: Test
+INFO     root:audio_source.py:101 Creating audio pipeline for: Test
+ERROR    root:audio_source.py:162 Error in from_track_dict: Subprocess Error
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/audio_source.py", line 111, in from_track_dict
+    ytdlp_process = subprocess.Popen(
+        [
+    ...<6 lines>...
+        stdout=subprocess.PIPE, stderr=subprocess.DEVNULL
+    )
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1169, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1173, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1228, in _execute_mock_call
+    raise effect
+Exception: Subprocess Error
+PASSED                                                                   [  7%]
+tests/test_auto_resume.py::test_auto_resume_no_active_guilds 
+-------------------------------- live log call ---------------------------------
+INFO     MusicBot.AutoResume:auto_resume.py:27 Auto-Resume: немає активних серверів для відновлення.
+PASSED                                                                   [  8%]
+tests/test_auto_resume.py::test_auto_resume_staleness_policy 
+-------------------------------- live log call ---------------------------------
+INFO     MusicBot.AutoResume:auto_resume.py:30 Auto-Resume: знайдено 1 сесій у БД.
+INFO     MusicBot.AutoResume:auto_resume.py:47 Auto-Resume: сесія 123 застаріла (25г тому). Очищаємо.
+PASSED                                                                   [  9%]
+tests/test_auto_resume.py::test_auto_resume_missing_guild 
+-------------------------------- live log call ---------------------------------
+INFO     MusicBot.AutoResume:auto_resume.py:30 Auto-Resume: знайдено 1 сесій у БД.
+WARNING  MusicBot.AutoResume:auto_resume.py:61 Auto-Resume: Guild 123 не знайдено. Очищаємо стан.
+PASSED                                                                   [ 10%]
+tests/test_auto_resume.py::test_auto_resume_empty_channel 
+-------------------------------- live log call ---------------------------------
+INFO     MusicBot.AutoResume:auto_resume.py:30 Auto-Resume: знайдено 1 сесій у БД.
+INFO     MusicBot.AutoResume:auto_resume.py:74 Auto-Resume: Канал <MagicMock name='mock.get_guild().get_channel().name' id='4439252608'> (<MagicMock name='mock.get_guild().name' id='4439884192'>) порожній. Очищаємо стан.
+PASSED                                                                   [ 10%]
+tests/test_auto_resume.py::test_auto_resume_success 
+-------------------------------- live log call ---------------------------------
+INFO     MusicBot.AutoResume:auto_resume.py:30 Auto-Resume: знайдено 1 сесій у БД.
+INFO     MusicBot.AutoResume:auto_resume.py:79 Auto-Resume: Відновлення <MagicMock name='mock.get_guild().get_channel().name' id='4439896624'> (<MagicMock name='mock.get_guild().name' id='4439897296'>)...
+PASSED                                                                   [ 11%]
+tests/test_auto_resume_deep.py::test_auto_resume_full 
+-------------------------------- live log call ---------------------------------
+INFO     MusicBot.AutoResume:auto_resume.py:30 Auto-Resume: знайдено 2 сесій у БД.
+INFO     MusicBot.AutoResume:auto_resume.py:47 Auto-Resume: сесія 1 застаріла (24г тому). Очищаємо.
+INFO     MusicBot.AutoResume:auto_resume.py:79 Auto-Resume: Відновлення Voice2 (Guild2)...
+PASSED                                                                   [ 12%]
+tests/test_auto_resume_deep.py::test_auto_resume_empty_channel 
+-------------------------------- live log call ---------------------------------
+INFO     MusicBot.AutoResume:auto_resume.py:30 Auto-Resume: знайдено 1 сесій у БД.
+INFO     MusicBot.AutoResume:auto_resume.py:74 Auto-Resume: Канал <Mock name='mock.get_guild().get_channel().name' id='4440591728'> (<Mock name='mock.get_guild().name' id='4440592064'>) порожній. Очищаємо стан.
+PASSED                                                                   [ 12%]
+tests/test_automix_logic.py::test_recommend_history_strategy PASSED      [ 13%]
+tests/test_automix_logic.py::test_recommend_top_strategy PASSED          [ 14%]
+tests/test_automix_logic.py::test_diversity_filtering PASSED             [ 15%]
+tests/test_automix_logic.py::test_skip_penalties PASSED                  [ 15%]
+tests/test_automix_logic.py::test_fallback_logic PASSED                  [ 16%]
+tests/test_automix_logic.py::test_no_results PASSED                      [ 17%]
+tests/test_automix_logic.py::test_query_failures 
+-------------------------------- live log call ---------------------------------
+WARNING  MusicBot.AutomixService:automix_service.py:120 Top tracks query failed for 123: DB Error
+WARNING  MusicBot.AutomixService:automix_service.py:142 History query failed for 123: DB Error
+WARNING  MusicBot.AutomixService:automix_service.py:99 playcount map failed for 123: DB Error
+WARNING  MusicBot.AutomixService:automix_service.py:164 History query failed for 123: DB Error
+PASSED                                                                   [ 17%]
+tests/test_automix_logic.py::test_weighted_pick_edge_cases PASSED        [ 18%]
+tests/test_automix_logic.py::test_history_explore_logic PASSED           [ 19%]
+tests/test_automix_service.py::test_automix_strategies PASSED            [ 20%]
+tests/test_automix_service.py::test_automix_fallbacks PASSED             [ 20%]
+tests/test_automix_service.py::test_weighted_pick_edge_cases PASSED      [ 21%]
+tests/test_core_logic.py::test_queue_service PASSED                      [ 22%]
+tests/test_core_logic.py::test_history_service PASSED                    [ 23%]
+tests/test_core_logic.py::test_automix_service PASSED                    [ 23%]
+tests/test_dj_logic.py::test_generate_comment_basic PASSED               [ 24%]
+tests/test_dj_logic.py::test_generate_comment_persona_fallback PASSED    [ 25%]
+tests/test_dj_logic.py::test_generate_comment_time_aware PASSED          [ 25%]
+tests/test_dj_logic.py::test_generate_comment_skips PASSED               [ 26%]
+tests/test_dj_logic.py::test_generate_comment_all_personas PASSED        [ 27%]
+tests/test_healthcheck_deep.py::test_kill_zombie_processes_branches[nt] PASSED [ 28%]
+tests/test_healthcheck_deep.py::test_kill_zombie_processes_branches[posix] PASSED [ 28%]
+tests/test_healthcheck_deep.py::test_cleanup_zombie_processes_loop 
+-------------------------------- live log call ---------------------------------
+WARNING  MusicBot.Healthcheck:healthcheck.py:25 Zombie cleanup: вбито 1 зомбі-процес(ів).
+INFO     MusicBot.Healthcheck:healthcheck.py:27 Zombie cleanup task cancelled.
+PASSED                                                                   [ 29%]
+tests/test_healthcheck_deep.py::test_start_zombie_cleanup 
+-------------------------------- live log call ---------------------------------
+INFO     MusicBot.Healthcheck:healthcheck.py:94 Zombie cleanup task запущено (інтервал: 100с)
+PASSED                                                                   [ 30%]
+tests/test_history_service.py::test_add_to_history PASSED                [ 30%]
+tests/test_history_service.py::test_add_to_history_overflow PASSED       [ 31%]
+tests/test_history_service.py::test_get_last_track PASSED                [ 32%]
+tests/test_history_service.py::test_get_last_track_empty PASSED          [ 33%]
+tests/test_history_service.py::test_clear_history PASSED                 [ 33%]
+tests/test_history_service.py::test_load_from_db 
+-------------------------------- live log call ---------------------------------
+INFO     MusicBot.HistoryService:history_service.py:56 Guild 123: завантажено 2 з історії
+PASSED                                                                   [ 34%]
+tests/test_history_service.py::test_load_from_db_error 
+-------------------------------- live log call ---------------------------------
+ERROR    MusicBot.HistoryService:history_service.py:60 Помилка завантаження історії з БД для 123: DB Error
+PASSED                                                                   [ 35%]
+tests/test_history_view_deep.py::test_history_view_bump_player_error PASSED [ 35%]
+tests/test_history_view_deep.py::test_clear_history_button_error 
+-------------------------------- live log call ---------------------------------
+ERROR    MusicBot:history_view.py:31 Clear history error: Clear error
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/views/history_view.py", line 22, in clear_history_button
+    self.cog.history_service.clear_history(self.guild_id)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1169, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1173, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1228, in _execute_mock_call
+    raise effect
+Exception: Clear error
+PASSED                                                                   [ 36%]
+tests/test_history_view_deep.py::test_dismiss_button_error PASSED        [ 37%]
+tests/test_history_view_deep.py::test_dismiss_button_total_error PASSED  [ 38%]
+tests/test_integration.py::test_integration_play_flow 
+-------------------------------- live log setup --------------------------------
+INFO     MusicBot.Database:database.py:168 База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp77gc5y8f
+PASSED                                                                   [ 38%]
+tests/test_integration.py::test_integration_skip_flow 
+-------------------------------- live log setup --------------------------------
+INFO     MusicBot.Database:database.py:168 База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpqcxvapib
+PASSED                                                                   [ 39%]
+tests/test_integration.py::test_integration_automix_activation 
+-------------------------------- live log setup --------------------------------
+INFO     MusicBot.Database:database.py:168 База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpz7xbrqax
+PASSED                                                                   [ 40%]
+tests/test_integration.py::test_integration_dj_commands_logic 
+-------------------------------- live log setup --------------------------------
+INFO     MusicBot.Database:database.py:168 База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpc0arxf93
+PASSED                                                                   [ 41%]
+tests/test_integration.py::test_integration_volume_command 
+-------------------------------- live log setup --------------------------------
+INFO     MusicBot.Database:database.py:168 База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp8ju7zatd
+PASSED                                                                   [ 41%]
+tests/test_integration.py::test_integration_stats_commands 
+-------------------------------- live log setup --------------------------------
+INFO     MusicBot.Database:database.py:168 База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpdhasv4zk
+PASSED                                                                   [ 42%]
+tests/test_integration.py::test_integration_misc_commands 
+-------------------------------- live log setup --------------------------------
+INFO     MusicBot.Database:database.py:168 База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp7hx14lrc
+PASSED                                                                   [ 43%]
+tests/test_missing_coverage.py::test_zombie_cleanup_logic PASSED         [ 43%]
+tests/test_missing_coverage.py::test_utils_format_duration PASSED        [ 44%]
+tests/test_missing_coverage.py::test_dj_service_comments PASSED          [ 45%]
+tests/test_music_controls_deep.py::test_volume_modal_error PASSED        [ 46%]
+tests/test_music_controls_deep.py::test_mix_settings_bump_error PASSED   [ 46%]
+tests/test_music_controls_deep.py::test_toggle_automix_followups PASSED  [ 47%]
+tests/test_music_controls_deep.py::test_automix_mode_select_error PASSED [ 48%]
+tests/test_music_controls_deep.py::test_fade_select_error PASSED         [ 48%]
+tests/test_music_controls_deep.py::test_interaction_check_branches PASSED [ 49%]
+tests/test_music_controls_deep.py::test_previous_button_branches PASSED  [ 50%]
+tests/test_music_controls_deep.py::test_control_buttons_errors PASSED    [ 51%]
+tests/test_music_controls_deep.py::test_history_button_complex PASSED    [ 51%]
+tests/test_music_controls_deep.py::test_stats_button_error PASSED        [ 52%]
+tests/test_music_controls_full.py::test_volume_modal_full PASSED         [ 53%]
+tests/test_music_controls_full.py::test_mix_settings_view_full PASSED    [ 53%]
+tests/test_music_controls_full.py::test_music_controls_full PASSED       [ 54%]
+tests/test_player_service.py::test_pause PASSED                          [ 55%]
+tests/test_player_service.py::test_resume PASSED                         [ 56%]
+tests/test_player_service.py::test_stop PASSED                           [ 56%]
+tests/test_player_service.py::test_is_playing_and_paused PASSED          [ 57%]
+tests/test_player_service.py::test_play_stream_success PASSED            [ 58%]
+tests/test_player_service.py::test_play_stream_not_connected 
+-------------------------------- live log call ---------------------------------
+ERROR    MusicBot.PlayerService:player_service.py:45 Error creating stream: Voice client is not connected — cannot start playback.
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/services/player_service.py", line 25, in play_stream
+    raise discord.errors.ClientException("Voice client is not connected — cannot start playback.")
+discord.errors.ClientException: Voice client is not connected — cannot start playback.
+PASSED                                                                   [ 58%]
+tests/test_player_service.py::test_play_stream_source_creation_failed 
+-------------------------------- live log call ---------------------------------
+ERROR    MusicBot.PlayerService:player_service.py:45 Error creating stream: Failed to create audio source for URL: http://test
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/services/player_service.py", line 36, in play_stream
+    raise ValueError(f"Failed to create audio source for URL: {url}")
+ValueError: Failed to create audio source for URL: http://test
+PASSED                                                                   [ 59%]
+tests/test_player_service.py::test_play_stream_connection_lost_during_extraction 
+-------------------------------- live log call ---------------------------------
+ERROR    MusicBot.PlayerService:player_service.py:45 Error creating stream: Voice connection lost while preparing audio source.
+Traceback (most recent call last):
+  File "/Users/alxcgs/Para/git-ds/discord-music-bot/discord_music_bot/services/player_service.py", line 40, in play_stream
+    raise discord.errors.ClientException("Voice connection lost while preparing audio source.")
+discord.errors.ClientException: Voice connection lost while preparing audio source.
+PASSED                                                                   [ 60%]
+tests/test_queue_service.py::test_get_queue_empty PASSED                 [ 61%]
+tests/test_queue_service.py::test_add_track PASSED                       [ 61%]
+tests/test_queue_service.py::test_add_tracks PASSED                      [ 62%]
+tests/test_queue_service.py::test_get_next_track PASSED                  [ 63%]
+tests/test_queue_service.py::test_get_next_track_empty PASSED            [ 64%]
+tests/test_queue_service.py::test_clear PASSED                           [ 64%]
+tests/test_queue_service.py::test_shuffle PASSED                         [ 65%]
+tests/test_queue_service.py::test_push_front PASSED                      [ 66%]
+tests/test_queue_service.py::test_move_track_valid PASSED                [ 66%]
+tests/test_queue_service.py::test_move_track_same_position PASSED        [ 67%]
+tests/test_queue_service.py::test_move_track_invalid_positions PASSED    [ 68%]
+tests/test_queue_service.py::test_peek_next PASSED                       [ 69%]
+tests/test_queue_service.py::test_load_from_db 
+-------------------------------- live log call ---------------------------------
+INFO     MusicBot.QueueService:queue_service.py:106 Guild 123: завантажено 1 треків з черги
+PASSED                                                                   [ 69%]
+tests/test_queue_service.py::test_load_from_db_error 
+-------------------------------- live log call ---------------------------------
+ERROR    MusicBot.QueueService:queue_service.py:110 Помилка завантаження черги з БД для 123: DB Error
+PASSED                                                                   [ 70%]
+tests/test_queue_view_deep.py::test_move_track_modal_branches PASSED     [ 71%]
+tests/test_queue_view_deep.py::test_queue_view_chunks PASSED             [ 71%]
+tests/test_queue_view_deep.py::test_queue_view_bump_error PASSED         [ 72%]
+tests/test_queue_view_deep.py::test_queue_view_shuffle_error PASSED      [ 73%]
+tests/test_queue_view_deep.py::test_queue_view_close_error PASSED        [ 74%]
+tests/test_queue_view_deep.py::test_queue_view_close_total_error PASSED  [ 74%]
+tests/test_repository.py::test_guild_state 
+-------------------------------- live log setup --------------------------------
+INFO     MusicBot.Database:database.py:168 База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp4kxi6jf4.db
+PASSED                                                                   [ 75%]
+tests/test_repository.py::test_get_all_active_guilds 
+-------------------------------- live log setup --------------------------------
+INFO     MusicBot.Database:database.py:168 База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmplq2_v5q6.db
+PASSED                                                                   [ 76%]
+tests/test_repository.py::test_queue_operations 
+-------------------------------- live log setup --------------------------------
+INFO     MusicBot.Database:database.py:168 База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpjdfqflxw.db
+PASSED                                                                   [ 76%]
+tests/test_repository.py::test_history_operations 
+-------------------------------- live log setup --------------------------------
+INFO     MusicBot.Database:database.py:168 База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmprpyk_pdj.db
+PASSED                                                                   [ 77%]
+tests/test_repository.py::test_automix_settings 
+-------------------------------- live log setup --------------------------------
+INFO     MusicBot.Database:database.py:168 База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmps2n7mc8v.db
+PASSED                                                                   [ 78%]
+tests/test_repository.py::test_analytics 
+-------------------------------- live log setup --------------------------------
+INFO     MusicBot.Database:database.py:168 База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpdr9neww2.db
+PASSED                                                                   [ 79%]
+tests/test_repository.py::test_automix_feedback 
+-------------------------------- live log setup --------------------------------
+INFO     MusicBot.Database:database.py:168 База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmp_qy9e9qv.db
+PASSED                                                                   [ 79%]
+tests/test_repository.py::test_dj_settings_and_events 
+-------------------------------- live log setup --------------------------------
+INFO     MusicBot.Database:database.py:168 База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmprg3z6ffy.db
+PASSED                                                                   [ 80%]
+tests/test_repository_deep.py::test_repository_all_methods 
+-------------------------------- live log setup --------------------------------
+INFO     MusicBot.Database:database.py:168 База даних ініціалізована: /var/folders/dm/d_xn_n9506sfw3dt_hpv_4qm0000gn/T/tmpw35_wl39
+PASSED                                                                   [ 81%]
+tests/test_slash_cog_deep.py::test_cog_load_and_ready 
+-------------------------------- live log call ---------------------------------
+INFO     MusicBot.Database:database.py:168 База даних ініціалізована: /Users/alxcgs/Para/git-ds/discord-music-bot/data/music_bot.db
+PASSED                                                                   [ 82%]
+tests/test_slash_cog_deep.py::test_automix_state_branches PASSED         [ 82%]
+tests/test_slash_cog_deep.py::test_on_skip_automix_feedback PASSED       [ 83%]
+tests/test_slash_cog_deep.py::test_dj_comment_branches PASSED            [ 84%]
+tests/test_slash_cog_deep.py::test_update_player_branches PASSED         [ 84%]
+tests/test_slash_cog_deep.py::test_voice_connected_branches PASSED       [ 85%]
+tests/test_slash_cog_deep.py::test_play_next_song_automix_trigger PASSED [ 86%]
+tests/test_slash_cog_deep.py::test_commands_basic PASSED                 [ 87%]
+tests/test_slash_cog_deep.py::test_commands_advanced PASSED              [ 87%]
+tests/test_slash_cog_deep.py::test_on_voice_state_update PASSED          [ 88%]
+tests/test_source_logic.py::test_get_video_info_success PASSED           [ 89%]
+tests/test_source_logic.py::test_get_video_info_search PASSED            [ 89%]
+tests/test_source_logic.py::test_search_videos PASSED                    [ 90%]
+tests/test_source_logic.py::test_extract_playlist PASSED                 [ 91%]
+tests/test_source_logic.py::test_source_service_errors 
+-------------------------------- live log call ---------------------------------
+ERROR    MusicBot.SourceService:source_service.py:53 Error extracting info for url: YTDL Error
+ERROR    MusicBot.SourceService:source_service.py:79 Error searching videos for query: YTDL Error
+ERROR    MusicBot.SourceService:source_service.py:126 Error extracting playlist url: YTDL Error
+PASSED                                                                   [ 92%]
+tests/test_source_service.py::test_get_video_info_success PASSED         [ 92%]
+tests/test_source_service.py::test_get_video_info_search PASSED          [ 93%]
+tests/test_source_service.py::test_search_videos PASSED                  [ 94%]
+tests/test_source_service.py::test_extract_playlist PASSED               [ 94%]
+tests/test_ui_components.py::test_volume_modal_full PASSED               [ 95%]
+tests/test_ui_components.py::test_mix_settings_view_full PASSED          [ 96%]
+tests/test_ui_components.py::test_music_controls_skip PASSED             [ 97%]
+tests/test_views_full.py::test_queue_view_full PASSED                    [ 97%]
+tests/test_views_full.py::test_history_view_full PASSED                  [ 98%]
+tests/test_views_full.py::test_search_results_view_full PASSED           [ 99%]
+tests/test_views_full.py::test_dismiss_view PASSED                       [100%]
+WARNING: Failed to generate report: No data to report.
+
+
+
+=============================== warnings summary ===============================
+tests/test_history_service.py::test_add_to_history
+  /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py:2247: RuntimeWarning: coroutine 'cleanup_zombie_processes' was never awaited
+    def __init__(self, name, parent):
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 139 passed, 1 warning in 13.75s ========================

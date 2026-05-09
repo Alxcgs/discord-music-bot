@@ -39,6 +39,227 @@ class VolumeModal(discord.ui.Modal, title="Гучність"):
             await interaction.response.send_message("❌ Введіть число від 0 до 200.", ephemeral=True)
 
 
+class _MixSettingsView(discord.ui.View):
+    def __init__(self, cog, guild_id: int, parent_view=None):
+        super().__init__(timeout=consts.TIMEOUT_VIEW)
+        self.cog = cog
+        self.guild_id = guild_id
+        self.parent_view = parent_view
+        self._sync_toggle_style()
+
+    def _status_text(self) -> str:
+        dj = self.cog._dj_settings_cache.get(
+            self.guild_id,
+            {
+                "enabled": consts.DJ_DEFAULT_ENABLED,
+                "persona": consts.DJ_DEFAULT_PERSONA,
+            },
+        )
+        enabled = self.cog._automix_enabled.get(
+            self.guild_id, consts.AUTOMIX_DEFAULT_ENABLED
+        )
+        mode = self.cog._automix_strategy_mode.get(
+            self.guild_id, consts.AUTOMIX_STRATEGY_DEFAULT
+        )
+        fade = float(
+            self.cog._fade_seconds.get(
+                self.guild_id, consts.DEFAULT_FADE_SECONDS
+            )
+        )
+        state = "ON" if enabled else "OFF"
+        dj_state = "ON" if dj.get("enabled", consts.DJ_DEFAULT_ENABLED) else "OFF"
+        dj_persona = dj.get("persona", consts.DJ_DEFAULT_PERSONA)
+        return (
+            "🎛️ **Mix settings**\n"
+            f"• Automix: **{state}**\n"
+            f"• Mode: **{mode}**\n"
+            f"• Fade-out: **{fade:.1f}s**\n"
+            f"• DJ: **{dj_state}** ({dj_persona})"
+        )
+
+    def _sync_toggle_style(self):
+        """Підсвічує кнопку ON/OFF: зелений=ON, червоний=OFF."""
+        enabled = self.cog._automix_enabled.get(
+            self.guild_id,
+            consts.AUTOMIX_DEFAULT_ENABLED,
+        )
+        dj_enabled = self.cog._dj_settings_cache.get(
+            self.guild_id, {}
+        ).get("enabled", consts.DJ_DEFAULT_ENABLED)
+
+        for child in self.children:
+            if isinstance(child, discord.ui.Button):
+                if child.custom_id == "mix_toggle_automix":
+                    child.style = discord.ButtonStyle.success if enabled else discord.ButtonStyle.danger
+                    child.label = "Automix ON" if enabled else "Automix OFF"
+                elif child.custom_id == "mix_toggle_dj":
+                    child.style = discord.ButtonStyle.success if dj_enabled else discord.ButtonStyle.danger
+                    child.label = "DJ ON" if dj_enabled else "DJ OFF"
+
+    async def _bump_player(self, interaction: discord.Interaction):
+        try:
+            if self.parent_view:
+                await self.parent_view._resend_player(interaction)
+            else:
+                await self.cog.update_player(interaction.guild, interaction.channel)
+        except Exception:
+            pass
+
+    @discord.ui.button(
+        label="Automix OFF",
+        style=discord.ButtonStyle.danger,
+        emoji="✅",
+        custom_id="mix_toggle_automix",
+        row=0,
+    )
+    async def toggle_automix(self, i: discord.Interaction, button: discord.ui.Button):
+        guild_id = i.guild.id
+        if hasattr(self.cog, "_ensure_automix_state_loaded"):
+            await self.cog._ensure_automix_state_loaded(guild_id)
+
+        current = self.cog._automix_enabled.get(guild_id, consts.AUTOMIX_DEFAULT_ENABLED)
+        new_value = not current
+        self.cog._automix_enabled[guild_id] = new_value
+        self.cog._automix_settings_cache.setdefault(
+            guild_id,
+            {
+                "enabled": new_value,
+                "strategy": self.cog._automix_strategy_mode.get(
+                    guild_id, consts.AUTOMIX_STRATEGY_DEFAULT
+                ),
+            },
+        )
+        self.cog._automix_settings_cache[guild_id]["enabled"] = new_value
+        asyncio.ensure_future(self.cog.repository.set_automix_enabled(guild_id, new_value))
+
+        button.style = discord.ButtonStyle.success if new_value else discord.ButtonStyle.danger
+        button.label = "Automix ON" if new_value else "Automix OFF"
+        await i.response.edit_message(content=self._status_text(), view=self)
+        await self._bump_player(i)
+        if new_value:
+            await i.followup.send("🎛️ Automix **увімкнено**.", ephemeral=True)
+        else:
+            await i.followup.send("🎛️ Automix **вимкнено**.", ephemeral=True)
+
+    @discord.ui.button(
+        label="DJ OFF",
+        style=discord.ButtonStyle.danger,
+        emoji="🎙️",
+        custom_id="mix_toggle_dj",
+        row=0,
+    )
+    async def toggle_dj(self, i: discord.Interaction, button: discord.ui.Button):
+        guild_id = i.guild.id
+        await self.cog._ensure_dj_state_loaded(guild_id)
+        cur = self.cog._dj_settings_cache[guild_id]["enabled"]
+        new_value = not cur
+        self.cog._dj_settings_cache[guild_id]["enabled"] = new_value
+        asyncio.ensure_future(self.cog.repository.set_dj_enabled(guild_id, new_value))
+        button.style = discord.ButtonStyle.success if new_value else discord.ButtonStyle.danger
+        button.label = "DJ ON" if new_value else "DJ OFF"
+        await i.response.edit_message(content=self._status_text(), view=self)
+        await self._bump_player(i)
+        if new_value:
+            await i.followup.send("🎙️ DJ **увімкнено**.", ephemeral=True)
+        else:
+            await i.followup.send("🎙️ DJ **вимкнено**.", ephemeral=True)
+
+    @discord.ui.select(
+        placeholder="Automix режим",
+        min_values=1,
+        max_values=1,
+        options=[
+            discord.SelectOption(label="A/B (50% топ / 50% explore)", value="ab_split"),
+            discord.SelectOption(label="Лише top_weighted", value="top_weighted"),
+            discord.SelectOption(label="Лише history_explore", value="history_explore"),
+        ],
+        custom_id="mix_automix_mode_select",
+    )
+    async def automix_mode_select(self, i: discord.Interaction, select: discord.ui.Select):
+        val = select.values[0]
+        if val not in consts.AUTOMIX_VALID_STRATEGIES:
+            await i.response.send_message("Невідомий режим.", ephemeral=True)
+            return
+        guild_id = i.guild.id
+        self.cog._automix_settings_cache.setdefault(
+            guild_id,
+            {
+                "enabled": self.cog._automix_enabled.get(guild_id, consts.AUTOMIX_DEFAULT_ENABLED),
+                "strategy": val,
+            },
+        )
+        self.cog._automix_settings_cache[guild_id]["strategy"] = val
+        self.cog._automix_strategy_mode[guild_id] = val
+        asyncio.ensure_future(self.cog.repository.set_automix_strategy(guild_id, val))
+        await i.response.edit_message(content=self._status_text(), view=self)
+        await self._bump_player(i)
+        await i.followup.send(f"🎛️ Automix режим: **{val}**", ephemeral=True)
+
+    @discord.ui.select(
+        placeholder="DJ персона",
+        min_values=1,
+        max_values=1,
+        options=[
+            discord.SelectOption(label="chill", value="chill"),
+            discord.SelectOption(label="energetic", value="energetic"),
+            discord.SelectOption(label="funny", value="funny"),
+        ],
+        custom_id="mix_dj_persona_select",
+    )
+    async def dj_persona_select(self, i: discord.Interaction, select: discord.ui.Select):
+        val = select.values[0]
+        if val not in consts.DJ_VALID_PERSONAS:
+            await i.response.send_message("Невідома персона DJ.", ephemeral=True)
+            return
+        guild_id = i.guild.id
+        await self.cog._ensure_dj_state_loaded(guild_id)
+        self.cog._dj_settings_cache[guild_id]["persona"] = val
+        asyncio.ensure_future(self.cog.repository.set_dj_persona(guild_id, val))
+        await i.response.edit_message(content=self._status_text(), view=self)
+        await self._bump_player(i)
+        await i.followup.send(f"🎙️ DJ персона: **{val}**", ephemeral=True)
+
+    @discord.ui.select(
+        placeholder="Fade-out (секунди)",
+        min_values=1,
+        max_values=1,
+        options=[
+            discord.SelectOption(label="0 (вимкнено)", value="0"),
+            discord.SelectOption(label="3s", value="3"),
+            discord.SelectOption(label="6s", value="6"),
+            discord.SelectOption(label="8s", value="8"),
+            discord.SelectOption(label="10s", value="10"),
+            discord.SelectOption(label="15s", value="15"),
+        ],
+        custom_id="mix_fade_select",
+    )
+    async def fade_select(self, i: discord.Interaction, select: discord.ui.Select):
+        try:
+            s = float(select.values[0])
+        except Exception:
+            await i.response.send_message("Некоректне значення.", ephemeral=True)
+            return
+        s = max(consts.FADE_SECONDS_MIN, min(consts.FADE_SECONDS_MAX, s))
+        self.cog._fade_seconds[i.guild.id] = s
+        await i.response.edit_message(content=self._status_text(), view=self)
+        await self._bump_player(i)
+        if s <= 0:
+            await i.followup.send("🔇 Fade-out вимкнено.", ephemeral=True)
+        else:
+            await i.followup.send(f"🎚️ Fade-out: **{s:.1f}с**", ephemeral=True)
+
+    @discord.ui.button(
+        label="Закрити",
+        style=discord.ButtonStyle.secondary,
+        emoji="❌",
+        custom_id="mix_close",
+        row=2,
+    )
+    async def close_mix(self, i: discord.Interaction, button: discord.ui.Button):
+        await i.response.edit_message(content="Налаштування Mix закрито.", view=None)
+        await self._bump_player(i)
+
+
 class MusicControls(discord.ui.View):
     """Панель керування плеєром (кнопки під embed-повідомленням)."""
     def __init__(self, cog, guild, timeout=None):
@@ -69,14 +290,11 @@ class MusicControls(discord.ui.View):
             return
         
         self.cog.processing_buttons.add(guild_id)
-        
-        # Defer одразу — операція займає 4-5с (sleep + yt-dlp extraction)
         await interaction.response.defer()
         
         try:
             history = self.cog.history_service._history.get(guild_id, [])
             if not history:
-                # Спробувати завантажити з БД
                 db_tracks = await self.cog.repository.get_history(guild_id, limit=20)
                 if db_tracks:
                     for t in reversed(db_tracks):
@@ -94,34 +312,22 @@ class MusicControls(discord.ui.View):
                 await interaction.followup.send("Немає попередніх треків.", ephemeral=True)
                 return
             
-            # Беремо попередній трек з історії
             prev_track = self.cog.history_service.get_last_track(guild_id)
-            
-            # Зберігаємо поточний трек у чергу (щоб він грав далі після prev)
             if guild_id in self.cog.current_song:
                 current = self.cog.current_song[guild_id].copy()
                 current.pop('player', None)
                 self.cog.queue_service.push_front(guild_id, current)
             
-            # Додаємо prev на початок черги
             self.cog.queue_service.push_front(guild_id, prev_track)
-            
-            # Очищаємо current_song
             self.cog.current_song.pop(guild_id, None)
             
             voice_client = interaction.guild.voice_client
-            
-            # Блокуємо after-callback щоб він НЕ викликав play_next_song
             self.cog._skip_after_play.add(guild_id)
             
             if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
                 voice_client.stop()
             
-            # Чекаємо поки after-callback відпрацює (і пропустить play_next_song)
             await asyncio.sleep(0.5)
-            
-            
-            # Руками запускаємо наступний трек (без додавання в історію — current_song пустий)
             if voice_client and voice_client.is_connected():
                 await self.cog.play_next_song(interaction.guild, voice_client)
             
@@ -136,7 +342,6 @@ class MusicControls(discord.ui.View):
                 await interaction.followup.send("❌ Помилка при поверненні до попереднього треку.", ephemeral=True)
             except Exception:
                 pass
-        
         finally:
             self.cog._skip_after_play.discard(guild_id)
             self.cog.processing_buttons.discard(guild_id)
@@ -181,233 +386,11 @@ class MusicControls(discord.ui.View):
         else:
             await interaction.response.send_message("Бот не підключений до голосового каналу.", ephemeral=True)
 
-    # --- Другий рядок кнопок ---
-
     @discord.ui.button(label="Mix", style=discord.ButtonStyle.secondary, emoji="🎛️", custom_id="mix_settings", row=1)
     async def mix_settings_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Швидкі налаштування Automix + fade-out без slash-команд."""
-        from discord_music_bot import consts as _consts
-
-        class _MixSettingsView(discord.ui.View):
-            def __init__(self, cog, guild_id: int):
-                super().__init__(timeout=_consts.TIMEOUT_VIEW)
-                self.cog = cog
-                self.guild_id = guild_id
-                self._sync_toggle_style()
-
-            def _status_text(self) -> str:
-                dj = self.cog._dj_settings_cache.get(
-                    self.guild_id,
-                    {
-                        "enabled": _consts.DJ_DEFAULT_ENABLED,
-                        "persona": _consts.DJ_DEFAULT_PERSONA,
-                    },
-                )
-                enabled = self.cog._automix_enabled.get(
-                    self.guild_id, _consts.AUTOMIX_DEFAULT_ENABLED
-                )
-                mode = self.cog._automix_strategy_mode.get(
-                    self.guild_id, _consts.AUTOMIX_STRATEGY_DEFAULT
-                )
-                fade = float(
-                    self.cog._fade_seconds.get(
-                        self.guild_id, _consts.DEFAULT_FADE_SECONDS
-                    )
-                )
-                state = "ON" if enabled else "OFF"
-                dj_state = "ON" if dj.get("enabled", _consts.DJ_DEFAULT_ENABLED) else "OFF"
-                dj_persona = dj.get("persona", _consts.DJ_DEFAULT_PERSONA)
-                return (
-                    "🎛️ **Mix settings**\n"
-                    f"• Automix: **{state}**\n"
-                    f"• Mode: **{mode}**\n"
-                    f"• Fade-out: **{fade:.1f}s**\n"
-                    f"• DJ: **{dj_state}** ({dj_persona})"
-                )
-
-            def _sync_toggle_style(self):
-                """Підсвічує кнопку ON/OFF: зелений=ON, червоний=OFF."""
-                enabled = self.cog._automix_enabled.get(
-                    self.guild_id,
-                    _consts.AUTOMIX_DEFAULT_ENABLED,
-                )
-                for child in self.children:
-                    if isinstance(child, discord.ui.Button) and child.custom_id == "mix_toggle_automix":
-                        child.style = discord.ButtonStyle.success if enabled else discord.ButtonStyle.danger
-                        child.label = "Automix ON" if enabled else "Automix OFF"
-                        break
-
-            async def _bump_player(self, interaction: discord.Interaction):
-                try:
-                    await self.cog.update_player(interaction.guild, interaction.channel)
-                except Exception:
-                    pass
-
-            @discord.ui.button(
-                label="Automix OFF",
-                style=discord.ButtonStyle.danger,
-                emoji="✅",
-                custom_id="mix_toggle_automix",
-                row=0,
-            )
-            async def toggle_automix(self, i: discord.Interaction, button: discord.ui.Button):
-                guild_id = i.guild.id
-                # Load persisted state if cache is empty
-                if guild_id not in self.cog._automix_settings_cache:
-                    await self.cog._ensure_automix_state_loaded(guild_id)
-
-                current = self.cog._automix_enabled.get(guild_id, _consts.AUTOMIX_DEFAULT_ENABLED)
-                new_value = not current
-                self.cog._automix_enabled[guild_id] = new_value
-                self.cog._automix_settings_cache.setdefault(
-                    guild_id,
-                    {
-                        "enabled": new_value,
-                        "strategy": self.cog._automix_strategy_mode.get(
-                            guild_id, _consts.AUTOMIX_STRATEGY_DEFAULT
-                        ),
-                    },
-                )
-                self.cog._automix_settings_cache[guild_id]["enabled"] = new_value
-                asyncio.ensure_future(self.cog.repository.set_automix_enabled(guild_id, new_value))
-
-                button.style = discord.ButtonStyle.success if new_value else discord.ButtonStyle.danger
-                button.label = "Automix ON" if new_value else "Automix OFF"
-                await i.response.edit_message(content=self._status_text(), view=self)
-                await self._bump_player(i)
-                if new_value:
-                    await i.followup.send("🎛️ Automix **увімкнено**.", ephemeral=True)
-                else:
-                    await i.followup.send("🎛️ Automix **вимкнено**.", ephemeral=True)
-
-            @discord.ui.button(
-                label="DJ OFF",
-                style=discord.ButtonStyle.danger,
-                emoji="🎙️",
-                custom_id="mix_toggle_dj",
-                row=0,
-            )
-            async def toggle_dj(self, i: discord.Interaction, button: discord.ui.Button):
-                guild_id = i.guild.id
-                await self.cog._ensure_dj_state_loaded(guild_id)
-                cur = self.cog._dj_settings_cache[guild_id]["enabled"]
-                new_value = not cur
-                self.cog._dj_settings_cache[guild_id]["enabled"] = new_value
-                asyncio.ensure_future(self.cog.repository.set_dj_enabled(guild_id, new_value))
-                button.style = discord.ButtonStyle.success if new_value else discord.ButtonStyle.danger
-                button.label = "DJ ON" if new_value else "DJ OFF"
-                await i.response.edit_message(content=self._status_text(), view=self)
-                await self._bump_player(i)
-                if new_value:
-                    await i.followup.send("🎙️ DJ **увімкнено**.", ephemeral=True)
-                else:
-                    await i.followup.send("🎙️ DJ **вимкнено**.", ephemeral=True)
-
-            @discord.ui.select(
-                placeholder="Automix режим",
-                min_values=1,
-                max_values=1,
-                options=[
-                    discord.SelectOption(label="A/B (50% топ / 50% explore)", value="ab_split"),
-                    discord.SelectOption(label="Лише top_weighted", value="top_weighted"),
-                    discord.SelectOption(label="Лише history_explore", value="history_explore"),
-                ],
-                custom_id="mix_automix_mode_select",
-            )
-            async def automix_mode_select(self, i: discord.Interaction, select: discord.ui.Select):
-                val = select.values[0]
-                if val not in _consts.AUTOMIX_VALID_STRATEGIES:
-                    await i.response.send_message("Невідомий режим.", ephemeral=True)
-                    return
-                guild_id = i.guild.id
-                self.cog._automix_settings_cache.setdefault(
-                    guild_id,
-                    {
-                        "enabled": self.cog._automix_enabled.get(guild_id, _consts.AUTOMIX_DEFAULT_ENABLED),
-                        "strategy": val,
-                    },
-                )
-                self.cog._automix_settings_cache[guild_id]["strategy"] = val
-                self.cog._automix_strategy_mode[guild_id] = val
-                asyncio.ensure_future(self.cog.repository.set_automix_strategy(guild_id, val))
-                await i.response.edit_message(content=self._status_text(), view=self)
-                await self._bump_player(i)
-                await i.followup.send(f"🎛️ Automix режим: **{val}**", ephemeral=True)
-
-            @discord.ui.select(
-                placeholder="DJ персона",
-                min_values=1,
-                max_values=1,
-                options=[
-                    discord.SelectOption(label="chill", value="chill"),
-                    discord.SelectOption(label="energetic", value="energetic"),
-                    discord.SelectOption(label="funny", value="funny"),
-                ],
-                custom_id="mix_dj_persona_select",
-            )
-            async def dj_persona_select(self, i: discord.Interaction, select: discord.ui.Select):
-                val = select.values[0]
-                if val not in _consts.DJ_VALID_PERSONAS:
-                    await i.response.send_message("Невідома персона DJ.", ephemeral=True)
-                    return
-                guild_id = i.guild.id
-                await self.cog._ensure_dj_state_loaded(guild_id)
-                self.cog._dj_settings_cache[guild_id]["persona"] = val
-                asyncio.ensure_future(self.cog.repository.set_dj_persona(guild_id, val))
-                await i.response.edit_message(content=self._status_text(), view=self)
-                await self._bump_player(i)
-                await i.followup.send(f"🎙️ DJ персона: **{val}**", ephemeral=True)
-
-            @discord.ui.select(
-                placeholder="Fade-out (секунди)",
-                min_values=1,
-                max_values=1,
-                options=[
-                    discord.SelectOption(label="0 (вимкнено)", value="0"),
-                    discord.SelectOption(label="3s", value="3"),
-                    discord.SelectOption(label="6s", value="6"),
-                    discord.SelectOption(label="8s", value="8"),
-                    discord.SelectOption(label="10s", value="10"),
-                    discord.SelectOption(label="15s", value="15"),
-                ],
-                custom_id="mix_fade_select",
-            )
-            async def fade_select(self, i: discord.Interaction, select: discord.ui.Select):
-                try:
-                    s = float(select.values[0])
-                except Exception:
-                    await i.response.send_message("Некоректне значення.", ephemeral=True)
-                    return
-                s = max(_consts.FADE_SECONDS_MIN, min(_consts.FADE_SECONDS_MAX, s))
-                self.cog._fade_seconds[i.guild.id] = s
-                await i.response.edit_message(content=self._status_text(), view=self)
-                await self._bump_player(i)
-                if s <= 0:
-                    await i.followup.send("🔇 Fade-out вимкнено.", ephemeral=True)
-                else:
-                    await i.followup.send(f"🎚️ Fade-out: **{s:.1f}с**", ephemeral=True)
-
-            @discord.ui.button(
-                label="Закрити",
-                style=discord.ButtonStyle.secondary,
-                emoji="❌",
-                custom_id="mix_close",
-                row=2,
-            )
-            async def close_mix(self, i: discord.Interaction, button: discord.ui.Button):
-                await i.response.edit_message(content="Налаштування Mix закрито.", view=None)
-                await self._bump_player(i)
-
-        mix_view = _MixSettingsView(self.cog, interaction.guild.id)
+        mix_view = _MixSettingsView(self.cog, interaction.guild.id, self)
         await self.cog._ensure_dj_state_loaded(interaction.guild.id)
-        dj_enabled = self.cog._dj_settings_cache.get(
-            interaction.guild.id, {}
-        ).get("enabled", _consts.DJ_DEFAULT_ENABLED)
-        for child in mix_view.children:
-            if isinstance(child, discord.ui.Button) and child.custom_id == "mix_toggle_dj":
-                child.style = discord.ButtonStyle.success if dj_enabled else discord.ButtonStyle.danger
-                child.label = "DJ ON" if dj_enabled else "DJ OFF"
-                break
         await interaction.response.send_message(
             mix_view._status_text(),
             view=mix_view,
@@ -428,11 +411,9 @@ class MusicControls(discord.ui.View):
         guild_id = interaction.guild.id
         try:
             await interaction.response.defer(ephemeral=True)
-            # Завантажуємо всю історію з БД (всі сесії)
             db_history = await self.cog.repository.get_history(guild_id, limit=1000)
             embed = discord.Embed(title="📜 Історія прослуховувань", color=consts.COLOR_EMBED_NORMAL)
 
-            # Поточний трек
             if guild_id in self.cog.current_song:
                 song = self.cog.current_song[guild_id]
                 duration = format_duration(song.get('duration'))
@@ -445,7 +426,7 @@ class MusicControls(discord.ui.View):
                     played_at = t.get('played_at', '')[:16] if t.get('played_at') else ''
                     time_str = f" • {played_at}" if played_at else ''
                     lines.append(f"`{i}.` **{t.get('title', '?')[:30]}** | `{duration}`{time_str}")
-                # Розбиваємо на чанки по 1024 символи (ліміт Discord)
+                
                 chunks = []
                 current_chunk = []
                 current_length = 0
@@ -476,32 +457,23 @@ class MusicControls(discord.ui.View):
     async def stats_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         guild_id = interaction.guild.id
         try:
-            # Статистика за поточну сесію (з моменту запуску бота)
             session_tracks = self.cog._session_tracks.get(guild_id, [])
             embed = discord.Embed(title="📊 Статистика сесії", color=consts.COLOR_EMBED_NORMAL)
-
             total_seconds = sum(t.get('duration') or 0 for t in session_tracks)
             hours = total_seconds // 3600
             minutes = (total_seconds % 3600) // 60
             time_str = f"{hours}г {minutes}хв" if hours > 0 else f"{minutes}хв"
-
             embed.add_field(
                 name="📈 За цю сесію",
                 value=f"🎵 Треків програно: **{len(session_tracks)}**\n⏱️ Час: **{time_str}**",
                 inline=False
             )
-
             if session_tracks:
-                # Топ треки за сесію (по кількості відтворень)
                 from collections import Counter
                 title_counts = Counter(t.get('title', '?') for t in session_tracks)
                 top = title_counts.most_common(5)
-                top_text = "\n".join([
-                    f"`{i+1}.` **{title[:35]}** — {count}x"
-                    for i, (title, count) in enumerate(top)
-                ])
+                top_text = "\n".join([f"`{i+1}.` **{title[:35]}** — {count}x" for i, (title, count) in enumerate(top)])
                 embed.add_field(name="🏆 Топ-5 за сесію", value=top_text, inline=False)
-
             from discord_music_bot.views.dismiss_view import DismissView
             await interaction.response.send_message(embed=embed, view=DismissView(), ephemeral=True)
         except Exception as e:

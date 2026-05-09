@@ -84,14 +84,11 @@ async def cog(mock_bot, temp_db):
     with patch('discord_music_bot.database.DB_PATH', temp_db):
         cog = MusicCog(mock_bot)
         
-        # Використовуємо реальні корутини для фонових задач репозиторію
         async def empty_coro(*args, **kwargs):
             await asyncio.sleep(0)
             
-        cog.repository.add_automix_feedback_event = MagicMock(side_effect=empty_coro)
-        cog.repository.add_history_track = MagicMock(side_effect=empty_coro)
-        
         await cog.repository.save_guild_state(123, 456, 789)
+        cog.repository.save_guild_state = MagicMock(side_effect=empty_coro)
         
         cog.source_service = AsyncMock()
         cog.player_service = MagicMock()
@@ -112,8 +109,7 @@ async def cog(mock_bot, temp_db):
         
         cog.update_player = AsyncMock()
         cog.dj_service = MagicMock()
-        cog.dj_service.comment_track = AsyncMock()
-        cog.dj_service.get_persona = MagicMock(return_value="default")
+        cog.dj_service.generate_comment = MagicMock(return_value="DJ Comment")
         
         cog._auto_resume_executed = True
         return cog
@@ -130,7 +126,7 @@ async def test_integration_play_flow(cog, mock_interaction):
     }
     cog.source_service.get_video_info.return_value = track_info
     
-    await cog.play.callback(cog, mock_interaction, query)
+    await MusicCog.play.callback(cog, mock_interaction, query)
     
     cog.player_service.play_stream.assert_called()
     assert cog.current_song[123]['title'] == 'Never Gonna Give You Up'
@@ -151,7 +147,7 @@ async def test_integration_skip_flow(cog, mock_interaction):
     next_track = {'title': 'Next Song', 'url': 'url2', 'requester': mock_interaction.user}
     cog.queue_service.add_track(guild_id, next_track)
     
-    await cog.skip.callback(cog, mock_interaction)
+    await MusicCog.skip.callback(cog, mock_interaction)
     mock_voice_client.stop.assert_called_once()
     
     await cog.play_next_song(mock_interaction.guild, mock_voice_client)
@@ -160,8 +156,7 @@ async def test_integration_skip_flow(cog, mock_interaction):
 @pytest.mark.asyncio
 async def test_integration_automix_activation(cog, mock_interaction):
     guild_id = 123
-    cog._automix_enabled[guild_id] = True
-    cog._automix_strategy_mode[guild_id] = "top_weighted"
+    cog._automix_settings_cache[guild_id] = {"enabled": True, "strategy": "top_weighted"}
     cog.player_channels[guild_id] = 789
     
     mock_voice_client = MagicMock()
@@ -171,6 +166,10 @@ async def test_integration_automix_activation(cog, mock_interaction):
     cog.queue_service.clear(guild_id)
     cog.current_song[guild_id] = {'title': 'Last Song', 'url': 'url0'}
     
+    async def empty_coro(*args, **kwargs):
+        await asyncio.sleep(0)
+    cog.repository.clear_guild_state = MagicMock(side_effect=empty_coro)
+    
     rec_track = {'title': 'Recommended', 'url': 'url_rec', 'source': 'automix'}
     with patch.object(cog.automix_service, 'recommend_for_strategy', new_callable=AsyncMock) as mock_rec:
         mock_rec.return_value = rec_track
@@ -178,3 +177,38 @@ async def test_integration_automix_activation(cog, mock_interaction):
     
     assert 123 in cog.current_song
     assert cog.current_song[guild_id]['title'] == 'Recommended'
+
+@pytest.mark.asyncio
+async def test_integration_dj_commands_logic(cog, mock_interaction):
+    await MusicCog.dj.callback(cog, mock_interaction, enabled="on")
+    assert cog._dj_settings_cache[mock_interaction.guild.id]["enabled"] is True
+    
+    await MusicCog.dj.callback(cog, mock_interaction, enabled="off")
+    assert cog._dj_settings_cache[mock_interaction.guild.id]["enabled"] is False
+
+@pytest.mark.asyncio
+async def test_integration_volume_command(cog, mock_interaction):
+    guild_id = 123
+    mock_interaction.guild.voice_client = MagicMock()
+    mock_interaction.guild.voice_client.source = MagicMock()
+    mock_interaction.guild.voice_client.source.volume = 0.5
+    
+    await MusicCog.volume.callback(cog, mock_interaction, level=80)
+    assert cog._guild_volumes[guild_id] == 0.8
+    assert mock_interaction.guild.voice_client.source.volume == 0.8
+
+@pytest.mark.asyncio
+async def test_integration_stats_commands(cog, mock_interaction):
+    await MusicCog.stats.callback(cog, mock_interaction)
+    mock_interaction.followup.send.assert_called()
+    
+    await MusicCog.history.callback(cog, mock_interaction, query="test")
+    mock_interaction.followup.send.assert_called()
+
+@pytest.mark.asyncio
+async def test_integration_misc_commands(cog, mock_interaction):
+    await MusicCog.pause.callback(cog, mock_interaction)
+    await MusicCog.resume.callback(cog, mock_interaction)
+    await MusicCog.shuffle.callback(cog, mock_interaction)
+    await MusicCog.crossfade.callback(cog, mock_interaction, seconds=5)
+    assert cog._fade_seconds[123] == 5

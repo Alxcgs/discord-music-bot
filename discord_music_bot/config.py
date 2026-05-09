@@ -9,11 +9,10 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 
 # --- Токен Discord ---
-DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
+DISCORD_TOKEN = os.getenv('DISCORD_TOKEN', 'dummy_test_token')
 
-if not DISCORD_TOKEN:
-    logging.error("Помилка: Не знайдено DISCORD_TOKEN у .env файлі.")
-    exit()
+if DISCORD_TOKEN == 'dummy_test_token':
+    logging.warning("Увага: Не знайдено DISCORD_TOKEN у .env файлі. Тести будуть працювати, але реальний бот не запуститься.")
 
 # --- Опції для yt-dlp ---
 # --- Опції для yt-dlp (максимальна якість) ---
