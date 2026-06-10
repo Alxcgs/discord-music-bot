@@ -6,7 +6,9 @@ import base64
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
+
+import yt_dlp
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +17,14 @@ _cookies_path: Optional[str] = None
 YOUTUBE_PLAYER_CLIENTS = ["ios", "tv_embedded", "mweb", "web", "android"]
 YOUTUBE_EXTRACTOR_ARGS = f"youtube:player_client={','.join(YOUTUBE_PLAYER_CLIENTS)}"
 
-# FFmpeg decodes any container — don't require a specific codec (e.g. opus).
-YTDLP_AUDIO_FORMAT = "bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best"
+# FFmpeg decodes any container — try several selectors until one works.
+YTDLP_AUDIO_FORMAT = "bestaudio/best"
+YTDLP_FORMAT_FALLBACKS = (
+    "bestaudio/best",
+    "bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best",
+    "best[height<=720]/best",
+    "worst",
+)
 
 
 def init_ytdlp_cookies() -> Optional[str]:
@@ -67,6 +75,43 @@ def apply_ytdlp_python_opts(opts: Dict[str, Any]) -> Dict[str, Any]:
     if cookies:
         merged["cookiefile"] = cookies
     return merged
+
+
+def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
+    """Resolve a direct media URL via yt-dlp API (format fallbacks)."""
+    base_opts: Dict[str, Any] = {
+        "quiet": True,
+        "no_warnings": True,
+        "noplaylist": True,
+        "source_address": "0.0.0.0",
+        "force-ipv4": True,
+        "cachedir": False,
+    }
+    last_error: Optional[Exception] = None
+
+    for fmt in YTDLP_FORMAT_FALLBACKS:
+        ydl_opts = apply_ytdlp_python_opts({**base_opts, "format": fmt})
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(page_url, download=False)
+                if not info:
+                    continue
+                if "entries" in info:
+                    entries = info.get("entries") or []
+                    if not entries:
+                        continue
+                    info = entries[0]
+                stream_url = info.get("url")
+                if stream_url:
+                    logger.info(f"Stream URL resolved with format '{fmt}'")
+                    return stream_url, info
+        except Exception as exc:
+            last_error = exc
+            logger.warning(f"yt-dlp format '{fmt}' failed: {exc}")
+
+    if last_error:
+        logger.error(f"All yt-dlp format fallbacks failed for {page_url}: {last_error}")
+    return None, {}
 
 
 def build_ytdlp_cli_args(url: str, format_str: Optional[str] = None) -> List[str]:

@@ -245,6 +245,16 @@ class MusicCog(commands.Cog):
         except Exception as e:
             self.logger.error(f"Update player error: {e}")
 
+    async def _safe_defer(self, interaction: discord.Interaction, *, ephemeral: bool = False) -> bool:
+        try:
+            await interaction.response.defer(ephemeral=ephemeral)
+            return True
+        except discord.NotFound:
+            self.logger.warning(
+                f"Interaction expired before defer ({getattr(interaction.command, 'name', '?')})"
+            )
+            return False
+
     async def _force_voice_cleanup(self, guild):
         """Примусово очищає будь-яке існуюче voice з'єднання для гільдії."""
         voice_client = guild.voice_client
@@ -256,8 +266,8 @@ class MusicCog(commands.Cog):
                 await voice_client.disconnect(force=True)
             except Exception as e:
                 self.logger.warning(f"Force cleanup error (ignorable): {e}")
-            # Даємо Discord час очистити стару сесію
-            await asyncio.sleep(5)
+            # Даємо Discord час очистити стару сесію (коротко — довгий sleep ламає slash-команди)
+            await asyncio.sleep(1.5)
 
     async def _ensure_voice_connected(self, voice_client, guild):
         """Перевіряє voice з'єднання та намагається одноразовий reconnect якщо не підключений."""
@@ -315,6 +325,8 @@ class MusicCog(commands.Cog):
                     return
                 
                 item = self.queue_service.get_next_track(guild_id)
+                if not item:
+                    return
                 try:
                     fade_s = float(self._fade_seconds.get(guild_id, consts.DEFAULT_FADE_SECONDS))
                     if fade_s < consts.FADE_SECONDS_MIN:
@@ -513,7 +525,8 @@ class MusicCog(commands.Cog):
 
     @app_commands.command(name="join", description="Підключити бота до голосового каналу")
     async def join(self, interaction: discord.Interaction):
-        await interaction.response.defer()
+        if not await self._safe_defer(interaction):
+            return
 
         if not interaction.user.voice:
             await interaction.followup.send("Ви не в голосовому каналі!", ephemeral=True)
@@ -537,7 +550,8 @@ class MusicCog(commands.Cog):
     @app_commands.command(name="play", description="Відтворити музику (URL або пошук)")
     @app_commands.describe(query="Посилання або назва пісні")
     async def play(self, interaction: discord.Interaction, query: str):
-        await interaction.response.defer()
+        if not await self._safe_defer(interaction):
+            return
 
         if not interaction.user.voice:
             await interaction.followup.send("Зайдіть у голосовий канал!", ephemeral=True)

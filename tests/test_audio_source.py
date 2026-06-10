@@ -64,12 +64,14 @@ async def test_ytdl_source_from_track_dict_no_url():
 @pytest.mark.asyncio
 async def test_ytdl_source_from_track_dict_success():
     track = {'url': 'http://test.com', 'title': 'Test'}
-    
-    with patch('subprocess.Popen') as mock_popen:
+
+    with patch('discord_music_bot.audio_source.extract_stream_url') as mock_extract, \
+         patch('subprocess.Popen') as mock_popen:
+        mock_extract.return_value = ('http://stream.url', {'title': 'Test', 'webpage_url': 'http://test.com'})
         mock_proc = MagicMock()
+        mock_proc.poll.return_value = None
         mock_popen.return_value = mock_proc
-        
-        # We need to mock the YTDLPPipeSource creation too if we want to avoid real FFmpeg
+
         res = await YTDLSource.from_track_dict(track)
         assert res is not None
         assert res.title == 'Test'

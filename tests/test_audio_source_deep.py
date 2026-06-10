@@ -78,22 +78,22 @@ async def test_ytdl_source_from_track_dict_branches():
     assert res is None
     
     # Test with fades
-    with patch('subprocess.Popen') as mock_popen:
+    with patch('discord_music_bot.audio_source.extract_stream_url') as mock_extract, \
+         patch('subprocess.Popen') as mock_popen:
+        mock_extract.return_value = ('http://stream.url', track)
         mock_p = Mock()
         mock_p.stdout = Mock()
+        mock_p.poll.return_value = None
         mock_popen.return_value = mock_p
-        
-        # fade_in and fade_out
+
         res = await YTDLSource.from_track_dict(track, fade_seconds=5, fade_in=True, fade_out=True)
         assert res is not None
-        # Check if ffmpeg command contains afade
-        args, kwargs = mock_popen.call_args_list[1]
-        cmd = args[0]
-        cmd_str = " ".join(cmd)
+        args, kwargs = mock_popen.call_args
+        cmd_str = " ".join(args[0])
         assert 'afade=t=in' in cmd_str
         assert 'afade=t=out' in cmd_str
 
     # Test exception branch
-    with patch('subprocess.Popen', side_effect=Exception("Subprocess Error")):
+    with patch('discord_music_bot.audio_source.extract_stream_url', side_effect=Exception("extract error")):
         res = await YTDLSource.from_track_dict(track)
         assert res is None

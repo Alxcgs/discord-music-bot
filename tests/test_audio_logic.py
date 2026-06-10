@@ -29,8 +29,12 @@ def test_ytdlp_pipe_source_cleanup_failures():
 @pytest.mark.asyncio
 async def test_ytdl_source_from_track_dict_fade_error():
     track = {"url": "http://test", "title": "Test", "duration": 100}
-    with patch('subprocess.Popen') as mock_popen:
-        mock_popen.return_value = Mock(stdout=Mock())
+    with patch('discord_music_bot.audio_source.extract_stream_url') as mock_extract, \
+         patch('subprocess.Popen') as mock_popen:
+        mock_extract.return_value = ('http://stream.url', track)
+        mock_proc = Mock(stdout=Mock())
+        mock_proc.poll.return_value = None
+        mock_popen.return_value = mock_proc
         await audio_source.YTDLSource.from_track_dict(track, fade_seconds="invalid")
 
 # --- source_service.py tests ---
