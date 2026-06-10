@@ -13,12 +13,39 @@ class YTDLPPipeSource(discord.AudioSource):
     при тимчасових затримках в pipe."""
     
     FRAME_SIZE = 3840  # 20ms of 48kHz 16-bit stereo PCM
-    MAX_READ_RETRIES = 10  # Кількість повторних спроб читання при неповному буфері (~1с толерантність)
+    MAX_READ_RETRIES = 150  # Кількість повторних спроб читання при неповному буфері (~15с толерантність)
     
     def __init__(self, ytdlp_process, ffmpeg_process):
         self._ytdlp = ytdlp_process
         self._ffmpeg = ffmpeg_process
         self._buffer = b''
+        self._logged_failure = False
+
+    @staticmethod
+    def _read_stderr(process, name: str) -> str:
+        if not process or not process.stderr:
+            return ""
+        try:
+            raw = process.stderr.read()
+            if not raw:
+                return ""
+            text = raw.decode("utf-8", errors="replace").strip()
+            if text:
+                logging.error(f"{name} stderr: {text[:4000]}")
+            return text
+        except Exception as exc:
+            logging.warning(f"Could not read {name} stderr: {exc}")
+            return ""
+
+    def _log_pipeline_failure(self, reason: str):
+        if self._logged_failure:
+            return
+        self._logged_failure = True
+        logging.error(f"Audio pipeline stopped: {reason}")
+        if self._ytdlp and self._ytdlp.poll() is not None:
+            self._read_stderr(self._ytdlp, "yt-dlp")
+        if self._ffmpeg and self._ffmpeg.poll() is not None:
+            self._read_stderr(self._ffmpeg, "ffmpeg")
     
     def read(self):
         # Зчитуємо з pipe поки не наберемо повний фрейм
@@ -31,6 +58,9 @@ class YTDLPPipeSource(discord.AudioSource):
             else:
                 # Порожнє читання — перевіряємо чи FFmpeg ще працює
                 if self._ffmpeg.poll() is not None:
+                    self._log_pipeline_failure(
+                        f"ffmpeg exited with code {self._ffmpeg.returncode}"
+                    )
                     # FFmpeg завершився — віддаємо залишок буфера (з padding тишею)
                     if self._buffer:
                         frame = self._buffer.ljust(self.FRAME_SIZE, b'\x00')
@@ -111,12 +141,15 @@ class YTDLSource(discord.PCMVolumeTransformer):
             ytdlp_process = subprocess.Popen(
                 [
                     'yt-dlp',
-                    '--format', ydl_opts['format'], # Використовуємо формат з конфігу (opus HQ)
+                    '--format', ydl_opts['format'],  # Використовуємо формат з конфігу (opus HQ)
                     '--output', '-',
-                    '--quiet', '--no-warnings',
+                    '--no-warnings',
+                    '--retries', '3',
+                    '--fragment-retries', '3',
+                    '--extractor-args', 'youtube:player_client=android,web',
                     url
                 ],
-                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
             
             # Base audio filter: resampling + stable timestamps
@@ -148,14 +181,36 @@ class YTDLSource(discord.PCMVolumeTransformer):
             ffmpeg_process = subprocess.Popen(
                 ffmpeg_cmd,
                 stdin=ytdlp_process.stdout,
-                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 bufsize=4*1024*1024
             )
             
             ytdlp_process.stdout.close()
+
+            # Швидка перевірка: якщо subprocess впав одразу — логуємо stderr
+            await asyncio.sleep(0.3)
+            if ytdlp_process.poll() is not None:
+                YTDLPPipeSource._read_stderr(
+                    ytdlp_process,
+                    f"yt-dlp (exit {ytdlp_process.returncode})",
+                )
+                raise RuntimeError(
+                    f"yt-dlp exited immediately with code {ytdlp_process.returncode}"
+                )
+            if ffmpeg_process.poll() is not None:
+                YTDLPPipeSource._read_stderr(
+                    ffmpeg_process,
+                    f"ffmpeg (exit {ffmpeg_process.returncode})",
+                )
+                raise RuntimeError(
+                    f"ffmpeg exited immediately with code {ffmpeg_process.returncode}"
+                )
             
             source = YTDLPPipeSource(ytdlp_process, ffmpeg_process)
-            logging.info(f"Audio pipeline started for: {track_dict.get('title', 'Unknown')}")
+            logging.info(
+                f"Audio pipeline started for: {track_dict.get('title', 'Unknown')} "
+                f"(yt-dlp pid={ytdlp_process.pid}, ffmpeg pid={ffmpeg_process.pid})"
+            )
             return cls(source, data=track_dict)
 
         except Exception as e:

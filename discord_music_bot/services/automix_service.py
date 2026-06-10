@@ -89,8 +89,25 @@ class AutomixService:
         out["automix_strategy"] = effective_strategy
         return out
 
+    def _clean_url(self, url: str) -> str:
+        if not url:
+            return ""
+        import urllib.parse as urlparse
+        if "youtube.com" in url or "youtu.be" in url:
+            try:
+                parsed = urlparse.urlparse(url)
+                qs = urlparse.parse_qs(parsed.query)
+                if "v" in qs:
+                    return f"https://www.youtube.com/watch?v={qs['v'][0]}"
+                elif "youtu.be" in parsed.netloc:
+                    vid = parsed.path.lstrip('/')
+                    return f"https://www.youtube.com/watch?v={vid}"
+            except Exception:
+                pass
+        return url
+
     def _blocked_urls(self, recent_urls: List[str], automix_recent_urls: List[str]) -> set:
-        return {u for u in (recent_urls + automix_recent_urls) if u}
+        return {self._clean_url(u) for u in (recent_urls + automix_recent_urls) if u}
 
     async def _playcount_by_url(self, guild_id: int) -> Dict[str, int]:
         try:
@@ -122,13 +139,13 @@ class AutomixService:
 
         candidates: List[Tuple[Dict[str, Any], float]] = []
         for t in top:
-            url = t.get("url") or ""
+            url = self._clean_url(t.get("url") or "")
             if not url or url in blocked:
                 continue
             play_count = int(t.get("play_count") or 0)
             if play_count <= 0:
                 continue
-            penalty = min(int(skip_penalties.get(url, 0)), self._cfg.max_penalty)
+            penalty = min(int(skip_penalties.get(t.get("url") or "", 0)), self._cfg.max_penalty)
             weight = max(0.1, float(play_count) * (0.6**penalty))
             candidates.append((t, weight))
 
@@ -170,9 +187,10 @@ class AutomixService:
 
         candidates: List[Tuple[Dict[str, Any], float]] = []
         for t in pool:
-            url = t.get("url") or t.get("webpage_url") or ""
-            pc = int(play_map.get(url, 0))
-            penalty = min(int(skip_penalties.get(url, 0)), self._cfg.max_penalty)
+            raw_url = t.get("url") or t.get("webpage_url") or ""
+            url = self._clean_url(raw_url)
+            pc = int(play_map.get(raw_url, 0))
+            penalty = min(int(skip_penalties.get(raw_url, 0)), self._cfg.max_penalty)
             # Менше програні треки отримують більшу вагу (explore)
             explore = 1.0 / (1.0 + float(pc))
             weight = max(0.05, explore * (0.6**penalty))
@@ -189,7 +207,7 @@ class AutomixService:
         pool: List[Dict[str, Any]] = []
         seen: set = set()
         for t in history:
-            url = t.get("url") or ""
+            url = self._clean_url(t.get("url") or "")
             if not url or url in blocked or url in seen:
                 continue
             seen.add(url)

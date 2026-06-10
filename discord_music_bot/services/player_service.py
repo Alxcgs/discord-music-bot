@@ -38,8 +38,25 @@ class PlayerService:
             # Double-check connection (could have dropped during URL extraction)
             if not voice_client.is_connected():
                 raise discord.errors.ClientException("Voice connection lost while preparing audio source.")
-            
-            voice_client.play(player, after=after_callback)
+
+            def _after_playback(error):
+                if error:
+                    self.logger.error(f"Player error: {error}")
+                else:
+                    self.logger.info("Track finished")
+                after_callback(error)
+
+            voice_client.play(player, after=_after_playback)
+
+            self.logger.info(f"Voice client connected: {voice_client.is_connected()}")
+            self.logger.info(f"Voice client playing: {voice_client.is_playing()}")
+            self.logger.info(f"Voice client paused: {voice_client.is_paused()}")
+            if not voice_client.is_playing():
+                self.logger.warning(
+                    "Playback did not start — FFmpeg/yt-dlp pipeline may have failed; "
+                    "check logs above for subprocess errors."
+                )
+
             return player
         except Exception as e:
             self.logger.error(f"Error creating stream: {e}", exc_info=True)

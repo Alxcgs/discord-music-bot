@@ -63,7 +63,11 @@ async def test_play_stream_success(player_service, mock_vc):
         
         assert result == mock_player
         mock_from_track.assert_awaited_once_with(track_dict, loop=loop, fade_seconds=0.0, fade_in=False, fade_out=False)
-        mock_vc.play.assert_called_once_with(mock_player, after=after_callback)
+        mock_vc.play.assert_called_once()
+        assert mock_vc.play.call_args.args[0] == mock_player
+        wrapped_after = mock_vc.play.call_args.kwargs["after"]
+        wrapped_after(None)
+        wrapped_after(Exception("test error"))
 
 @pytest.mark.asyncio
 async def test_play_stream_not_connected(player_service, mock_vc):
