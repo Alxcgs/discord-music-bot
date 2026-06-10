@@ -9,14 +9,19 @@ RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 # ---- Runtime stage ----
 FROM python:3.12-slim
 
-# Системні залежності для аудіо
+# Системні залежності: аудіо + Deno (JS runtime для YouTube у yt-dlp)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     libopus0 \
+    curl \
+    unzip \
+    ca-certificates \
+    && curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local/deno sh \
+    && ln -sf /usr/local/deno/bin/deno /usr/local/bin/deno \
     && rm -rf /var/lib/apt/lists/*
 
-# Встановити yt-dlp окремо (щоб мати свіжу версію)
-RUN pip install --no-cache-dir --upgrade yt-dlp
+# yt-dlp з EJS-скриптами для YouTube (див. https://github.com/yt-dlp/yt-dlp/wiki/EJS)
+RUN pip install --no-cache-dir --upgrade "yt-dlp[default]"
 
 # Копіюємо Python-пакети зі stage builder
 COPY --from=builder /install /usr/local
