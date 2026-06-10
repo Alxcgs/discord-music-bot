@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Встановити yt-dlp окремо (щоб мати свіжу версію)
-RUN pip install --no-cache-dir yt-dlp
+RUN pip install --no-cache-dir --upgrade yt-dlp
 
 # Копіюємо Python-пакети зі stage builder
 COPY --from=builder /install /usr/local

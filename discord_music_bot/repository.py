@@ -117,6 +117,10 @@ class MusicRepository:
         conn = await get_connection()
         try:
             await conn.execute(
+                "INSERT OR IGNORE INTO guild_state (guild_id) VALUES (?)",
+                (guild_id,),
+            )
+            await conn.execute(
                 "DELETE FROM queue_tracks WHERE guild_id = ?", (guild_id,)
             )
             if tracks:

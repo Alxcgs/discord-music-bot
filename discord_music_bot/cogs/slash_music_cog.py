@@ -513,14 +513,14 @@ class MusicCog(commands.Cog):
 
     @app_commands.command(name="join", description="Підключити бота до голосового каналу")
     async def join(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+
         if not interaction.user.voice:
-            await interaction.response.send_message("Ви не в голосовому каналі!", ephemeral=True)
+            await interaction.followup.send("Ви не в голосовому каналі!", ephemeral=True)
             return
         
         channel = interaction.user.voice.channel
         voice_client = interaction.guild.voice_client
-
-        await interaction.response.defer()
 
         if voice_client and voice_client.is_connected():
             if voice_client.channel != channel:
@@ -537,11 +537,11 @@ class MusicCog(commands.Cog):
     @app_commands.command(name="play", description="Відтворити музику (URL або пошук)")
     @app_commands.describe(query="Посилання або назва пісні")
     async def play(self, interaction: discord.Interaction, query: str):
-        if not interaction.user.voice:
-            await interaction.response.send_message("Зайдіть у голосовий канал!", ephemeral=True)
-            return
-
         await interaction.response.defer()
+
+        if not interaction.user.voice:
+            await interaction.followup.send("Зайдіть у голосовий канал!", ephemeral=True)
+            return
         
         voice_client = interaction.guild.voice_client
         if not voice_client:

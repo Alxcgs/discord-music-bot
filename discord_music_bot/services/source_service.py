@@ -2,6 +2,7 @@ import yt_dlp
 import logging
 import asyncio
 from discord_music_bot import consts
+from discord_music_bot.ytdlp_config import apply_ytdlp_python_opts
 from typing import List, Dict, Optional, Tuple, Any
 
 class SourceService:
@@ -26,7 +27,7 @@ class SourceService:
         # SoundCloud потребує повної екстракції для отримання назв
         is_soundcloud = 'soundcloud.com' in url.lower()
         
-        ydl_opts = self.light_ydl_opts.copy()
+        ydl_opts = apply_ytdlp_python_opts(self.light_ydl_opts.copy())
         if is_soundcloud:
             ydl_opts['extract_flat'] = False
             
@@ -58,7 +59,8 @@ class SourceService:
         search_url = f"ytsearch{max_results}:{query}"
         
         try:
-            with yt_dlp.YoutubeDL(self.light_ydl_opts) as ydl:
+            ydl_opts = apply_ytdlp_python_opts(self.light_ydl_opts.copy())
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = await self._get_loop().run_in_executor(None, lambda: ydl.extract_info(search_url, download=False))
                 
                 if not info or 'entries' not in info:
@@ -93,6 +95,7 @@ class SourceService:
         }
         
         try:
+            ydl_opts = apply_ytdlp_python_opts(ydl_opts)
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = await self._get_loop().run_in_executor(None, lambda: ydl.extract_info(url, download=False))
                 

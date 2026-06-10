@@ -6,6 +6,7 @@ import logging
 import shlex
 import time
 from discord_music_bot.config import YDL_OPTIONS, FFMPEG_OPTIONS
+from discord_music_bot.ytdlp_config import build_ytdlp_cli_args
 
 class YTDLPPipeSource(discord.AudioSource):
     """Аудіо source що використовує yt-dlp → FFmpeg pipeline.
@@ -139,16 +140,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
             
             # yt-dlp → pipe → FFmpeg
             ytdlp_process = subprocess.Popen(
-                [
-                    'yt-dlp',
-                    '--format', ydl_opts['format'],  # Використовуємо формат з конфігу (opus HQ)
-                    '--output', '-',
-                    '--no-warnings',
-                    '--retries', '3',
-                    '--fragment-retries', '3',
-                    '--extractor-args', 'youtube:player_client=android,web',
-                    url
-                ],
+                build_ytdlp_cli_args(url, ydl_opts['format']),
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
             

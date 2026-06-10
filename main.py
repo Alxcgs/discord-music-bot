@@ -9,6 +9,7 @@ import ssl
 import certifi
 from discord_music_bot.config import DISCORD_TOKEN # Імпортуємо токен з конфігурації
 from discord_music_bot.healthcheck import start_zombie_cleanup
+from discord_music_bot.ytdlp_config import init_ytdlp_cookies
 import atexit
 
 # --- Singleton Lock ---
@@ -43,6 +44,7 @@ def check_single_instance():
     atexit.register(cleanup_lock)
 
 check_single_instance()
+init_ytdlp_cookies()
 
 # --- Налаштування логування з ротацією ---
 LOG_DIR = os.environ.get('LOG_DIR', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs'))
