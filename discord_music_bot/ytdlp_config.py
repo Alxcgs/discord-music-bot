@@ -15,19 +15,55 @@ logger = logging.getLogger(__name__)
 
 _cookies_path: Optional[str] = None
 
-# З cookies — web/tv клієнти; без — клієнти без PO-token вимог
-YOUTUBE_PLAYER_CLIENTS_WITH_COOKIES = ["web", "mweb", "tv", "web_safari"]
-YOUTUBE_PLAYER_CLIENTS_GUEST = ["android_vr", "tv_embedded", "ios", "mweb"]
+# Профілі: спочатку без cookies (Deno + tv_embedded/android_vr), потім з cookies
+EXTRACTION_PROFILES: Tuple[Tuple[str, bool, List[str]], ...] = (
+    ("guest-android_vr", False, ["android_vr", "tv_embedded"]),
+    ("guest-ios", False, ["ios", "mweb"]),
+    ("guest-web", False, ["mweb", "web"]),
+    ("cookies-tv", True, ["tv_embedded", "tv", "web"]),
+    ("cookies-web", True, ["web", "mweb", "web_safari"]),
+)
 
 YTDLP_AUDIO_FORMAT = "bestaudio/best"
 YTDLP_FORMAT_FALLBACKS = (
-    None,  # без селектора — вибір з formats вручну
+    None,
     "bestaudio/best",
-    "bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best",
     "ba/b",
-    "best[height<=720]/best",
     "worst",
 )
+
+
+def _write_cookies_file(cookies_path: str, raw_bytes: bytes) -> None:
+    """Write Netscape cookies with Unix line endings (CRLF з Windows ламає yt-dlp на Linux)."""
+    text = raw_bytes.decode("utf-8", errors="replace")
+    if text.startswith("\ufeff"):
+        text = text[1:]
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    if "# Netscape HTTP Cookie File" not in text:
+        logger.warning("Cookies file may be invalid — missing Netscape header")
+    with open(cookies_path, "w", encoding="utf-8", newline="\n") as f:
+        f.write(text)
+
+
+def _log_cookie_stats(path: str) -> None:
+    try:
+        with open(path, encoding="utf-8") as f:
+            entries = [
+                line
+                for line in f
+                if line.strip() and not line.startswith("#")
+            ]
+        yt_entries = [e for e in entries if "youtube.com" in e]
+        logger.info(
+            f"yt-dlp cookies file: {len(yt_entries)} youtube.com entries "
+            f"({len(entries)} total)"
+        )
+        if len(yt_entries) < 3:
+            logger.warning(
+                "Very few YouTube cookies — re-export from browser while logged in"
+            )
+    except Exception as exc:
+        logger.warning(f"Could not read cookie stats: {exc}")
 
 
 def init_ytdlp_cookies() -> Optional[str]:
@@ -38,6 +74,7 @@ def init_ytdlp_cookies() -> Optional[str]:
     if explicit_path and Path(explicit_path).is_file():
         _cookies_path = explicit_path
         logger.info("yt-dlp cookies loaded from YTDLP_COOKIES_FILE")
+        _log_cookie_stats(_cookies_path)
         _log_js_runtime()
         return _cookies_path
 
@@ -48,10 +85,10 @@ def init_ytdlp_cookies() -> Optional[str]:
         cookies_path = os.path.join(data_dir, "ytdlp_cookies.txt")
         try:
             content = base64.b64decode(cookies_b64)
-            with open(cookies_path, "wb") as f:
-                f.write(content)
+            _write_cookies_file(cookies_path, content)
             _cookies_path = cookies_path
             logger.info("yt-dlp cookies loaded from YTDLP_COOKIES_B64")
+            _log_cookie_stats(cookies_path)
             _log_js_runtime()
             return _cookies_path
         except Exception as exc:
@@ -60,7 +97,7 @@ def init_ytdlp_cookies() -> Optional[str]:
 
     logger.warning(
         "YouTube cookies not configured (YTDLP_COOKIES_B64 / YTDLP_COOKIES_FILE). "
-        "Playback from cloud servers may fail with 'Sign in to confirm you're not a bot'."
+        "Will try guest player clients with Deno."
     )
     _log_js_runtime()
     return None
@@ -84,23 +121,25 @@ def get_cookies_path() -> Optional[str]:
     return _cookies_path
 
 
-def _player_clients() -> List[str]:
-    if get_cookies_path():
-        return YOUTUBE_PLAYER_CLIENTS_WITH_COOKIES
-    return YOUTUBE_PLAYER_CLIENTS_GUEST
-
-
-def apply_ytdlp_python_opts(opts: Dict[str, Any]) -> Dict[str, Any]:
+def apply_ytdlp_python_opts(
+    opts: Dict[str, Any],
+    *,
+    use_cookies: bool = True,
+    player_clients: Optional[List[str]] = None,
+) -> Dict[str, Any]:
     """Merge shared yt-dlp options into a YoutubeDL options dict."""
     merged = opts.copy()
+    clients = player_clients or EXTRACTION_PROFILES[0][2]
     extractor_args = dict(merged.get("extractor_args") or {})
-    extractor_args["youtube"] = {"player_client": _player_clients()}
+    extractor_args["youtube"] = {"player_client": clients}
     merged["extractor_args"] = extractor_args
     merged["remote_components"] = {"ejs:github"}
 
-    cookies = get_cookies_path()
-    if cookies:
-        merged["cookiefile"] = cookies
+    merged.pop("cookiefile", None)
+    if use_cookies:
+        cookies = get_cookies_path()
+        if cookies:
+            merged["cookiefile"] = cookies
 
     if shutil.which("node") and not shutil.which("deno"):
         merged["js_runtimes"] = {"node": {}}
@@ -136,8 +175,13 @@ def _pick_stream_url(info: Dict[str, Any]) -> Optional[str]:
     return None
 
 
+def _is_bot_check_error(exc: Exception) -> bool:
+    msg = str(exc).lower()
+    return "sign in to confirm" in msg or "not a bot" in msg
+
+
 def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
-    """Resolve a direct media URL via yt-dlp API (format fallbacks + manual pick)."""
+    """Resolve a direct media URL via yt-dlp (profiles × format fallbacks)."""
     base_opts: Dict[str, Any] = {
         "quiet": True,
         "no_warnings": True,
@@ -149,50 +193,68 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
     last_error: Optional[Exception] = None
     last_info: Dict[str, Any] = {}
 
-    for fmt in YTDLP_FORMAT_FALLBACKS:
-        opts = dict(base_opts)
-        if fmt:
-            opts["format"] = fmt
-        ydl_opts = apply_ytdlp_python_opts(opts)
-        label = fmt or "manual-pick"
-        try:
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(page_url, download=False)
-                if not info:
-                    continue
-                if "entries" in info:
-                    entries = info.get("entries") or []
-                    if not entries:
+    profiles = list(EXTRACTION_PROFILES)
+    if not get_cookies_path():
+        profiles = [p for p in profiles if not p[1]]
+
+    for profile_name, use_cookies, clients in profiles:
+        if use_cookies and not get_cookies_path():
+            continue
+
+        for fmt in YTDLP_FORMAT_FALLBACKS:
+            opts = dict(base_opts)
+            if fmt:
+                opts["format"] = fmt
+            ydl_opts = apply_ytdlp_python_opts(
+                opts, use_cookies=use_cookies, player_clients=clients
+            )
+            fmt_label = fmt or "manual-pick"
+            try:
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    info = ydl.extract_info(page_url, download=False)
+                    if not info:
                         continue
-                    info = entries[0]
-                last_info = info
-                stream_url = _pick_stream_url(info)
-                if stream_url:
-                    logger.info(f"Stream URL resolved with format '{label}'")
-                    return stream_url, info
-                n_formats = len(info.get("formats") or [])
+                    if "entries" in info:
+                        entries = info.get("entries") or []
+                        if not entries:
+                            continue
+                        info = entries[0]
+                    last_info = info
+                    stream_url = _pick_stream_url(info)
+                    if stream_url:
+                        logger.info(
+                            f"Stream URL resolved (profile={profile_name}, format={fmt_label})"
+                        )
+                        return stream_url, info
+                    n_formats = len(info.get("formats") or [])
+                    logger.warning(
+                        f"Profile '{profile_name}' / '{fmt_label}': "
+                        f"no playable URL ({n_formats} formats)"
+                    )
+            except Exception as exc:
+                last_error = exc
+                if _is_bot_check_error(exc) and use_cookies:
+                    logger.warning(
+                        f"Profile '{profile_name}' bot-check with cookies — trying next profile"
+                    )
+                    break  # next profile, not every format
                 logger.warning(
-                    f"yt-dlp extracted info but no playable URL (format '{label}', "
-                    f"{n_formats} formats in list)"
+                    f"Profile '{profile_name}' / '{fmt_label}' failed: {exc}"
                 )
-        except Exception as exc:
-            last_error = exc
-            logger.warning(f"yt-dlp format '{label}' failed: {exc}")
 
     if last_info:
         n = len(last_info.get("formats") or [])
         logger.error(
-            f"Could not pick stream URL for {page_url} ({n} formats returned, "
-            f"JS runtime: deno={bool(shutil.which('deno'))}, node={bool(shutil.which('node'))})"
+            f"Could not pick stream URL for {page_url} ({n} formats in last response)"
         )
     elif last_error:
-        logger.error(f"All yt-dlp format fallbacks failed for {page_url}: {last_error}")
+        logger.error(f"All yt-dlp profiles failed for {page_url}: {last_error}")
     return None, {}
 
 
 def build_ytdlp_cli_args(url: str, format_str: Optional[str] = None) -> List[str]:
     """Build argv for a yt-dlp download-to-stdout subprocess."""
-    clients = ",".join(_player_clients())
+    _, _, clients = EXTRACTION_PROFILES[0]
     args = [
         "yt-dlp",
         "--format",
@@ -207,7 +269,7 @@ def build_ytdlp_cli_args(url: str, format_str: Optional[str] = None) -> List[str
         "--remote-components",
         "ejs:github",
         "--extractor-args",
-        f"youtube:player_client={clients}",
+        f"youtube:player_client={','.join(clients)}",
     ]
     cookies = get_cookies_path()
     if cookies:
