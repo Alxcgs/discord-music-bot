@@ -38,10 +38,10 @@ YTDLP_FORMAT_FALLBACKS = (
 
 # Публічні Piped API — обхід блокування YouTube з datacenter IP (Render тощо)
 PIPED_INSTANCES = (
-    "https://pipedapi.kavin.rocks",
-    "https://pipedapi.adminforge.de",
     "https://api.piped.private.coffee",
     "https://pipedapi.in.projectsegfau.lt",
+    "https://pipedapi.kavin.rocks",
+    "https://pipedapi.adminforge.de",
 )
 
 
@@ -173,8 +173,43 @@ def _youtube_video_id(url: str) -> Optional[str]:
     return match.group(1) if match else None
 
 
+def _piped_first_enabled() -> bool:
+    return os.getenv("YTDLP_PIPED_FIRST", "1").strip().lower() not in ("0", "false", "no")
+
+
+def _pick_piped_stream_url(data: Dict[str, Any]) -> Optional[str]:
+    """Pick best playable URL from a Piped /streams response."""
+    audio_streams = list(data.get("audioStreams") or [])
+    if audio_streams:
+
+        def _audio_score(stream: Dict[str, Any]) -> int:
+            mime = (stream.get("mimeType") or "").lower()
+            opus_bonus = 100_000 if "opus" in mime else 0
+            return opus_bonus + int(stream.get("bitrate", 0) or 0)
+
+        audio_streams.sort(key=_audio_score, reverse=True)
+        url = audio_streams[0].get("url")
+        if url:
+            return url
+
+    video_streams = list(data.get("videoStreams") or [])
+    combined = [
+        s for s in video_streams
+        if s.get("url") and not s.get("videoOnly", False)
+    ]
+    if combined:
+        combined.sort(key=lambda s: int(s.get("bitrate", 0) or 0), reverse=True)
+        return combined[0].get("url")
+
+    hls = data.get("hls")
+    if isinstance(hls, str) and hls.startswith("http"):
+        return hls
+
+    return None
+
+
 def fetch_piped_stream(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
-    """Fallback: отримати audio URL через Piped API (не залежить від IP Render)."""
+    """Отримати media URL через Piped API (не залежить від IP Render)."""
     video_id = _youtube_video_id(page_url)
     if not video_id:
         return None, {}
@@ -201,21 +236,16 @@ def fetch_piped_stream(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
                 "thumbnail": data.get("thumbnailUrl"),
             }
 
-            audio_streams = data.get("audioStreams") or []
-            if not audio_streams:
-                logger.warning(f"Piped ({base}): no audio streams for {video_id}")
-                continue
-
-            def _stream_score(stream: Dict[str, Any]) -> int:
-                mime = (stream.get("mimeType") or "").lower()
-                opus_bonus = 100_000 if "opus" in mime else 0
-                return opus_bonus + int(stream.get("bitrate", 0) or 0)
-
-            audio_streams.sort(key=_stream_score, reverse=True)
-            stream_url = audio_streams[0].get("url")
+            stream_url = _pick_piped_stream_url(data)
             if stream_url:
                 logger.info(f"Stream URL resolved via Piped ({base})")
                 return stream_url, meta
+
+            logger.warning(
+                f"Piped ({base}): no playable streams for {video_id} "
+                f"(audio={len(data.get('audioStreams') or [])}, "
+                f"video={len(data.get('videoStreams') or [])})"
+            )
         except (URLError, TimeoutError, json.JSONDecodeError, KeyError) as exc:
             logger.warning(f"Piped instance {base} failed: {exc}")
         except Exception as exc:
@@ -258,7 +288,15 @@ def _is_bot_check_error(exc: Exception) -> bool:
 
 
 def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
-    """Resolve a direct media URL via yt-dlp (profiles × format fallbacks)."""
+    """Resolve a direct media URL: Piped first for YouTube, then yt-dlp."""
+    video_id = _youtube_video_id(page_url)
+    if video_id and _piped_first_enabled():
+        logger.info("Trying Piped API first (cloud-friendly)")
+        piped_url, piped_meta = fetch_piped_stream(page_url)
+        if piped_url:
+            return piped_url, piped_meta
+        logger.warning("Piped API failed — falling back to yt-dlp")
+
     base_opts: Dict[str, Any] = {
         "quiet": True,
         "no_warnings": True,
@@ -319,8 +357,8 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
                     f"Profile '{profile_name}' / '{fmt_label}' failed: {exc}"
                 )
 
-    if _youtube_video_id(page_url):
-        logger.info("yt-dlp exhausted for YouTube — trying Piped API fallback")
+    if video_id:
+        logger.info("yt-dlp exhausted — retrying Piped API")
         piped_url, piped_meta = fetch_piped_stream(page_url)
         if piped_url:
             return piped_url, piped_meta
