@@ -140,7 +140,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
             
             # yt-dlp → pipe → FFmpeg
             ytdlp_process = subprocess.Popen(
-                build_ytdlp_cli_args(url, ydl_opts['format']),
+                build_ytdlp_cli_args(url),
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
             

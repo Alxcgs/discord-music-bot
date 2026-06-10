@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 import logging
+from discord_music_bot.ytdlp_config import YTDLP_AUDIO_FORMAT
 
 # Завантаження змінних середовища з .env файлу
 load_dotenv()
@@ -17,7 +18,7 @@ if DISCORD_TOKEN == 'dummy_test_token':
 # --- Опції для yt-dlp ---
 # --- Опції для yt-dlp (максимальна якість) ---
 YDL_OPTIONS = {
-    'format': 'bestaudio[acodec=opus]/bestaudio*/best',
+    'format': YTDLP_AUDIO_FORMAT,
     'noplaylist': True,
     'nocheckcertificate': True,
     'ignoreerrors': False,

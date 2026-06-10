@@ -28,5 +28,9 @@ errors.txt
 .idea/
 .vscode/
 
+# Secrets (never commit)
+ytdlp_cookies_b64.txt
+*cookies*.txt
+
 # Other
 discord_music_bot.lock

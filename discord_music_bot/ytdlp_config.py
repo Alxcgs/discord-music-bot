@@ -15,6 +15,9 @@ _cookies_path: Optional[str] = None
 YOUTUBE_PLAYER_CLIENTS = ["ios", "tv_embedded", "mweb", "web", "android"]
 YOUTUBE_EXTRACTOR_ARGS = f"youtube:player_client={','.join(YOUTUBE_PLAYER_CLIENTS)}"
 
+# FFmpeg decodes any container — don't require a specific codec (e.g. opus).
+YTDLP_AUDIO_FORMAT = "bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best"
+
 
 def init_ytdlp_cookies() -> Optional[str]:
     """Load YouTube cookies from env and return the file path, if configured."""
@@ -66,12 +69,12 @@ def apply_ytdlp_python_opts(opts: Dict[str, Any]) -> Dict[str, Any]:
     return merged
 
 
-def build_ytdlp_cli_args(url: str, format_str: str) -> List[str]:
+def build_ytdlp_cli_args(url: str, format_str: Optional[str] = None) -> List[str]:
     """Build argv for a yt-dlp download-to-stdout subprocess."""
     args = [
         "yt-dlp",
         "--format",
-        format_str,
+        format_str or YTDLP_AUDIO_FORMAT,
         "--output",
         "-",
         "--no-warnings",

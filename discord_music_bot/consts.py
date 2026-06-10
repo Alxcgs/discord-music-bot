@@ -92,7 +92,7 @@ YTDL_OPTIONS_LIGHT = {
     'no_warnings': True,
     'extract_flat': True,
     'skip_download': True,
-    'format': 'bestaudio[acodec=opus][abr<=128]/bestaudio/best',
+    'format': 'bestaudio/best',
     'nocheckcertificate': True,
     'ignoreerrors': True,
     'socket_timeout': 5,
