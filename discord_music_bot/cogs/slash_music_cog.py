@@ -247,11 +247,24 @@ class MusicCog(commands.Cog):
 
     async def _safe_defer(self, interaction: discord.Interaction, *, ephemeral: bool = False) -> bool:
         try:
+            if interaction.response.is_done():
+                return True
             await interaction.response.defer(ephemeral=ephemeral)
             return True
         except discord.NotFound:
             self.logger.warning(
                 f"Interaction expired before defer ({getattr(interaction.command, 'name', '?')})"
+            )
+            return False
+        except discord.HTTPException as exc:
+            if exc.code == 40060:
+                # Interaction has already been acknowledged — treat as success
+                self.logger.debug(
+                    f"Interaction already acknowledged ({getattr(interaction.command, 'name', '?')})"
+                )
+                return True
+            self.logger.warning(
+                f"HTTPException during defer ({getattr(interaction.command, 'name', '?')}): {exc}"
             )
             return False
 

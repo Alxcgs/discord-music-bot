@@ -34,3 +34,8 @@ ytdlp_cookies_b64.txt
 
 # Other
 discord_music_bot.lock
+# Diploma work
+Diploma/
+
+# macOS
+.DS_Store
