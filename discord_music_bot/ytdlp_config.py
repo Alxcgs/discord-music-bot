@@ -286,26 +286,9 @@ def _is_bot_check_error(exc: Exception) -> bool:
 
 
 def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
-    """Resolve a direct media URL: YouTube direct -> YouTube Music fallback -> SoundCloud fallback."""
+    """Resolve a direct media URL without requiring user accounts or cookies: Deno guest profiles -> YouTube Search -> SoundCloud fallback."""
     video_id = _youtube_video_id(page_url)
     cookies = get_cookies_path()
-
-    # Якщо печеньки відсутні на хмарному IP (Render), прямий виклик YouTube відео дасть bot-check.
-    # Отримуємо назву треку через oEmbed (0.1с) і шукаємо через YouTube Music / SoundCloud.
-    if video_id and not cookies:
-        logger.info("No YouTube cookies set on cloud IP — routing via oEmbed & YouTube Music / SoundCloud fallback")
-        title = _fetch_youtube_oembed_title(page_url)
-        fallback_query = title if title else page_url
-
-        # Спочатку пробуємо YouTube Music (офіційне джерело YouTube)
-        ytm_url, ytm_meta = _try_youtube_music_fallback(fallback_query)
-        if ytm_url:
-            return ytm_url, ytm_meta
-
-        # Якщо YouTube Music заблоковано, пробуємо SoundCloud з фільтрацією DRM
-        sc_url, sc_meta = _try_soundcloud_fallback(fallback_query)
-        if sc_url:
-            return sc_url, sc_meta
 
     if video_id and _piped_first_enabled():
         piped_url, piped_meta = fetch_piped_stream(page_url)
