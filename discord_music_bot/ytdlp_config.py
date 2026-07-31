@@ -232,7 +232,7 @@ def fetch_piped_stream(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
         api_url = f"{base}/streams/{video_id}"
         try:
             req = Request(api_url, headers=headers)
-            with urlopen(req, timeout=20) as resp:
+            with urlopen(req, timeout=2.5) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
 
             meta: Dict[str, Any] = {
