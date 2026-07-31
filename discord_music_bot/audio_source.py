@@ -16,11 +16,13 @@ class YTDLPPipeSource(discord.AudioSource):
     FRAME_SIZE = 3840  # 20ms of 48kHz 16-bit stereo PCM
     MAX_READ_RETRIES = 150  # ~15s толерантність на порожні читання
 
-    def __init__(self, ytdlp_process, ffmpeg_process):
+    def __init__(self, ytdlp_process, ffmpeg_process, title: str = "Audio"):
         self._ytdlp = ytdlp_process  # legacy slot; None when streaming via direct URL
         self._ffmpeg = ffmpeg_process
         self._buffer = b""
         self._logged_failure = False
+        self.title = title
+        self._frames_read = 0
 
     @staticmethod
     def _read_stderr(process, name: str) -> str:
@@ -77,6 +79,11 @@ class YTDLPPipeSource(discord.AudioSource):
 
         frame = self._buffer[: self.FRAME_SIZE]
         self._buffer = self._buffer[self.FRAME_SIZE :]
+        self._frames_read += 1
+        if self._frames_read % 1500 == 0:
+            secs = (self._frames_read * 20) // 1000
+            m, s = divmod(secs, 60)
+            logging.info(f"Playback progress for '{self.title}': {m:02d}:{s:02d} elapsed")
         return frame
 
     def cleanup(self):
@@ -199,7 +206,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
                     f"ffmpeg exited immediately with code {ffmpeg_process.returncode}"
                 )
 
-            source = YTDLPPipeSource(None, ffmpeg_process)
+            source = YTDLPPipeSource(None, ffmpeg_process, title=merged.get('title', 'Unknown'))
             logging.info(
                 f"Audio pipeline started for: {merged.get('title', 'Unknown')} "
                 f"(ffmpeg pid={ffmpeg_process.pid})"

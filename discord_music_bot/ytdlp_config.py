@@ -419,33 +419,77 @@ def _fetch_youtube_oembed_title(page_url: str) -> Optional[str]:
     return None
 
 
+def _clean_title_for_search(title: str) -> str:
+    """Очищає назву відео від рекламних/технічних дужок для точного пошуку треку."""
+    if not title:
+        return ""
+    cleaned = re.sub(
+        r"[\(\[\{](?:official|music|video|audio|clip|премьера|клип|официальный|lyric|hd|4k|remastered|full|mv).*?[\)\]\}]",
+        "",
+        title,
+        flags=re.IGNORECASE,
+    )
+    cleaned = re.sub(
+        r"(?i)\b(official music video|official video|music video|lyric video|премьера клипа|официальный клип)\b",
+        "",
+        cleaned,
+    )
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return cleaned or title
+
+
+def _score_soundcloud_entry(entry: Dict[str, Any], original_query: str) -> int:
+    """Ранжування кандидатів з SoundCloud для уникнення slowed/remix версій."""
+    title = (entry.get("title") or "").lower()
+    q = original_query.lower()
+    score = 100
+    unwanted = ["slowed", "remix", "nightcore", "reverb", "speed up", "sped up", "edit", "bass boosted", "8d"]
+    for kw in unwanted:
+        if kw in title and kw not in q:
+            score -= 50
+    if q and q in title:
+        score += 30
+    return score
+
+
 def _try_soundcloud_fallback(query: str) -> Tuple[Optional[str], Dict[str, Any]]:
-    """Резервний пошук та відтворення через SoundCloud якщо YouTube заблокований хмарою."""
+    """Резервний пошук та відтворення через SoundCloud з очищенням назв та точною вибіркою оригінального треку."""
     if not query:
         return None, {}
-    logger.info(f"Attempting SoundCloud fallback search for: {query}")
+
+    cleaned_query = _clean_title_for_search(query)
+    logger.info(f"Attempting SoundCloud fallback search for: '{cleaned_query}' (raw: '{query}')")
+
     sc_opts = {
         "quiet": True,
         "no_warnings": True,
         "noplaylist": True,
         "format": "bestaudio/best",
-        "default_search": "scsearch",
+        "default_search": "scsearch5",
     }
-    sc_target = f"scsearch:{query}" if not query.startswith("scsearch:") and not query.startswith("http") else query
+    sc_target = f"scsearch5:{cleaned_query}" if not cleaned_query.startswith("scsearch") and not cleaned_query.startswith("http") else cleaned_query
     try:
         with yt_dlp.YoutubeDL(sc_opts) as ydl:
             info = ydl.extract_info(sc_target, download=False)
             if not info:
                 return None, {}
+            entries = []
             if "entries" in info:
                 entries = [e for e in (info.get("entries") or []) if e]
-                if not entries:
-                    return None, {}
-                info = entries[0]
-            stream_url = _pick_stream_url(info)
+            elif info.get("url"):
+                entries = [info]
+
+            if not entries:
+                return None, {}
+
+            # Сортуємо кандидатів за відповідністю (оригінал замість slowed/remix)
+            entries.sort(key=lambda e: _score_soundcloud_entry(e, cleaned_query), reverse=True)
+            best_entry = entries[0]
+
+            stream_url = _pick_stream_url(best_entry)
             if stream_url:
-                logger.info(f"Stream URL resolved via SoundCloud fallback: {info.get('title')}")
-                return stream_url, info
+                logger.info(f"Stream URL resolved via SoundCloud fallback: '{best_entry.get('title')}'")
+                return stream_url, best_entry
     except Exception as exc:
         logger.warning(f"SoundCloud fallback search failed: {exc}")
     return None, {}
