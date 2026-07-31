@@ -215,17 +215,17 @@ def _pick_piped_stream_url(data: Dict[str, Any]) -> Optional[str]:
 
 
 def fetch_piped_stream(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
-    """Отримати media URL через Piped API (не залежить від IP Render)."""
+    """Отримати media URL через Piped API (якщо вказано кастомну PIPED_API_URL)."""
     video_id = _youtube_video_id(page_url)
     if not video_id:
         return None, {}
 
-    instances: List[str] = []
     custom = os.getenv("PIPED_API_URL", "").strip().rstrip("/")
-    if custom:
-        instances.append(custom)
-    instances.extend(PIPED_INSTANCES)
+    if not custom:
+        # Пропускаємо публічні Piped інстанси, оскільки вони неробочі та викликають затримки
+        return None, {}
 
+    instances = [custom]
     headers = {"User-Agent": "Mozilla/5.0 (compatible; discord-music-bot/1.0)"}
 
     for base in instances:
@@ -242,18 +242,10 @@ def fetch_piped_stream(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
                 "thumbnail": data.get("thumbnailUrl"),
             }
 
-            stream_url = _pick_piped_stream_url(data)
+            stream_url = _pick_stream_url(data)
             if stream_url:
                 logger.info(f"Stream URL resolved via Piped ({base})")
                 return stream_url, meta
-
-            logger.warning(
-                f"Piped ({base}): no playable streams for {video_id} "
-                f"(audio={len(data.get('audioStreams') or [])}, "
-                f"video={len(data.get('videoStreams') or [])})"
-            )
-        except (URLError, TimeoutError, json.JSONDecodeError, KeyError) as exc:
-            logger.warning(f"Piped instance {base} failed: {exc}")
         except Exception as exc:
             logger.warning(f"Piped instance {base} failed: {exc}")
 
@@ -294,14 +286,24 @@ def _is_bot_check_error(exc: Exception) -> bool:
 
 
 def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
-    """Resolve a direct media URL: Piped first for YouTube, then yt-dlp."""
+    """Resolve a direct media URL: Instant SoundCloud fallback when no cookies set on cloud IP."""
     video_id = _youtube_video_id(page_url)
+    cookies = get_cookies_path()
+
+    # На хмарному IP (Render) без cookies прямий YouTube виклик дасть bot-check.
+    # Миттєво перенаправляємо на SoundCloud через oEmbed (без затримок в 15 секунд!).
+    if video_id and not cookies:
+        logger.info("No YouTube cookies set on cloud IP — instantly routing to SoundCloud fallback via oEmbed")
+        title = _fetch_youtube_oembed_title(page_url)
+        fallback_query = title if title else page_url
+        sc_url, sc_meta = _try_soundcloud_fallback(fallback_query)
+        if sc_url:
+            return sc_url, sc_meta
+
     if video_id and _piped_first_enabled():
-        logger.info("Trying Piped API first (cloud-friendly)")
         piped_url, piped_meta = fetch_piped_stream(page_url)
         if piped_url:
             return piped_url, piped_meta
-        logger.warning("Piped API failed — falling back to yt-dlp")
 
     base_opts: Dict[str, Any] = {
         "quiet": True,
@@ -315,12 +317,12 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
     last_info: Dict[str, Any] = {}
 
     profiles = list(EXTRACTION_PROFILES)
-    if not get_cookies_path():
+    if not cookies:
         profiles = [p for p in profiles if not p[1]]
 
     bot_check_triggered = False
     for profile_name, use_cookies, clients in profiles:
-        if use_cookies and not get_cookies_path():
+        if use_cookies and not cookies:
             continue
         if bot_check_triggered:
             break
@@ -350,18 +352,13 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
                             f"Stream URL resolved (profile={profile_name}, format={fmt_label})"
                         )
                         return stream_url, info
-                    n_formats = len(info.get("formats") or [])
-                    logger.warning(
-                        f"Profile '{profile_name}' / '{fmt_label}': "
-                        f"no playable URL ({n_formats} formats)"
-                    )
             except Exception as exc:
                 last_error = exc
                 if _is_bot_check_error(exc):
                     logger.warning(
                         f"Profile '{profile_name}' bot-check — cloud IP restriction detected"
                     )
-                    if not get_cookies_path():
+                    if not cookies:
                         bot_check_triggered = True
                         break
                     break
@@ -369,13 +366,7 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
                     f"Profile '{profile_name}' / '{fmt_label}' failed: {exc}"
                 )
 
-    if video_id and not bot_check_triggered:
-        logger.info("yt-dlp exhausted — retrying Piped API")
-        piped_url, piped_meta = fetch_piped_stream(page_url)
-        if piped_url:
-            return piped_url, piped_meta
-
-    # Резервна спроба через SoundCloud якщо YouTube заблоковано хмарою
+    # Резервний SoundCloud перехід
     fallback_query = None
     if last_info and last_info.get("title"):
         fallback_query = last_info.get("title")
@@ -412,7 +403,7 @@ def _fetch_youtube_oembed_title(page_url: str) -> Optional[str]:
             data = json.loads(resp.read().decode("utf-8"))
             title = data.get("title")
             if title:
-                logger.info(f"Resolved YouTube title via oEmbed: {title}")
+                logger.info(f"Resolved YouTube title via oEmbed: '{title}'")
                 return title
     except Exception as exc:
         logger.debug(f"oEmbed fetch failed for {video_id}: {exc}")
@@ -453,7 +444,7 @@ def _score_soundcloud_entry(entry: Dict[str, Any], original_query: str) -> int:
 
 
 def _try_soundcloud_fallback(query: str) -> Tuple[Optional[str], Dict[str, Any]]:
-    """Резервний пошук та відтворення через SoundCloud з очищенням назв та точною вибіркою оригінального треку."""
+    """Резервний пошук та відтворення через SoundCloud з очищенням назв, фільтрацією DRM та обходом помилок."""
     if not query:
         return None, {}
 
@@ -465,9 +456,9 @@ def _try_soundcloud_fallback(query: str) -> Tuple[Optional[str], Dict[str, Any]]
         "no_warnings": True,
         "noplaylist": True,
         "format": "bestaudio/best",
-        "default_search": "scsearch5",
+        "default_search": "scsearch10",
     }
-    sc_target = f"scsearch5:{cleaned_query}" if not cleaned_query.startswith("scsearch") and not cleaned_query.startswith("http") else cleaned_query
+    sc_target = f"scsearch10:{cleaned_query}" if not cleaned_query.startswith("scsearch") and not cleaned_query.startswith("http") else cleaned_query
     try:
         with yt_dlp.YoutubeDL(sc_opts) as ydl:
             info = ydl.extract_info(sc_target, download=False)
@@ -484,12 +475,26 @@ def _try_soundcloud_fallback(query: str) -> Tuple[Optional[str], Dict[str, Any]]
 
             # Сортуємо кандидатів за відповідністю (оригінал замість slowed/remix)
             entries.sort(key=lambda e: _score_soundcloud_entry(e, cleaned_query), reverse=True)
-            best_entry = entries[0]
 
-            stream_url = _pick_stream_url(best_entry)
-            if stream_url:
-                logger.info(f"Stream URL resolved via SoundCloud fallback: '{best_entry.get('title')}'")
-                return stream_url, best_entry
+            # Перебираємо кандидатів, пропускаючи DRM захищені
+            for candidate in entries:
+                cand_title = candidate.get("title") or "Unknown track"
+                try:
+                    cand_url = candidate.get("webpage_url") or candidate.get("url")
+                    if not cand_url:
+                        continue
+                    # Перевіряємо чи відтворюється кандидат і беремо його прямий потік
+                    cand_info = ydl.extract_info(cand_url, download=False)
+                    if not cand_info:
+                        continue
+                    stream_url = _pick_stream_url(cand_info)
+                    if stream_url:
+                        logger.info(f"Stream URL resolved via SoundCloud fallback: '{cand_info.get('title', cand_title)}'")
+                        return stream_url, cand_info
+                except Exception as exc:
+                    logger.warning(f"SoundCloud candidate '{cand_title}' skipped (e.g. DRM / unavailable): {exc}")
+                    continue
+
     except Exception as exc:
         logger.warning(f"SoundCloud fallback search failed: {exc}")
     return None, {}
