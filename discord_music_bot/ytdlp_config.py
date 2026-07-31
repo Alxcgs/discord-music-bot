@@ -441,20 +441,20 @@ def _clean_title_for_search(title: str) -> str:
 
 
 def _try_youtube_music_fallback(query: str) -> Tuple[Optional[str], Dict[str, Any]]:
-    """Пошук та відтворення через YouTube Music (ytmsearch) для джерел з YouTube."""
+    """Пошук та відтворення через YouTube Search (ytsearch1) з альтернативними аудіо-клієнтами."""
     if not query:
         return None, {}
     cleaned = _clean_title_for_search(query)
-    logger.info(f"Attempting YouTube Music fallback search for: '{cleaned}'")
+    logger.info(f"Attempting YouTube Search fallback for: '{cleaned}'")
     ytm_opts = {
         "quiet": True,
         "no_warnings": True,
         "noplaylist": True,
         "format": "bestaudio/best",
-        "default_search": "ytmsearch1",
-        "extractor_args": {"youtube": {"player_client": ["android_music", "web_music"]}},
+        "default_search": "ytsearch1",
+        "extractor_args": {"youtube": {"player_client": ["android_music", "mweb", "web"]}},
     }
-    ytm_target = f"ytmsearch1:{cleaned}" if not cleaned.startswith("ytmsearch") and not cleaned.startswith("http") else cleaned
+    ytm_target = f"ytsearch1:{cleaned}" if not cleaned.startswith("ytsearch") and not cleaned.startswith("http") else cleaned
     try:
         with yt_dlp.YoutubeDL(ytm_opts) as ydl:
             info = ydl.extract_info(ytm_target, download=False)
@@ -467,24 +467,37 @@ def _try_youtube_music_fallback(query: str) -> Tuple[Optional[str], Dict[str, An
                 info = entries[0]
             stream_url = _pick_stream_url(info)
             if stream_url:
-                logger.info(f"Stream URL resolved via YouTube Music fallback: '{info.get('title')}'")
+                logger.info(f"Stream URL resolved via YouTube Search fallback: '{info.get('title')}'")
                 return stream_url, info
     except Exception as exc:
-        logger.warning(f"YouTube Music fallback search failed: {exc}")
+        logger.warning(f"YouTube Search fallback failed: {exc}")
     return None, {}
 
 
 def _score_soundcloud_entry(entry: Dict[str, Any], original_query: str) -> int:
-    """Ранжування кандидатів з SoundCloud для уникнення slowed/remix версій."""
+    """Точне ранжування кандидатів: вимагає збігу ключових слів та штрафує slowed/remix."""
     title = (entry.get("title") or "").lower()
     q = original_query.lower()
-    score = 100
+
+    query_words = [w for w in re.findall(r"\w+", q) if len(w) >= 3]
+    if not query_words:
+        return 100
+
+    matched_words = [w for w in query_words if w in title]
+    match_ratio = len(matched_words) / len(query_words)
+
+    score = int(match_ratio * 100)
+    if match_ratio < 0.4:
+        score -= 80
+
     unwanted = ["slowed", "remix", "nightcore", "reverb", "speed up", "sped up", "edit", "bass boosted", "8d"]
     for kw in unwanted:
         if kw in title and kw not in q:
             score -= 50
+
     if q and q in title:
-        score += 30
+        score += 40
+
     return score
 
 
