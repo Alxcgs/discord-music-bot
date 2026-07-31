@@ -356,7 +356,7 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
                     f"Profile '{profile_name}' / '{fmt_label}' failed: {exc}"
                 )
 
-    # Резервний ланцюжок переходу
+    # Резервний ланцюжок переходу для YouTube джерел (тільки YouTube пошук)
     fallback_query = None
     if last_info and last_info.get("title"):
         fallback_query = last_info.get("title")
@@ -370,9 +370,11 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
         if ytm_url:
             return ytm_url, ytm_meta
 
-        sc_url, sc_meta = _try_soundcloud_fallback(fallback_query)
-        if sc_url:
-            return sc_url, sc_meta
+        # SoundCloud резерв ТОЛЬКО для не-YouTube джерел
+        if not video_id:
+            sc_url, sc_meta = _try_soundcloud_fallback(fallback_query)
+            if sc_url:
+                return sc_url, sc_meta
 
     if last_info:
         n = len(last_info.get("formats") or [])
