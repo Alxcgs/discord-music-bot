@@ -30,12 +30,7 @@ EXTRACTION_PROFILES: Tuple[Tuple[str, bool, List[str]], ...] = (
 )
 
 YTDLP_AUDIO_FORMAT = "bestaudio/best"
-YTDLP_FORMAT_FALLBACKS = (
-    None,
-    "bestaudio/best",
-    "ba/b",
-    "worst",
-)
+YTDLP_FORMAT_FALLBACKS = ("bestaudio/best",)
 
 # Публічні Piped API — обхід блокування YouTube з datacenter IP (Render тощо)
 PIPED_INSTANCES = (
@@ -303,6 +298,7 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
         "source_address": "0.0.0.0",
         "force-ipv4": True,
         "cachedir": False,
+        "socket_timeout": 3,
     }
     last_error: Optional[Exception] = None
     last_info: Dict[str, Any] = {}
@@ -476,10 +472,10 @@ def _score_soundcloud_entry(entry: Dict[str, Any], original_query: str) -> int:
 
     score = int(match_ratio * 100)
 
-    unwanted = ["slowed", "remix", "nightcore", "reverb", "speed up", "sped up", "edit", "bass boosted", "8d"]
+    unwanted = ["slowed", "remix", "nightcore", "reverb", "speed up", "sped up", "edit", "bass boosted", "8d", "cover", "tiktok", "tik tok", "slow"]
     for kw in unwanted:
         if kw in title and kw not in q:
-            score -= 40
+            score -= 100
 
     if q and q in title:
         score += 30
