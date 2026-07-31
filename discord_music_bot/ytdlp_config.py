@@ -461,7 +461,8 @@ def _score_soundcloud_entry(entry: Dict[str, Any], original_query: str) -> int:
     """Точне ранжування кандидатів: вимагає обов'язкової наявності виконавця та назви треку."""
     title = (entry.get("title") or "").lower()
     uploader = (entry.get("uploader") or entry.get("channel") or "").lower()
-    full_text = f"{title} {uploader}"
+    url = (entry.get("url") or entry.get("webpage_url") or "").lower()
+    full_text = f"{title} {uploader} {url}"
     q = original_query.lower()
 
     # Якщо у запиті є структура "Artist - Song", перевіряємо наявність виконавця
@@ -471,7 +472,7 @@ def _score_soundcloud_entry(entry: Dict[str, Any], original_query: str) -> int:
         artist_words = [w for w in re.findall(r"\w+", artist) if len(w) >= 3]
         song_words = [w for w in re.findall(r"\w+", song) if len(w) >= 3]
 
-        # Якщо виконавець є у запиті, але відсутній у назві/авторі кандидата — ВІДКИДАЄМО (-1000)
+        # Якщо виконавець є у запиті, але відсутній у назві/авторі/URL кандидата — ВІДКИДАЄМО (-1000)
         if artist_words and not any(aw in full_text for aw in artist_words):
             return -1000
 
@@ -529,8 +530,8 @@ def _try_soundcloud_fallback(query: str) -> Tuple[Optional[str], Dict[str, Any]]
             # Сортуємо кандидатів за відповідністю та відсіюємо невідповідні (-1000)
             valid_candidates = [e for e in entries if _score_soundcloud_entry(e, cleaned_query) > 0]
             if not valid_candidates:
-                logger.warning(f"No strictly matching SoundCloud candidates found for '{cleaned_query}' — falling back to all entries")
-                valid_candidates = entries
+                logger.warning(f"No strictly matching SoundCloud candidates found for '{cleaned_query}' — skipping wrong track playback")
+                return None, {}
 
             valid_candidates.sort(key=lambda e: _score_soundcloud_entry(e, cleaned_query), reverse=True)
 
