@@ -318,9 +318,12 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
     if not get_cookies_path():
         profiles = [p for p in profiles if not p[1]]
 
+    bot_check_triggered = False
     for profile_name, use_cookies, clients in profiles:
         if use_cookies and not get_cookies_path():
             continue
+        if bot_check_triggered:
+            break
 
         for fmt in YTDLP_FORMAT_FALLBACKS:
             opts = dict(base_opts)
@@ -356,24 +359,29 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
                 last_error = exc
                 if _is_bot_check_error(exc):
                     logger.warning(
-                        f"Profile '{profile_name}' bot-check — trying next profile"
+                        f"Profile '{profile_name}' bot-check — cloud IP restriction detected"
                     )
+                    if not get_cookies_path():
+                        bot_check_triggered = True
+                        break
                     break
                 logger.warning(
                     f"Profile '{profile_name}' / '{fmt_label}' failed: {exc}"
                 )
 
-    if video_id:
+    if video_id and not bot_check_triggered:
         logger.info("yt-dlp exhausted — retrying Piped API")
         piped_url, piped_meta = fetch_piped_stream(page_url)
         if piped_url:
             return piped_url, piped_meta
 
-    # Резервна спроба через SoundCloud якщо YouTube повністю заблоковано через bot-check
+    # Резервна спроба через SoundCloud якщо YouTube заблоковано хмарою
     fallback_query = None
     if last_info and last_info.get("title"):
         fallback_query = last_info.get("title")
     elif video_id:
+        fallback_query = _fetch_youtube_oembed_title(page_url) or page_url
+    else:
         fallback_query = page_url
 
     if fallback_query:
@@ -389,6 +397,26 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
     elif last_error:
         logger.error(f"All yt-dlp profiles failed for {page_url}: {last_error}")
     return None, {}
+
+
+def _fetch_youtube_oembed_title(page_url: str) -> Optional[str]:
+    """Отримати назву відео через відкритий YouTube oEmbed API."""
+    video_id = _youtube_video_id(page_url)
+    if not video_id:
+        return None
+    oembed_url = f"https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={video_id}&format=json"
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+    try:
+        req = Request(oembed_url, headers=headers)
+        with urlopen(req, timeout=3) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            title = data.get("title")
+            if title:
+                logger.info(f"Resolved YouTube title via oEmbed: {title}")
+                return title
+    except Exception as exc:
+        logger.debug(f"oEmbed fetch failed for {video_id}: {exc}")
+    return None
 
 
 def _try_soundcloud_fallback(query: str) -> Tuple[Optional[str], Dict[str, Any]]:
