@@ -369,6 +369,18 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
         if piped_url:
             return piped_url, piped_meta
 
+    # Резервна спроба через SoundCloud якщо YouTube повністю заблоковано через bot-check
+    fallback_query = None
+    if last_info and last_info.get("title"):
+        fallback_query = last_info.get("title")
+    elif video_id:
+        fallback_query = page_url
+
+    if fallback_query:
+        sc_url, sc_meta = _try_soundcloud_fallback(fallback_query)
+        if sc_url:
+            return sc_url, sc_meta
+
     if last_info:
         n = len(last_info.get("formats") or [])
         logger.error(
@@ -377,6 +389,39 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
     elif last_error:
         logger.error(f"All yt-dlp profiles failed for {page_url}: {last_error}")
     return None, {}
+
+
+def _try_soundcloud_fallback(query: str) -> Tuple[Optional[str], Dict[str, Any]]:
+    """Резервний пошук та відтворення через SoundCloud якщо YouTube заблокований хмарою."""
+    if not query:
+        return None, {}
+    logger.info(f"Attempting SoundCloud fallback search for: {query}")
+    sc_opts = {
+        "quiet": True,
+        "no_warnings": True,
+        "noplaylist": True,
+        "format": "bestaudio/best",
+        "default_search": "scsearch",
+    }
+    sc_target = f"scsearch:{query}" if not query.startswith("scsearch:") and not query.startswith("http") else query
+    try:
+        with yt_dlp.YoutubeDL(sc_opts) as ydl:
+            info = ydl.extract_info(sc_target, download=False)
+            if not info:
+                return None, {}
+            if "entries" in info:
+                entries = [e for e in (info.get("entries") or []) if e]
+                if not entries:
+                    return None, {}
+                info = entries[0]
+            stream_url = _pick_stream_url(info)
+            if stream_url:
+                logger.info(f"Stream URL resolved via SoundCloud fallback: {info.get('title')}")
+                return stream_url, info
+    except Exception as exc:
+        logger.warning(f"SoundCloud fallback search failed: {exc}")
+    return None, {}
+
 
 
 def build_ytdlp_cli_args(url: str, format_str: Optional[str] = None) -> List[str]:
