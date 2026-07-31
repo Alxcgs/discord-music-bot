@@ -38,6 +38,10 @@ YTDLP_FORMAT_FALLBACKS = (
 
 # Публічні Piped API — обхід блокування YouTube з datacenter IP (Render тощо)
 PIPED_INSTANCES = (
+    "https://pipedapi.adminforge.de",
+    "https://pipedapi.astral.cy",
+    "https://api.piped.privacydev.net",
+    "https://pipedapi.mha.fi",
     "https://pipedapi.kavin.rocks",
     "https://api.piped.projectsegfau.lt",
     "https://pipedapi.lunar.icu",
