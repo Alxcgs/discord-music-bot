@@ -286,16 +286,23 @@ def _is_bot_check_error(exc: Exception) -> bool:
 
 
 def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
-    """Resolve a direct media URL: Instant SoundCloud fallback when no cookies set on cloud IP."""
+    """Resolve a direct media URL: YouTube direct -> YouTube Music fallback -> SoundCloud fallback."""
     video_id = _youtube_video_id(page_url)
     cookies = get_cookies_path()
 
-    # На хмарному IP (Render) без cookies прямий YouTube виклик дасть bot-check.
-    # Миттєво перенаправляємо на SoundCloud через oEmbed (без затримок в 15 секунд!).
+    # Якщо печеньки відсутні на хмарному IP (Render), прямий виклик YouTube відео дасть bot-check.
+    # Отримуємо назву треку через oEmbed (0.1с) і шукаємо через YouTube Music / SoundCloud.
     if video_id and not cookies:
-        logger.info("No YouTube cookies set on cloud IP — instantly routing to SoundCloud fallback via oEmbed")
+        logger.info("No YouTube cookies set on cloud IP — routing via oEmbed & YouTube Music / SoundCloud fallback")
         title = _fetch_youtube_oembed_title(page_url)
         fallback_query = title if title else page_url
+
+        # Спочатку пробуємо YouTube Music (офіційне джерело YouTube)
+        ytm_url, ytm_meta = _try_youtube_music_fallback(fallback_query)
+        if ytm_url:
+            return ytm_url, ytm_meta
+
+        # Якщо YouTube Music заблоковано, пробуємо SoundCloud з фільтрацією DRM
         sc_url, sc_meta = _try_soundcloud_fallback(fallback_query)
         if sc_url:
             return sc_url, sc_meta
@@ -366,7 +373,7 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
                     f"Profile '{profile_name}' / '{fmt_label}' failed: {exc}"
                 )
 
-    # Резервний SoundCloud перехід
+    # Резервний ланцюжок переходу
     fallback_query = None
     if last_info and last_info.get("title"):
         fallback_query = last_info.get("title")
@@ -376,6 +383,10 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
         fallback_query = page_url
 
     if fallback_query:
+        ytm_url, ytm_meta = _try_youtube_music_fallback(fallback_query)
+        if ytm_url:
+            return ytm_url, ytm_meta
+
         sc_url, sc_meta = _try_soundcloud_fallback(fallback_query)
         if sc_url:
             return sc_url, sc_meta
@@ -429,6 +440,40 @@ def _clean_title_for_search(title: str) -> str:
     return cleaned or title
 
 
+def _try_youtube_music_fallback(query: str) -> Tuple[Optional[str], Dict[str, Any]]:
+    """Пошук та відтворення через YouTube Music (ytmsearch) для джерел з YouTube."""
+    if not query:
+        return None, {}
+    cleaned = _clean_title_for_search(query)
+    logger.info(f"Attempting YouTube Music fallback search for: '{cleaned}'")
+    ytm_opts = {
+        "quiet": True,
+        "no_warnings": True,
+        "noplaylist": True,
+        "format": "bestaudio/best",
+        "default_search": "ytmsearch1",
+        "extractor_args": {"youtube": {"player_client": ["android_music", "web_music"]}},
+    }
+    ytm_target = f"ytmsearch1:{cleaned}" if not cleaned.startswith("ytmsearch") and not cleaned.startswith("http") else cleaned
+    try:
+        with yt_dlp.YoutubeDL(ytm_opts) as ydl:
+            info = ydl.extract_info(ytm_target, download=False)
+            if not info:
+                return None, {}
+            if "entries" in info:
+                entries = [e for e in (info.get("entries") or []) if e]
+                if not entries:
+                    return None, {}
+                info = entries[0]
+            stream_url = _pick_stream_url(info)
+            if stream_url:
+                logger.info(f"Stream URL resolved via YouTube Music fallback: '{info.get('title')}'")
+                return stream_url, info
+    except Exception as exc:
+        logger.warning(f"YouTube Music fallback search failed: {exc}")
+    return None, {}
+
+
 def _score_soundcloud_entry(entry: Dict[str, Any], original_query: str) -> int:
     """Ранжування кандидатів з SoundCloud для уникнення slowed/remix версій."""
     title = (entry.get("title") or "").lower()
@@ -444,7 +489,7 @@ def _score_soundcloud_entry(entry: Dict[str, Any], original_query: str) -> int:
 
 
 def _try_soundcloud_fallback(query: str) -> Tuple[Optional[str], Dict[str, Any]]:
-    """Резервний пошук та відтворення через SoundCloud з очищенням назв, фільтрацією DRM та обходом помилок."""
+    """Резервний пошук та відтворення через SoundCloud з extract_flat і фільтрацією DRM."""
     if not query:
         return None, {}
 
@@ -457,6 +502,7 @@ def _try_soundcloud_fallback(query: str) -> Tuple[Optional[str], Dict[str, Any]]
         "noplaylist": True,
         "format": "bestaudio/best",
         "default_search": "scsearch10",
+        "extract_flat": True,  # Не викликає deep format resolution на списку кандидатів (запобігає фатальній помилці DRM)
     }
     sc_target = f"scsearch10:{cleaned_query}" if not cleaned_query.startswith("scsearch") and not cleaned_query.startswith("http") else cleaned_query
     try:
@@ -473,27 +519,35 @@ def _try_soundcloud_fallback(query: str) -> Tuple[Optional[str], Dict[str, Any]]
             if not entries:
                 return None, {}
 
-            # Сортуємо кандидатів за відповідністю (оригінал замість slowed/remix)
+            # Сортуємо кандидатів за відповідністю
             entries.sort(key=lambda e: _score_soundcloud_entry(e, cleaned_query), reverse=True)
 
-            # Перебираємо кандидатів, пропускаючи DRM захищені
-            for candidate in entries:
-                cand_title = candidate.get("title") or "Unknown track"
-                try:
-                    cand_url = candidate.get("webpage_url") or candidate.get("url")
-                    if not cand_url:
+            # Перебираємо кандидатів по одному через окремий YoutubeDL екземпляр
+            deep_opts = {
+                "quiet": True,
+                "no_warnings": True,
+                "noplaylist": True,
+                "format": "bestaudio/best",
+            }
+            with yt_dlp.YoutubeDL(deep_opts) as deep_ydl:
+                for candidate in entries:
+                    cand_title = candidate.get("title") or "Unknown track"
+                    try:
+                        cand_url = candidate.get("url") or candidate.get("webpage_url")
+                        if not cand_url:
+                            continue
+                        if not cand_url.startswith("http"):
+                            cand_url = f"https://soundcloud.com/{cand_url}"
+                        cand_info = deep_ydl.extract_info(cand_url, download=False)
+                        if not cand_info:
+                            continue
+                        stream_url = _pick_stream_url(cand_info)
+                        if stream_url:
+                            logger.info(f"Stream URL resolved via SoundCloud fallback: '{cand_info.get('title', cand_title)}'")
+                            return stream_url, cand_info
+                    except Exception as exc:
+                        logger.warning(f"SoundCloud candidate '{cand_title}' skipped (DRM / unavailable): {exc}")
                         continue
-                    # Перевіряємо чи відтворюється кандидат і беремо його прямий потік
-                    cand_info = ydl.extract_info(cand_url, download=False)
-                    if not cand_info:
-                        continue
-                    stream_url = _pick_stream_url(cand_info)
-                    if stream_url:
-                        logger.info(f"Stream URL resolved via SoundCloud fallback: '{cand_info.get('title', cand_title)}'")
-                        return stream_url, cand_info
-                except Exception as exc:
-                    logger.warning(f"SoundCloud candidate '{cand_title}' skipped (e.g. DRM / unavailable): {exc}")
-                    continue
 
     except Exception as exc:
         logger.warning(f"SoundCloud fallback search failed: {exc}")
