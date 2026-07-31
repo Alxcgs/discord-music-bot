@@ -475,21 +475,32 @@ def _try_youtube_music_fallback(query: str) -> Tuple[Optional[str], Dict[str, An
 
 
 def _score_soundcloud_entry(entry: Dict[str, Any], original_query: str) -> int:
-    """Точне ранжування кандидатів: вимагає збігу ключових слів та штрафує slowed/remix."""
+    """Точне ранжування кандидатів: вимагає обов'язкової наявності виконавця та назви треку."""
     title = (entry.get("title") or "").lower()
+    uploader = (entry.get("uploader") or entry.get("channel") or "").lower()
+    full_text = f"{title} {uploader}"
     q = original_query.lower()
 
-    query_words = [w for w in re.findall(r"\w+", q) if len(w) >= 3]
-    if not query_words:
-        return 100
+    # Якщо у запиті є структура "Artist - Song", перевіряємо наявність виконавця
+    parts = re.split(r"\s*-\s*|\s+by\s+", q, maxsplit=1)
+    if len(parts) == 2:
+        artist, song = parts[0].strip(), parts[1].strip()
+        artist_words = [w for w in re.findall(r"\w+", artist) if len(w) >= 3]
+        song_words = [w for w in re.findall(r"\w+", song) if len(w) >= 3]
 
-    matched_words = [w for w in query_words if w in title]
-    match_ratio = len(matched_words) / len(query_words)
+        # Якщо виконавець є у запиті, але відсутній у назві/авторі кандидата — ВІДКИДАЄМО (-1000)
+        if artist_words and not any(aw in full_text for aw in artist_words):
+            return -1000
 
-    score = int(match_ratio * 100)
-    if match_ratio < 0.4:
-        score -= 80
+        # Якщо пісня має ключові слова, але жодне з них не збіглося — ВІДКИДАЄМО (-1000)
+        if song_words and not any(sw in full_text for sw in song_words):
+            return -1000
+    else:
+        words = [w for w in re.findall(r"\w+", q) if len(w) >= 3]
+        if words and not any(w in full_text for w in words):
+            return -1000
 
+    score = 100
     unwanted = ["slowed", "remix", "nightcore", "reverb", "speed up", "sped up", "edit", "bass boosted", "8d"]
     for kw in unwanted:
         if kw in title and kw not in q:
@@ -532,8 +543,13 @@ def _try_soundcloud_fallback(query: str) -> Tuple[Optional[str], Dict[str, Any]]
             if not entries:
                 return None, {}
 
-            # Сортуємо кандидатів за відповідністю
-            entries.sort(key=lambda e: _score_soundcloud_entry(e, cleaned_query), reverse=True)
+            # Сортуємо кандидатів за відповідністю та відсіюємо невідповідні (-1000)
+            valid_candidates = [e for e in entries if _score_soundcloud_entry(e, cleaned_query) > 0]
+            if not valid_candidates:
+                logger.warning(f"No strictly matching SoundCloud candidates found for '{cleaned_query}' — falling back to all entries")
+                valid_candidates = entries
+
+            valid_candidates.sort(key=lambda e: _score_soundcloud_entry(e, cleaned_query), reverse=True)
 
             # Перебираємо кандидатів по одному через окремий YoutubeDL екземпляр
             deep_opts = {
@@ -543,7 +559,7 @@ def _try_soundcloud_fallback(query: str) -> Tuple[Optional[str], Dict[str, Any]]
                 "format": "bestaudio/best",
             }
             with yt_dlp.YoutubeDL(deep_opts) as deep_ydl:
-                for candidate in entries:
+                for candidate in valid_candidates:
                     cand_title = candidate.get("title") or "Unknown track"
                     try:
                         cand_url = candidate.get("url") or candidate.get("webpage_url")
