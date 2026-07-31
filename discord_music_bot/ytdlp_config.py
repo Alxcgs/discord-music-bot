@@ -370,11 +370,9 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
         if ytm_url:
             return ytm_url, ytm_meta
 
-        # SoundCloud резерв ТОЛЬКО для не-YouTube джерел
-        if not video_id:
-            sc_url, sc_meta = _try_soundcloud_fallback(fallback_query)
-            if sc_url:
-                return sc_url, sc_meta
+        sc_url, sc_meta = _try_soundcloud_fallback(fallback_query)
+        if sc_url:
+            return sc_url, sc_meta
 
     if last_info:
         n = len(last_info.get("formats") or [])
