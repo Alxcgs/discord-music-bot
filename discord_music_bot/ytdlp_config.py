@@ -19,9 +19,10 @@ logger = logging.getLogger(__name__)
 
 _cookies_path: Optional[str] = None
 
-# Профілі: спочатку без cookies (Deno + tv_embedded/android_vr), потім з cookies
 EXTRACTION_PROFILES: Tuple[Tuple[str, bool, List[str]], ...] = (
     ("guest-android_vr", False, ["android_vr", "tv_embedded"]),
+    ("guest-tv", False, ["tv_embedded", "tv"]),
+    ("guest-android_music", False, ["android_music", "mweb"]),
     ("guest-ios", False, ["ios", "mweb"]),
     ("guest-web", False, ["mweb", "web"]),
     ("cookies-tv", True, ["tv_embedded", "tv", "web"]),
@@ -346,11 +347,8 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
                 last_error = exc
                 if _is_bot_check_error(exc):
                     logger.warning(
-                        f"Profile '{profile_name}' bot-check — cloud IP restriction detected"
+                        f"Profile '{profile_name}' bot-check — trying next client profile"
                     )
-                    if not cookies:
-                        bot_check_triggered = True
-                        break
                     break
                 logger.warning(
                     f"Profile '{profile_name}' / '{fmt_label}' failed: {exc}"
@@ -458,40 +456,33 @@ def _try_youtube_music_fallback(query: str) -> Tuple[Optional[str], Dict[str, An
 
 
 def _score_soundcloud_entry(entry: Dict[str, Any], original_query: str) -> int:
-    """Точне ранжування кандидатів: вимагає обов'язкової наявності виконавця та назви треку."""
+    """Точне та гнучке ранжування кандидатів за відсотком збігу слів."""
     title = (entry.get("title") or "").lower()
     uploader = (entry.get("uploader") or entry.get("channel") or "").lower()
     url = (entry.get("url") or entry.get("webpage_url") or "").lower()
     full_text = f"{title} {uploader} {url}"
     q = original_query.lower()
 
-    # Якщо у запиті є структура "Artist - Song", перевіряємо наявність виконавця
-    parts = re.split(r"\s*-\s*|\s+by\s+", q, maxsplit=1)
-    if len(parts) == 2:
-        artist, song = parts[0].strip(), parts[1].strip()
-        artist_words = [w for w in re.findall(r"\w+", artist) if len(w) >= 3]
-        song_words = [w for w in re.findall(r"\w+", song) if len(w) >= 3]
+    words = [w for w in re.findall(r"\w+", q) if len(w) >= 3]
+    if not words:
+        return 100
 
-        # Якщо виконавець є у запиті, але відсутній у назві/авторі/URL кандидата — ВІДКИДАЄМО (-1000)
-        if artist_words and not any(aw in full_text for aw in artist_words):
-            return -1000
+    matched = [w for w in words if w in full_text]
+    match_ratio = len(matched) / len(words)
 
-        # Якщо пісня має ключові слова, але жодне з них не збіглося — ВІДКИДАЄМО (-1000)
-        if song_words and not any(sw in full_text for sw in song_words):
-            return -1000
-    else:
-        words = [w for w in re.findall(r"\w+", q) if len(w) >= 3]
-        if words and not any(w in full_text for w in words):
-            return -1000
+    # Якщо збігається менше 35% слів — відсіюємо кандидат (-1000)
+    if match_ratio < 0.35:
+        return -1000
 
-    score = 100
+    score = int(match_ratio * 100)
+
     unwanted = ["slowed", "remix", "nightcore", "reverb", "speed up", "sped up", "edit", "bass boosted", "8d"]
     for kw in unwanted:
         if kw in title and kw not in q:
-            score -= 50
+            score -= 40
 
     if q and q in title:
-        score += 40
+        score += 30
 
     return score
 
