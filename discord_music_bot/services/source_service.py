@@ -94,10 +94,44 @@ class SourceService:
                             'duration': entry.get('duration'),
                             'thumbnail': entry.get('thumbnail')
                         })
-                return results
+                if results:
+                    return results
         except Exception as e:
-            self.logger.error(f"Error searching videos for {query}: {e}")
-            return []
+            self.logger.warning(f"yt-dlp search failed for {query}: {e}")
+
+        # Cloud host fallback: SoundCloud search (never blocked on datacenter IPs)
+        self.logger.info(f"Falling back to SoundCloud search for '{query}'")
+        try:
+            sc_query = f"scsearch{max_results}:{query}"
+            ydl_opts = {
+                "quiet": True,
+                "no_warnings": True,
+                "extract_flat": True,
+                "skip_download": True,
+            }
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = await self._get_loop().run_in_executor(
+                    None, lambda: ydl.extract_info(sc_query, download=False)
+                )
+                if info and "entries" in info:
+                    results = []
+                    for entry in info["entries"]:
+                        if entry:
+                            results.append({
+                                "title": entry.get("title", "Unknown"),
+                                "url": entry.get("webpage_url", entry.get("url", "")),
+                                "webpage_url": entry.get("webpage_url", entry.get("url", "")),
+                                "duration": entry.get("duration"),
+                                "thumbnail": entry.get("thumbnail"),
+                            })
+                    if results:
+                        self.logger.info(f"SoundCloud search OK: {len(results)} results for '{query}'")
+                        return results
+        except Exception as sc_err:
+            self.logger.error(f"SoundCloud search failed for '{query}': {sc_err}")
+
+        return []
+
 
     async def extract_playlist(self, url: str) -> Tuple[Optional[str], List[Dict[str, Any]]]:
         """Витягує список треків з плейлиста (тільки метадані, швидко)."""

@@ -462,6 +462,13 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
         if piped_url:
             return piped_url, piped_meta
 
+        # Fallback for datacenter IP blocks: fetch title via oEmbed and resolve stream via SoundCloud
+        logger.info(f"Attempting SoundCloud fallback for YouTube URL: {page_url}")
+        sc_url, sc_meta = fetch_soundcloud_fallback(page_url)
+        if sc_url:
+            logger.info(f"SoundCloud fallback resolved stream URL for: {sc_meta.get('title')}")
+            return sc_url, sc_meta
+
     if last_info:
         n = len(last_info.get("formats") or [])
         logger.error(
@@ -469,7 +476,15 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
         )
     elif last_error:
         logger.error(f"All yt-dlp profiles failed for {page_url}: {last_error}")
+
+    # Final attempt: try SoundCloud fallback for any URL if not already done
+    sc_url, sc_meta = fetch_soundcloud_fallback(page_url)
+    if sc_url:
+        logger.info(f"SoundCloud final fallback resolved stream URL for: {sc_meta.get('title')}")
+        return sc_url, sc_meta
+
     return None, {}
+
 
 
 def build_ytdlp_cli_args(url: str, format_str: Optional[str] = None) -> List[str]:
