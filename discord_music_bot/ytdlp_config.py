@@ -19,14 +19,15 @@ logger = logging.getLogger(__name__)
 
 _cookies_path: Optional[str] = None
 
-# Профілі: спочатку без cookies (Deno + tv_embedded/android_vr), потім з cookies
+# Профілі: android та web профілі обходять бот-чеки YouTube без авторизації
 EXTRACTION_PROFILES: Tuple[Tuple[str, bool, List[str]], ...] = (
-    ("guest-android_vr", False, ["android_vr", "tv_embedded"]),
-    ("guest-ios", False, ["ios", "mweb"]),
-    ("guest-web", False, ["mweb", "web"]),
+    ("guest-android", False, ["android", "web"]),
+    ("guest-web", False, ["web", "mweb"]),
+    ("guest-tv", False, ["tv_embedded", "tv"]),
     ("cookies-tv", True, ["tv_embedded", "tv", "web"]),
     ("cookies-web", True, ["web", "mweb", "web_safari"]),
 )
+
 
 YTDLP_AUDIO_FORMAT = "bestaudio/best"
 YTDLP_FORMAT_FALLBACKS = (
@@ -401,44 +402,8 @@ def fetch_youtube_oembed(url: str) -> Optional[str]:
         return None
 
 
-def fetch_soundcloud_fallback(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
-    """Fallback for datacenter IP blocks: fetch title via oEmbed and resolve stream via SoundCloud search."""
-    title = fetch_youtube_oembed(page_url)
-    if not title:
-        return None, {}
-
-    try:
-        ydl_opts = {
-            "quiet": True,
-            "no_warnings": True,
-            "extract_flat": False,
-            "format": "bestaudio/best",
-            "source_address": "0.0.0.0",
-            "force-ipv4": True,
-        }
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(f"scsearch1:{title}", download=False)
-            entries = info.get("entries") or []
-            if entries:
-                entry = entries[0]
-                stream_url = _pick_stream_url(entry) or entry.get("url")
-                if stream_url:
-                    meta = {
-                        "title": entry.get("title", title),
-                        "webpage_url": page_url,
-                        "duration": entry.get("duration"),
-                        "thumbnail": entry.get("thumbnail"),
-                    }
-                    return stream_url, meta
-    except Exception as exc:
-        logger.warning(f"SoundCloud fallback failed for '{title}': {exc}")
-
-    return None, {}
-
-
 def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
-
-    """Resolve a direct media URL: Piped first for YouTube, then yt-dlp."""
+    """Resolve a direct media URL for YouTube using player clients (android/web) and Piped fallback."""
     video_id = _youtube_video_id(page_url)
     if video_id and _piped_first_enabled():
         logger.info("Trying Piped API first (cloud-friendly)")
@@ -498,28 +463,15 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
                     )
             except Exception as exc:
                 last_error = exc
-                if _is_bot_check_error(exc):
-                    logger.warning(
-                        f"Profile '{profile_name}' bot-check — attempting fallback immediately"
-                    )
-                    if video_id and not get_cookies_path():
-                        sc_url, sc_meta = fetch_soundcloud_fallback(page_url)
-                        if sc_url:
-                            logger.info(
-                                f"SoundCloud fast-fallback resolved stream for: {sc_meta.get('title')}"
-                            )
-                            return sc_url, sc_meta
-                    break
                 logger.warning(
                     f"Profile '{profile_name}' / '{fmt_label}' failed: {exc}"
                 )
 
     if video_id:
-        logger.info(f"Attempting SoundCloud fallback for YouTube URL: {page_url}")
-        sc_url, sc_meta = fetch_soundcloud_fallback(page_url)
-        if sc_url:
-            logger.info(f"SoundCloud fallback resolved stream URL for: {sc_meta.get('title')}")
-            return sc_url, sc_meta
+        logger.info("yt-dlp exhausted — retrying Piped API")
+        piped_url, piped_meta = fetch_piped_stream(page_url)
+        if piped_url:
+            return piped_url, piped_meta
 
     if last_info:
         n = len(last_info.get("formats") or [])
@@ -529,13 +481,8 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
     elif last_error:
         logger.error(f"All yt-dlp profiles failed for {page_url}: {last_error}")
 
-    # Final attempt
-    sc_url, sc_meta = fetch_soundcloud_fallback(page_url)
-    if sc_url:
-        logger.info(f"SoundCloud final fallback resolved stream URL for: {sc_meta.get('title')}")
-        return sc_url, sc_meta
-
     return None, {}
+
 
 
 
