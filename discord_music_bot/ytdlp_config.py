@@ -19,10 +19,9 @@ logger = logging.getLogger(__name__)
 
 _cookies_path: Optional[str] = None
 
+# Профілі: спочатку без cookies (Deno + tv_embedded/android_vr), потім з cookies
 EXTRACTION_PROFILES: Tuple[Tuple[str, bool, List[str]], ...] = (
     ("guest-android_vr", False, ["android_vr", "tv_embedded"]),
-    ("guest-tv", False, ["tv_embedded", "tv"]),
-    ("guest-android_music", False, ["android_music", "mweb"]),
     ("guest-ios", False, ["ios", "mweb"]),
     ("guest-web", False, ["mweb", "web"]),
     ("cookies-tv", True, ["tv_embedded", "tv", "web"]),
@@ -30,10 +29,15 @@ EXTRACTION_PROFILES: Tuple[Tuple[str, bool, List[str]], ...] = (
 )
 
 YTDLP_AUDIO_FORMAT = "bestaudio/best"
-YTDLP_FORMAT_FALLBACKS = ("bestaudio/best",)
+YTDLP_FORMAT_FALLBACKS = (
+    None,
+    "bestaudio/best",
+    "ba/b",
+    "worst",
+)
 
 # Публічні Piped API — обхід блокування YouTube з datacenter IP (Render тощо)
-# Piped проксює потік через свій сервер (не datacenter), тому URL доступний з Render
+# Piped проксює потік через свій сервер, тому URL доступний з Render
 PIPED_INSTANCES = (
     "https://pipedapi.adminforge.de",
     "https://pipedapi.astral.cy",
@@ -47,7 +51,7 @@ PIPED_INSTANCES = (
     "https://api.piped.private.coffee",
 )
 
-# Публічні Invidious API — альтернатива Piped, також проксує через свій сервер
+# Публічні Invidious API — резерв якщо Piped не доступний
 INVIDIOUS_INSTANCES = (
     "https://invidious.privacyredirect.com",
     "https://yewtu.be",
@@ -124,7 +128,7 @@ def init_ytdlp_cookies() -> Optional[str]:
 
     logger.warning(
         "YouTube cookies not configured (YTDLP_COOKIES_B64 / YTDLP_COOKIES_FILE). "
-        "Will try Piped/Invidious then guest player clients with Deno."
+        "Will try guest player clients with Deno."
     )
     _log_js_runtime()
     return None
@@ -205,7 +209,6 @@ def _pick_piped_stream_url(data: Dict[str, Any], base_url: str = "") -> Optional
         audio_streams.sort(key=_audio_score, reverse=True)
         url = audio_streams[0].get("url")
         if url:
-            # Якщо URL відносний — додаємо базу (Piped проксує через себе)
             if url.startswith("/") and base_url:
                 url = base_url.rstrip("/") + url
             return url
@@ -231,27 +234,24 @@ def _pick_piped_stream_url(data: Dict[str, Any], base_url: str = "") -> Optional
 
 
 def fetch_piped_stream(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
-    """Отримати media URL через Piped API — Piped проксює потік через свій сервер."""
+    """Отримати media URL через Piped API (Piped проксює через свій сервер)."""
     video_id = _youtube_video_id(page_url)
     if not video_id:
         return None, {}
 
+    instances: List[str] = []
     custom = os.getenv("PIPED_API_URL", "").strip().rstrip("/")
     if custom:
-        instances = [custom]
-    else:
-        instances = list(PIPED_INSTANCES)
+        instances.append(custom)
+    instances.extend(PIPED_INSTANCES)
 
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "Accept": "application/json",
-    }
+    headers = {"User-Agent": "Mozilla/5.0 (compatible; discord-music-bot/1.0)"}
 
     for base in instances:
         api_url = f"{base}/streams/{video_id}"
         try:
             req = Request(api_url, headers=headers)
-            with urlopen(req, timeout=5) as resp:
+            with urlopen(req, timeout=8) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
 
             meta: Dict[str, Any] = {
@@ -261,14 +261,18 @@ def fetch_piped_stream(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
                 "thumbnail": data.get("thumbnailUrl"),
             }
 
-            # ВИПРАВЛЕННЯ КРИТИЧНОГО БАГА: використовуємо _pick_piped_stream_url
-            # а не _pick_stream_url, бо Piped повертає audioStreams, а не formats/url
             stream_url = _pick_piped_stream_url(data, base_url=base)
             if stream_url:
-                logger.info(f"Stream URL resolved via Piped ({base}): '{data.get('title')}'")
+                logger.info(f"Stream URL resolved via Piped ({base})")
                 return stream_url, meta
-            else:
-                logger.warning(f"Piped {base} returned no audio stream for {video_id}")
+
+            logger.warning(
+                f"Piped ({base}): no playable streams for {video_id} "
+                f"(audio={len(data.get('audioStreams') or [])}, "
+                f"video={len(data.get('videoStreams') or [])})"
+            )
+        except (URLError, TimeoutError, json.JSONDecodeError, KeyError) as exc:
+            logger.warning(f"Piped instance {base} failed: {exc}")
         except Exception as exc:
             logger.warning(f"Piped instance {base} failed: {exc}")
 
@@ -276,25 +280,21 @@ def fetch_piped_stream(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
 
 
 def fetch_invidious_stream(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
-    """Отримати media URL через Invidious API — резервна альтернатива до Piped."""
+    """Резервне отримання URL через Invidious API (якщо Piped не спрацював)."""
     video_id = _youtube_video_id(page_url)
     if not video_id:
         return None, {}
 
     custom = os.getenv("INVIDIOUS_API_URL", "").strip().rstrip("/")
-    instances = [custom] if custom else list(INVIDIOUS_INSTANCES)
-
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "Accept": "application/json",
-    }
+    instances: List[str] = [custom] if custom else list(INVIDIOUS_INSTANCES)
+    headers = {"User-Agent": "Mozilla/5.0 (compatible; discord-music-bot/1.0)"}
 
     for base in instances:
-        # local=true просить Invidious повернути URL через свій проксі (не googlevideo.com напряму)
+        # local=true — Invidious повертає URL через свій проксі, а не googlevideo.com
         api_url = f"{base}/api/v1/videos/{video_id}?local=true"
         try:
             req = Request(api_url, headers=headers)
-            with urlopen(req, timeout=5) as resp:
+            with urlopen(req, timeout=8) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
 
             adaptive = data.get("adaptiveFormats") or []
@@ -304,30 +304,25 @@ def fetch_invidious_stream(page_url: str) -> Tuple[Optional[str], Dict[str, Any]
             ]
 
             if audio_formats:
-                def inv_audio_score(f: Dict[str, Any]) -> int:
+                def _inv_score(f: Dict[str, Any]) -> int:
                     mime = (f.get("type") or "").lower()
-                    opus_bonus = 100_000 if "opus" in mime else 0
-                    return opus_bonus + int(f.get("bitrate", 0) or 0)
+                    return (100_000 if "opus" in mime else 0) + int(f.get("bitrate", 0) or 0)
 
-                audio_formats.sort(key=inv_audio_score, reverse=True)
+                audio_formats.sort(key=_inv_score, reverse=True)
                 stream_url = audio_formats[0]["url"]
-
                 if stream_url.startswith("/"):
                     stream_url = base.rstrip("/") + stream_url
 
                 thumbnails = data.get("videoThumbnails") or []
-                thumb = thumbnails[0].get("url") if thumbnails else None
-
                 meta = {
                     "title": data.get("title"),
                     "webpage_url": page_url,
                     "duration": data.get("lengthSeconds"),
-                    "thumbnail": thumb,
+                    "thumbnail": thumbnails[0].get("url") if thumbnails else None,
                 }
-                logger.info(f"Stream URL resolved via Invidious ({base}): '{data.get('title')}'")
+                logger.info(f"Stream URL resolved via Invidious ({base})")
                 return stream_url, meta
-            else:
-                logger.warning(f"Invidious {base} returned no audio formats for {video_id}")
+
         except Exception as exc:
             logger.warning(f"Invidious instance {base} failed: {exc}")
 
@@ -368,30 +363,22 @@ def _is_bot_check_error(exc: Exception) -> bool:
 
 
 def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
-    """Resolve a direct media URL.
-
-    Порядок спроб:
-    1. Piped API (публічні інстанси проксують потік через себе, обходять блок Render)
-    2. Invidious API (альтернатива Piped)
-    3. yt-dlp гостьові профілі (можуть спрацювати якщо IP не заблоковано)
-    4. SoundCloud fallback (пошук за назвою)
-    """
+    """Resolve a direct media URL: Piped -> Invidious -> yt-dlp -> Piped retry."""
     video_id = _youtube_video_id(page_url)
-    cookies = get_cookies_path()
-
-    # ── 1. Piped API ────────────────────────────────────────────────────────────
     if video_id and _piped_first_enabled():
+        logger.info("Trying Piped API first (cloud-friendly)")
         piped_url, piped_meta = fetch_piped_stream(page_url)
         if piped_url:
             return piped_url, piped_meta
 
-    # ── 2. Invidious API ────────────────────────────────────────────────────────
-    if video_id:
-        invidious_url, invidious_meta = fetch_invidious_stream(page_url)
-        if invidious_url:
-            return invidious_url, invidious_meta
+        # Piped не спрацював — пробуємо Invidious
+        logger.warning("Piped API failed — trying Invidious")
+        inv_url, inv_meta = fetch_invidious_stream(page_url)
+        if inv_url:
+            return inv_url, inv_meta
 
-    # ── 3. yt-dlp guest profiles ────────────────────────────────────────────────
+        logger.warning("Invidious also failed — falling back to yt-dlp profiles")
+
     base_opts: Dict[str, Any] = {
         "quiet": True,
         "no_warnings": True,
@@ -399,17 +386,16 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
         "source_address": "0.0.0.0",
         "force-ipv4": True,
         "cachedir": False,
-        "socket_timeout": 5,
     }
     last_error: Optional[Exception] = None
     last_info: Dict[str, Any] = {}
 
     profiles = list(EXTRACTION_PROFILES)
-    if not cookies:
+    if not get_cookies_path():
         profiles = [p for p in profiles if not p[1]]
 
     for profile_name, use_cookies, clients in profiles:
-        if use_cookies and not cookies:
+        if use_cookies and not get_cookies_path():
             continue
 
         for fmt in YTDLP_FORMAT_FALLBACKS:
@@ -437,30 +423,27 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
                             f"Stream URL resolved (profile={profile_name}, format={fmt_label})"
                         )
                         return stream_url, info
+                    n_formats = len(info.get("formats") or [])
+                    logger.warning(
+                        f"Profile '{profile_name}' / '{fmt_label}': "
+                        f"no playable URL ({n_formats} formats)"
+                    )
             except Exception as exc:
                 last_error = exc
                 if _is_bot_check_error(exc):
                     logger.warning(
-                        f"Profile '{profile_name}' bot-check (datacenter IP block) — trying next"
+                        f"Profile '{profile_name}' bot-check — trying next profile"
                     )
-                    break  # переходимо до наступного профілю
+                    break
                 logger.warning(
                     f"Profile '{profile_name}' / '{fmt_label}' failed: {exc}"
                 )
 
-    # ── 4. SoundCloud fallback ──────────────────────────────────────────────────
-    fallback_query: Optional[str] = None
-    if last_info and last_info.get("title"):
-        fallback_query = last_info.get("title")
-    elif video_id:
-        fallback_query = _fetch_youtube_oembed_title(page_url) or page_url
-    else:
-        fallback_query = page_url
-
-    if fallback_query:
-        sc_url, sc_meta = _try_soundcloud_fallback(fallback_query)
-        if sc_url:
-            return sc_url, sc_meta
+    if video_id:
+        logger.info("yt-dlp exhausted — retrying Piped API")
+        piped_url, piped_meta = fetch_piped_stream(page_url)
+        if piped_url:
+            return piped_url, piped_meta
 
     if last_info:
         n = len(last_info.get("formats") or [])
@@ -468,169 +451,7 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
             f"Could not pick stream URL for {page_url} ({n} formats in last response)"
         )
     elif last_error:
-        logger.error(f"All yt-dlp profiles and fallbacks failed for {page_url}: {last_error}")
-    return None, {}
-
-
-def _fetch_youtube_oembed_title(page_url: str) -> Optional[str]:
-    """Отримати назву відео через відкритий YouTube oEmbed API."""
-    video_id = _youtube_video_id(page_url)
-    if not video_id:
-        return None
-    oembed_url = f"https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={video_id}&format=json"
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-    try:
-        req = Request(oembed_url, headers=headers)
-        with urlopen(req, timeout=3) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            title = data.get("title")
-            if title:
-                logger.info(f"Resolved YouTube title via oEmbed: '{title}'")
-                return title
-    except Exception as exc:
-        logger.debug(f"oEmbed fetch failed for {video_id}: {exc}")
-    return None
-
-
-def _clean_title_for_search(title: str) -> str:
-    """Очищає назву відео від рекламних/технічних дужок для точного пошуку треку."""
-    if not title:
-        return ""
-    cleaned = re.sub(
-        r"[\(\[\{](?:official|music|video|audio|clip|премьера|клип|официальный|lyric|hd|4k|remastered|full|mv).*?[\)\]\}]",
-        "",
-        title,
-        flags=re.IGNORECASE,
-    )
-    cleaned = re.sub(
-        r"(?i)\b(official music video|official video|music video|lyric video|премьера клипа|официальный клип)\b",
-        "",
-        cleaned,
-    )
-    cleaned = re.sub(r"\s+", " ", cleaned).strip()
-    return cleaned or title
-
-
-def _score_soundcloud_entry(entry: Dict[str, Any], original_query: str) -> int:
-    """Ранжування SoundCloud кандидатів: жорстка перевірка виконавця + гнучкий збіг слів."""
-    title = (entry.get("title") or "").lower()
-    uploader = (entry.get("uploader") or entry.get("channel") or "").lower()
-    url = (entry.get("url") or entry.get("webpage_url") or "").lower()
-    full_text = f"{title} {uploader} {url}"
-    q = original_query.lower()
-
-    words = [w for w in re.findall(r"\w+", q) if len(w) >= 3]
-    if not words:
-        return 100
-
-    matched = [w for w in words if w in full_text]
-    match_ratio = len(matched) / len(words)
-
-    # Якщо збігається менше 40% слів — відсіюємо кандидат (-1000)
-    if match_ratio < 0.40:
-        return -1000
-
-    score = int(match_ratio * 100)
-
-    # Сильний штраф за ремікси/slowed якщо їх не просили
-    unwanted = [
-        "slowed", "remix", "nightcore", "reverb", "speed up", "sped up",
-        "edit", "bass boosted", "8d", "cover", "tiktok", "tik tok", "slow",
-        "karaoke", "instrumental",
-    ]
-    for kw in unwanted:
-        if kw in title and kw not in q:
-            score -= 100
-
-    if q in title:
-        score += 30
-
-    return score
-
-
-def _try_soundcloud_fallback(query: str) -> Tuple[Optional[str], Dict[str, Any]]:
-    """Резервний пошук та відтворення через SoundCloud з фільтрацією DRM."""
-    if not query:
-        return None, {}
-
-    cleaned_query = _clean_title_for_search(query)
-    logger.info(f"Attempting SoundCloud fallback search for: '{cleaned_query}' (raw: '{query}')")
-
-    sc_opts = {
-        "quiet": True,
-        "no_warnings": True,
-        "noplaylist": True,
-        "format": "bestaudio/best",
-        "default_search": "scsearch10",
-        "extract_flat": True,
-    }
-    sc_target = (
-        f"scsearch10:{cleaned_query}"
-        if not cleaned_query.startswith("scsearch") and not cleaned_query.startswith("http")
-        else cleaned_query
-    )
-    try:
-        with yt_dlp.YoutubeDL(sc_opts) as ydl:
-            info = ydl.extract_info(sc_target, download=False)
-            if not info:
-                return None, {}
-            entries = []
-            if "entries" in info:
-                entries = [e for e in (info.get("entries") or []) if e]
-            elif info.get("url"):
-                entries = [info]
-
-            if not entries:
-                return None, {}
-
-            scored = [
-                (e, _score_soundcloud_entry(e, cleaned_query)) for e in entries
-            ]
-            valid_candidates = [(e, s) for e, s in scored if s > 0]
-
-            if not valid_candidates:
-                logger.warning(
-                    f"No matching SoundCloud candidates for '{cleaned_query}' "
-                    f"(best score: {max(s for _, s in scored) if scored else 'N/A'})"
-                )
-                return None, {}
-
-            valid_candidates.sort(key=lambda t: t[1], reverse=True)
-            logger.info(
-                f"Top SoundCloud candidates for '{cleaned_query}': "
-                + ", ".join(f"'{e.get('title')}' ({s})" for e, s in valid_candidates[:3])
-            )
-
-            deep_opts = {
-                "quiet": True,
-                "no_warnings": True,
-                "noplaylist": True,
-                "format": "bestaudio/best",
-            }
-            with yt_dlp.YoutubeDL(deep_opts) as deep_ydl:
-                for candidate, candidate_score in valid_candidates:
-                    cand_title = candidate.get("title") or "Unknown track"
-                    try:
-                        cand_url = candidate.get("url") or candidate.get("webpage_url")
-                        if not cand_url:
-                            continue
-                        if not cand_url.startswith("http"):
-                            cand_url = f"https://soundcloud.com/{cand_url}"
-                        cand_info = deep_ydl.extract_info(cand_url, download=False)
-                        if not cand_info:
-                            continue
-                        stream_url = _pick_stream_url(cand_info)
-                        if stream_url:
-                            logger.info(
-                                f"Stream URL resolved via SoundCloud: '{cand_info.get('title', cand_title)}' (score={candidate_score})"
-                            )
-                            return stream_url, cand_info
-                    except Exception as exc:
-                        logger.warning(f"SoundCloud candidate '{cand_title}' skipped: {exc}")
-                        continue
-
-    except Exception as exc:
-        logger.warning(f"SoundCloud fallback search failed: {exc}")
+        logger.error(f"All yt-dlp profiles failed for {page_url}: {last_error}")
     return None, {}
 
 

@@ -93,30 +93,3 @@ def start_zombie_cleanup(bot_loop: asyncio.AbstractEventLoop, interval: int = 30
     task = bot_loop.create_task(cleanup_zombie_processes(interval))
     logger.info(f"Zombie cleanup task запущено (інтервал: {interval}с)")
     return task
-
-
-async def _run_http_server(host: str, port: int):
-    try:
-        from aiohttp import web
-
-        async def handle_health(request):
-            return web.Response(text="OK", status=200)
-
-        app = web.Application()
-        app.router.add_get('/', handle_health)
-        app.router.add_get('/health', handle_health)
-
-        runner = web.AppRunner(app)
-        await runner.setup()
-        site = web.TCPSite(runner, host, port)
-        await site.start()
-        logger.info(f"HTTP healthcheck server started on {host}:{port}")
-    except Exception as e:
-        logger.error(f"Failed to start HTTP healthcheck server on port {port}: {e}")
-
-
-def start_http_healthcheck_server(bot_loop: asyncio.AbstractEventLoop, port: int, host: str = "0.0.0.0"):
-    """Запускає легкий фоновий HTTP-сервер для healthcheck (Render Web Service)."""
-    task = bot_loop.create_task(_run_http_server(host, port))
-    return task
-

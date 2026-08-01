@@ -8,7 +8,7 @@ import sys
 import ssl
 import certifi
 from discord_music_bot.config import DISCORD_TOKEN # Імпортуємо токен з конфігурації
-from discord_music_bot.healthcheck import start_zombie_cleanup, start_http_healthcheck_server
+from discord_music_bot.healthcheck import start_zombie_cleanup
 from discord_music_bot.ytdlp_config import init_ytdlp_cookies
 import atexit
 
@@ -124,15 +124,6 @@ async def on_ready():
 
     # Запуск zombie cleanup
     start_zombie_cleanup(asyncio.get_event_loop(), interval=300)
-
-    # Запуск HTTP healthcheck сервера якщо вказано PORT (наприклад на Render Web Service)
-    port_env = os.getenv("PORT")
-    if port_env:
-        try:
-            port = int(port_env)
-            start_http_healthcheck_server(asyncio.get_event_loop(), port=port)
-        except ValueError:
-            logging.error(f"Некоректне значення PORT: {port_env}")
 
 @bot.event
 async def on_command_error(ctx, error):
