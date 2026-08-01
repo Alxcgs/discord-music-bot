@@ -6,6 +6,7 @@ from discord_music_bot.ytdlp_config import (
     apply_ytdlp_python_opts,
     fetch_piped_search,
     fetch_piped_stream,
+    fetch_youtube_oembed,
     _piped_first_enabled,
 )
 from typing import List, Dict, Optional, Tuple, Any
@@ -28,27 +29,47 @@ class SourceService:
 
     async def get_video_info(self, url: str) -> Optional[Dict[str, Any]]:
         """Отримує метадані для одного відео/треку за URL або запитом."""
+        is_youtube = any(x in url.lower() for x in ['youtube.com', 'youtu.be'])
+
+        # Для YouTube посилань: спочатку пробуємо oEmbed (ніколи не блокується на cloud IP, працює за 0.1с)
+        if is_youtube:
+            try:
+                title = await self._get_loop().run_in_executor(
+                    None, lambda: fetch_youtube_oembed(url)
+                )
+                if title:
+                    self.logger.info(f"oEmbed metadata resolved for YouTube URL: '{title}'")
+                    return {
+                        'title': title,
+                        'url': url,
+                        'webpage_url': url,
+                        'duration': None,
+                        'thumbnail': None,
+                    }
+            except Exception as exc:
+                self.logger.warning(f"oEmbed metadata failed for {url}: {exc}")
+
         search_url = url if any(x in url.lower() for x in ['youtube.com', 'youtu.be', 'soundcloud.com']) else f"ytsearch:{url}"
         # SoundCloud потребує повної екстракції для отримання назв
         is_soundcloud = 'soundcloud.com' in url.lower()
-        
+
         ydl_opts = apply_ytdlp_python_opts(self.light_ydl_opts.copy())
         if is_soundcloud:
             ydl_opts['extract_flat'] = False
-            
+
         try:
             # Виконуємо синхронний код yt_dlp в окремому потоці
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = await self._get_loop().run_in_executor(None, lambda: ydl.extract_info(search_url, download=False))
                 if not info:
                     return None
-                
+
                 # Якщо це пошук, беремо перший результат
                 if 'entries' in info:
                     if not info['entries']:
                         return None
                     info = info['entries'][0]
-                    
+
                 return {
                     'title': info.get('title') or info.get('fulltitle') or 'Unknown',
                     'url': info.get('webpage_url', url) or info.get('url', url),
@@ -58,6 +79,7 @@ class SourceService:
         except Exception as e:
             self.logger.error(f"Error extracting info for {url}: {e}")
             return None
+
 
     async def search_videos(self, query: str, max_results: int = 10) -> List[Dict[str, Any]]:
         """Шукає кілька відео за текстовим запитом (для меню вибору)."""
