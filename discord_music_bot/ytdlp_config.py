@@ -500,20 +500,21 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
                 last_error = exc
                 if _is_bot_check_error(exc):
                     logger.warning(
-                        f"Profile '{profile_name}' bot-check — trying next profile"
+                        f"Profile '{profile_name}' bot-check — attempting fallback immediately"
                     )
+                    if video_id and not get_cookies_path():
+                        sc_url, sc_meta = fetch_soundcloud_fallback(page_url)
+                        if sc_url:
+                            logger.info(
+                                f"SoundCloud fast-fallback resolved stream for: {sc_meta.get('title')}"
+                            )
+                            return sc_url, sc_meta
                     break
                 logger.warning(
                     f"Profile '{profile_name}' / '{fmt_label}' failed: {exc}"
                 )
 
     if video_id:
-        logger.info("yt-dlp exhausted — retrying Piped API")
-        piped_url, piped_meta = fetch_piped_stream(page_url)
-        if piped_url:
-            return piped_url, piped_meta
-
-        # Fallback for datacenter IP blocks: fetch title via oEmbed and resolve stream via SoundCloud
         logger.info(f"Attempting SoundCloud fallback for YouTube URL: {page_url}")
         sc_url, sc_meta = fetch_soundcloud_fallback(page_url)
         if sc_url:
@@ -528,13 +529,14 @@ def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
     elif last_error:
         logger.error(f"All yt-dlp profiles failed for {page_url}: {last_error}")
 
-    # Final attempt: try SoundCloud fallback for any URL if not already done
+    # Final attempt
     sc_url, sc_meta = fetch_soundcloud_fallback(page_url)
     if sc_url:
         logger.info(f"SoundCloud final fallback resolved stream URL for: {sc_meta.get('title')}")
         return sc_url, sc_meta
 
     return None, {}
+
 
 
 
