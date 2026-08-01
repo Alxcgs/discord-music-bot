@@ -40,6 +40,9 @@ COPY --chown=botuser:botuser . .
 # Змінна середовища для шляху до БД
 ENV DB_DATA_DIR=/app/data
 ENV PYTHONUNBUFFERED=1
+# Health check port (Render sets $PORT dynamically; default 8080 for local Docker)
+ENV PORT=8080
+EXPOSE 8080
 
 USER botuser
 

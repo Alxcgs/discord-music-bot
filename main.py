@@ -7,10 +7,43 @@ import os
 import sys
 import ssl
 import certifi
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from discord_music_bot.config import DISCORD_TOKEN # Імпортуємо токен з конфігурації
 from discord_music_bot.healthcheck import start_zombie_cleanup
 from discord_music_bot.ytdlp_config import init_ytdlp_cookies
 import atexit
+
+
+# --- HTTP Health-сервер для Render (і будь-якого PaaS) ---
+class _HealthHandler(BaseHTTPRequestHandler):
+    """Мінімальний HTTP-хендлер: GET /health → 200 OK, решта → 404."""
+
+    def do_GET(self):
+        if self.path in ('/', '/health'):
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(b'OK')
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def log_message(self, format, *args):  # noqa: A002
+        pass  # Не засмічуємо логи HTTP-запитами пінгерів
+
+
+def start_health_server() -> None:
+    """Запускає HTTP-сервер у фоновому daemon-потоці.
+
+    Render та інші PaaS вимагають, щоб web-сервіс слухав на $PORT.
+    Сервер не блокує asyncio-loop бота та не потребує додаткових залежностей.
+    """
+    port = int(os.environ.get('PORT', 8080))
+    server = HTTPServer(('0.0.0.0', port), _HealthHandler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True, name='health-http')
+    thread.start()
+    logging.info(f'Health check server listening on port {port} (GET /health → 200 OK)')
 
 # --- Singleton Lock ---
 LOCK_FILE = "discord_music_bot.lock"
@@ -44,6 +77,7 @@ def check_single_instance():
     atexit.register(cleanup_lock)
 
 check_single_instance()
+start_health_server()  # Render/PaaS: слухаємо на $PORT перед запуском бота
 init_ytdlp_cookies()
 
 # --- Налаштування логування з ротацією ---

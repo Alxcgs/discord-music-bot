@@ -37,30 +37,13 @@ YTDLP_FORMAT_FALLBACKS = (
 )
 
 # Публічні Piped API — обхід блокування YouTube з datacenter IP (Render тощо)
-# Piped проксює потік через свій сервер, тому URL доступний з Render
 PIPED_INSTANCES = (
-    "https://pipedapi.adminforge.de",
-    "https://pipedapi.astral.cy",
-    "https://api.piped.privacydev.net",
-    "https://pipedapi.mha.fi",
     "https://pipedapi.kavin.rocks",
     "https://api.piped.projectsegfau.lt",
     "https://pipedapi.lunar.icu",
     "https://pipedapi.smnz.de",
     "https://piped-api.garudalinux.org",
     "https://api.piped.private.coffee",
-)
-
-# Публічні Invidious API — резерв якщо Piped не доступний
-INVIDIOUS_INSTANCES = (
-    "https://invidious.privacyredirect.com",
-    "https://yewtu.be",
-    "https://invidious.nerdvpn.de",
-    "https://yt.artemislena.eu",
-    "https://inv.tux.pizza",
-    "https://invidious.lunar.icu",
-    "https://iv.melmac.space",
-    "https://invidious.perennialte.ch",
 )
 
 
@@ -196,7 +179,7 @@ def _piped_first_enabled() -> bool:
     return os.getenv("YTDLP_PIPED_FIRST", "1").strip().lower() not in ("0", "false", "no")
 
 
-def _pick_piped_stream_url(data: Dict[str, Any], base_url: str = "") -> Optional[str]:
+def _pick_piped_stream_url(data: Dict[str, Any]) -> Optional[str]:
     """Pick best playable URL from a Piped /streams response."""
     audio_streams = list(data.get("audioStreams") or [])
     if audio_streams:
@@ -209,8 +192,6 @@ def _pick_piped_stream_url(data: Dict[str, Any], base_url: str = "") -> Optional
         audio_streams.sort(key=_audio_score, reverse=True)
         url = audio_streams[0].get("url")
         if url:
-            if url.startswith("/") and base_url:
-                url = base_url.rstrip("/") + url
             return url
 
     video_streams = list(data.get("videoStreams") or [])
@@ -220,11 +201,7 @@ def _pick_piped_stream_url(data: Dict[str, Any], base_url: str = "") -> Optional
     ]
     if combined:
         combined.sort(key=lambda s: int(s.get("bitrate", 0) or 0), reverse=True)
-        url = combined[0].get("url")
-        if url:
-            if url.startswith("/") and base_url:
-                url = base_url.rstrip("/") + url
-            return url
+        return combined[0].get("url")
 
     hls = data.get("hls")
     if isinstance(hls, str) and hls.startswith("http"):
@@ -234,7 +211,7 @@ def _pick_piped_stream_url(data: Dict[str, Any], base_url: str = "") -> Optional
 
 
 def fetch_piped_stream(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
-    """Отримати media URL через Piped API (Piped проксює через свій сервер)."""
+    """Отримати media URL через Piped API (не залежить від IP Render)."""
     video_id = _youtube_video_id(page_url)
     if not video_id:
         return None, {}
@@ -251,7 +228,7 @@ def fetch_piped_stream(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
         api_url = f"{base}/streams/{video_id}"
         try:
             req = Request(api_url, headers=headers)
-            with urlopen(req, timeout=8) as resp:
+            with urlopen(req, timeout=5) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
 
             meta: Dict[str, Any] = {
@@ -261,7 +238,7 @@ def fetch_piped_stream(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
                 "thumbnail": data.get("thumbnailUrl"),
             }
 
-            stream_url = _pick_piped_stream_url(data, base_url=base)
+            stream_url = _pick_piped_stream_url(data)
             if stream_url:
                 logger.info(f"Stream URL resolved via Piped ({base})")
                 return stream_url, meta
@@ -275,56 +252,6 @@ def fetch_piped_stream(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
             logger.warning(f"Piped instance {base} failed: {exc}")
         except Exception as exc:
             logger.warning(f"Piped instance {base} failed: {exc}")
-
-    return None, {}
-
-
-def fetch_invidious_stream(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
-    """Резервне отримання URL через Invidious API (якщо Piped не спрацював)."""
-    video_id = _youtube_video_id(page_url)
-    if not video_id:
-        return None, {}
-
-    custom = os.getenv("INVIDIOUS_API_URL", "").strip().rstrip("/")
-    instances: List[str] = [custom] if custom else list(INVIDIOUS_INSTANCES)
-    headers = {"User-Agent": "Mozilla/5.0 (compatible; discord-music-bot/1.0)"}
-
-    for base in instances:
-        # local=true — Invidious повертає URL через свій проксі, а не googlevideo.com
-        api_url = f"{base}/api/v1/videos/{video_id}?local=true"
-        try:
-            req = Request(api_url, headers=headers)
-            with urlopen(req, timeout=8) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-
-            adaptive = data.get("adaptiveFormats") or []
-            audio_formats = [
-                f for f in adaptive
-                if f.get("url") and "audio" in (f.get("type") or "").lower()
-            ]
-
-            if audio_formats:
-                def _inv_score(f: Dict[str, Any]) -> int:
-                    mime = (f.get("type") or "").lower()
-                    return (100_000 if "opus" in mime else 0) + int(f.get("bitrate", 0) or 0)
-
-                audio_formats.sort(key=_inv_score, reverse=True)
-                stream_url = audio_formats[0]["url"]
-                if stream_url.startswith("/"):
-                    stream_url = base.rstrip("/") + stream_url
-
-                thumbnails = data.get("videoThumbnails") or []
-                meta = {
-                    "title": data.get("title"),
-                    "webpage_url": page_url,
-                    "duration": data.get("lengthSeconds"),
-                    "thumbnail": thumbnails[0].get("url") if thumbnails else None,
-                }
-                logger.info(f"Stream URL resolved via Invidious ({base})")
-                return stream_url, meta
-
-        except Exception as exc:
-            logger.warning(f"Invidious instance {base} failed: {exc}")
 
     return None, {}
 
@@ -363,21 +290,14 @@ def _is_bot_check_error(exc: Exception) -> bool:
 
 
 def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
-    """Resolve a direct media URL: Piped -> Invidious -> yt-dlp -> Piped retry."""
+    """Resolve a direct media URL: Piped first for YouTube, then yt-dlp."""
     video_id = _youtube_video_id(page_url)
     if video_id and _piped_first_enabled():
         logger.info("Trying Piped API first (cloud-friendly)")
         piped_url, piped_meta = fetch_piped_stream(page_url)
         if piped_url:
             return piped_url, piped_meta
-
-        # Piped не спрацював — пробуємо Invidious
-        logger.warning("Piped API failed — trying Invidious")
-        inv_url, inv_meta = fetch_invidious_stream(page_url)
-        if inv_url:
-            return inv_url, inv_meta
-
-        logger.warning("Invidious also failed — falling back to yt-dlp profiles")
+        logger.warning("Piped API failed — falling back to yt-dlp")
 
     base_opts: Dict[str, Any] = {
         "quiet": True,

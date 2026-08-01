@@ -1,0 +1,31 @@
+# Render deployment configuration
+# Docs: https://render.com/docs/blueprint-spec
+#
+# Тип: web (єдиний безкоштовний варіант на Render).
+# Щоб бот не "засинав" після 15 хв бездіяльності — підключіть UptimeRobot
+# (безкоштовно) і пінгуйте https://<app>.onrender.com/health кожні 10 хвилин.
+
+services:
+  - type: web
+    name: discord-music-bot
+    env: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: DISCORD_TOKEN
+        sync: false           # Заповніть вручну у Render Dashboard → Environment
+
+      - key: PYTHONUNBUFFERED
+        value: "1"
+
+      - key: DB_DATA_DIR
+        value: /app/data
+
+      # Вимикаємо Piped API (всі публічні інстанси ненадійні, додають ~20с затримки)
+      - key: YTDLP_PIPED_FIRST
+        value: "0"
+
+      # Необов'язково: YouTube cookies у base64 для обходу обмежень
+      # - key: YTDLP_COOKIES_B64
+      #   sync: false
