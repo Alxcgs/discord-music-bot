@@ -386,7 +386,58 @@ def _is_bot_check_error(exc: Exception) -> bool:
     return "sign in to confirm" in msg or "not a bot" in msg
 
 
+def fetch_youtube_oembed(url: str) -> Optional[str]:
+    """Fetch video title via YouTube oEmbed API (never blocked on datacenter IPs)."""
+    try:
+        from urllib.request import Request, urlopen
+        import json
+        oembed_url = f"https://www.youtube.com/oembed?url={url}&format=json"
+        req = Request(oembed_url, headers={"User-Agent": "Mozilla/5.0"})
+        with urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            return data.get("title")
+    except Exception as exc:
+        logger.warning(f"oEmbed title fetch failed for {url}: {exc}")
+        return None
+
+
+def fetch_soundcloud_fallback(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
+    """Fallback for datacenter IP blocks: fetch title via oEmbed and resolve stream via SoundCloud search."""
+    title = fetch_youtube_oembed(page_url)
+    if not title:
+        return None, {}
+
+    try:
+        ydl_opts = {
+            "quiet": True,
+            "no_warnings": True,
+            "extract_flat": False,
+            "format": "bestaudio/best",
+            "source_address": "0.0.0.0",
+            "force-ipv4": True,
+        }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(f"scsearch1:{title}", download=False)
+            entries = info.get("entries") or []
+            if entries:
+                entry = entries[0]
+                stream_url = _pick_stream_url(entry) or entry.get("url")
+                if stream_url:
+                    meta = {
+                        "title": entry.get("title", title),
+                        "webpage_url": page_url,
+                        "duration": entry.get("duration"),
+                        "thumbnail": entry.get("thumbnail"),
+                    }
+                    return stream_url, meta
+    except Exception as exc:
+        logger.warning(f"SoundCloud fallback failed for '{title}': {exc}")
+
+    return None, {}
+
+
 def extract_stream_url(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
+
     """Resolve a direct media URL: Piped first for YouTube, then yt-dlp."""
     video_id = _youtube_video_id(page_url)
     if video_id and _piped_first_enabled():
