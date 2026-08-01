@@ -23,8 +23,9 @@ services:
         value: /app/data
 
       # Вимикаємо Piped API (всі публічні інстанси ненадійні, додають ~20с затримки)
-      - key: YTDLP_PIPED_FIRST
-        value: "0"
+      # Для Render ЗАЛИШАЄМО Piped увімкненим (єдиний обхід блокування datacenter IP YouTube)
+      # - key: YTDLP_PIPED_FIRST
+      #   value: "0"
 
       # Необов'язково: YouTube cookies у base64 для обходу обмежень
       # - key: YTDLP_COOKIES_B64

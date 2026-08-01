@@ -37,13 +37,14 @@ YTDLP_FORMAT_FALLBACKS = (
 )
 
 # Публічні Piped API — обхід блокування YouTube з datacenter IP (Render тощо)
+# Список оновлено 2025-08; нестабільні видалено, додано нові
 PIPED_INSTANCES = (
-    "https://pipedapi.kavin.rocks",
-    "https://api.piped.projectsegfau.lt",
-    "https://pipedapi.lunar.icu",
-    "https://pipedapi.smnz.de",
-    "https://piped-api.garudalinux.org",
-    "https://api.piped.private.coffee",
+    "https://pipedapi.kavin.rocks",          # Official
+    "https://piped-api.cae.re",              # EU, стабільний
+    "https://pipedapi.in.projectsegfau.lt",  # India CDN
+    "https://api.piped.yt",                  # Alternate
+    "https://api.piped.private.coffee",      # EU
+    "https://pipedapi.lunar.icu",            # fallback
 )
 
 
@@ -256,7 +257,72 @@ def fetch_piped_stream(page_url: str) -> Tuple[Optional[str], Dict[str, Any]]:
     return None, {}
 
 
+def fetch_piped_search(
+    query: str, max_results: int = 10
+) -> List[Dict[str, Any]]:
+    """Шукає відео через Piped /search (обхід YouTube datacenter-блокування).
+
+    Повертає список dict з ключами: title, url, duration, thumbnail.
+    Порожній список якщо Piped недоступний — caller має fallback на yt-dlp.
+    """
+    instances: List[str] = []
+    custom = os.getenv("PIPED_API_URL", "").strip().rstrip("/")
+    if custom:
+        instances.append(custom)
+    instances.extend(PIPED_INSTANCES)
+
+    headers = {"User-Agent": "Mozilla/5.0 (compatible; discord-music-bot/1.0)"}
+
+    from urllib.parse import urlencode
+    params = urlencode({"q": query, "filter": "videos"})
+
+    for base in instances:
+        api_url = f"{base}/search?{params}"
+        try:
+            req = Request(api_url, headers=headers)
+            with urlopen(req, timeout=5) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+
+            items = data.get("items") or []
+            results: List[Dict[str, Any]] = []
+            for item in items:
+                if item.get("type") != "stream":
+                    continue
+                raw_url = item.get("url", "")
+                if raw_url.startswith("/watch"):
+                    page_url = f"https://www.youtube.com{raw_url}"
+                elif raw_url.startswith("http"):
+                    page_url = raw_url
+                else:
+                    continue
+                duration = item.get("duration")
+                results.append({
+                    "title": item.get("title", "Unknown"),
+                    "url": page_url,
+                    "webpage_url": page_url,
+                    "duration": duration if isinstance(duration, (int, float)) else None,
+                    "thumbnail": item.get("thumbnail"),
+                })
+                if len(results) >= max_results:
+                    break
+
+            if results:
+                logger.info(
+                    f"Piped search OK ({base}): {len(results)} results for '{query}'"
+                )
+                return results
+
+            logger.warning(f"Piped search ({base}): 0 results for '{query}'")
+        except (URLError, TimeoutError, json.JSONDecodeError, KeyError) as exc:
+            logger.warning(f"Piped search {base} failed: {exc}")
+        except Exception as exc:
+            logger.warning(f"Piped search {base} failed: {exc}")
+
+    return []
+
+
 def _pick_stream_url(info: Dict[str, Any]) -> Optional[str]:
+
     """Pick a playable URL from extracted info / formats list."""
     if info.get("url"):
         return info["url"]

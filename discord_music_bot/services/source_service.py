@@ -2,7 +2,12 @@ import yt_dlp
 import logging
 import asyncio
 from discord_music_bot import consts
-from discord_music_bot.ytdlp_config import apply_ytdlp_python_opts
+from discord_music_bot.ytdlp_config import (
+    apply_ytdlp_python_opts,
+    fetch_piped_search,
+    fetch_piped_stream,
+    _piped_first_enabled,
+)
 from typing import List, Dict, Optional, Tuple, Any
 
 class SourceService:
@@ -56,8 +61,21 @@ class SourceService:
 
     async def search_videos(self, query: str, max_results: int = 10) -> List[Dict[str, Any]]:
         """Шукає кілька відео за текстовим запитом (для меню вибору)."""
+
+        # Спочатку пробуємо Piped /search — обхід блокування YouTube datacenter IP
+        if _piped_first_enabled():
+            try:
+                piped_results = await self._get_loop().run_in_executor(
+                    None, lambda: fetch_piped_search(query, max_results)
+                )
+                if piped_results:
+                    return piped_results
+                self.logger.warning("Piped search failed — falling back to yt-dlp ytsearch")
+            except Exception as e:
+                self.logger.warning(f"Piped search error: {e} — falling back to yt-dlp")
+
+        # Fallback: yt-dlp ytsearch (може не працювати на cloud IP)
         search_url = f"ytsearch{max_results}:{query}"
-        
         try:
             ydl_opts = apply_ytdlp_python_opts(self.light_ydl_opts.copy())
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
