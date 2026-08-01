@@ -81,8 +81,34 @@ def _log_cookie_stats(path: str) -> None:
         logger.warning(f"Could not read cookie stats: {exc}")
 
 
+def _generate_guest_cookies(cookies_path: str) -> bool:
+    """Auto-generate Netscape guest visitor cookies directly from YouTube."""
+    import http.cookiejar
+    import urllib.request
+    try:
+        jar = http.cookiejar.MozillaCookieJar(cookies_path)
+        req = urllib.request.Request(
+            "https://www.youtube.com",
+            headers={
+                "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+                ),
+                "Accept-Language": "en-US,en;q=0.9",
+            },
+        )
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+        opener.open(req, timeout=5)
+        jar.save(ignore_discard=True, ignore_expires=True)
+        logger.info(f"Auto-generated YouTube visitor cookies saved to {cookies_path}")
+        return True
+    except Exception as exc:
+        logger.warning(f"Could not auto-generate YouTube guest cookies: {exc}")
+        return False
+
+
 def init_ytdlp_cookies() -> Optional[str]:
-    """Load YouTube cookies from env and return the file path, if configured."""
+    """Load YouTube cookies from env, or auto-generate visitor cookies."""
     global _cookies_path
 
     explicit_path = os.getenv("YTDLP_COOKIES_FILE", "").strip()
@@ -94,10 +120,11 @@ def init_ytdlp_cookies() -> Optional[str]:
         return _cookies_path
 
     cookies_b64 = os.getenv("YTDLP_COOKIES_B64", "").strip()
+    data_dir = os.environ.get("DB_DATA_DIR", "data")
+    os.makedirs(data_dir, exist_ok=True)
+    cookies_path = os.path.join(data_dir, "ytdlp_cookies.txt")
+
     if cookies_b64:
-        data_dir = os.environ.get("DB_DATA_DIR", "data")
-        os.makedirs(data_dir, exist_ok=True)
-        cookies_path = os.path.join(data_dir, "ytdlp_cookies.txt")
         try:
             content = base64.b64decode(cookies_b64)
             _write_cookies_file(cookies_path, content)
@@ -108,14 +135,18 @@ def init_ytdlp_cookies() -> Optional[str]:
             return _cookies_path
         except Exception as exc:
             logger.error(f"Failed to decode YTDLP_COOKIES_B64: {exc}")
-            return None
 
-    logger.warning(
-        "YouTube cookies not configured (YTDLP_COOKIES_B64 / YTDLP_COOKIES_FILE). "
-        "Will try guest player clients with Deno."
-    )
+    # Fallback: auto-generate guest cookies directly from YouTube
+    if _generate_guest_cookies(cookies_path):
+        _cookies_path = cookies_path
+        _log_cookie_stats(cookies_path)
+        _log_js_runtime()
+        return _cookies_path
+
+    logger.warning("YouTube cookies not configured. Will try guest player clients with Deno.")
     _log_js_runtime()
     return None
+
 
 
 def _log_js_runtime() -> None:
